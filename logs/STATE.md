@@ -27,6 +27,8 @@
 
 ## Recently Completed
 
+- ✅ fix: Set PIN to 9890 for testing (16:28)
+
 - ✅ fix: Add inline onclick handlers for PIN (16:27)
 
 - ✅ fix: Add fallback PIN handler and better error handling (16:23)

@@ -1,5 +1,38 @@
 # FamilyGoals - Design UI/UX
 
+## GŁÓWNY CEL APLIKACJI
+
+**Świadomość finansowa pary małżeńskiej:**
+1. Ile MUSZĄ zarabiać każdego miesiąca (cel)
+2. Ile FAKTYCZNIE zarabiają (rzeczywistość)
+3. Timeline zarobków → widać postęp
+4. Wszystko powiązane z celami finansowymi
+
+**Dashboard musi pokazywać OD RAZU:**
+- Wymagane przychody vs aktualne
+- Cele i postęp do nich
+- Timeline zarobków (graficzny)
+
+---
+
+## WYMAGANIA v2 (z testów v1)
+
+### KRYTYCZNE:
+- ✅ JASNY MOTYW - pastelowe, ciepłe kolory (NIE ciemny!)
+- ✅ SZYBKA aplikacja - minimum kodu, bez ciężkich animacji
+- ✅ PRZYCHODY > wydatki - fokus na zarabianie, nie wydawanie
+- ✅ CELE widoczne od razu na głównej
+- ✅ TIMELINE zarobków - graficzny widok postępu
+
+### Styl wizualny:
+- Jasne tło (biały/kremowy)
+- Pastelowe akcenty (miętowy, brzoskwiniowy, lawendowy)
+- Duże, czytelne liczby
+- Minimalistyczny design
+- Emoji jako ikony
+
+---
+
 ## Persona
 
 **Ania, 35 lat**
@@ -21,7 +54,7 @@
 
 ### 2. Czytelność
 - Duże fonty (min 16px)
-- Wysoki kontrast
+- Wysoki kontrast na jasnym tle
 - Jasne etykiety
 
 ### 3. Dotyk
@@ -30,7 +63,7 @@
 - Feedback wizualny
 
 ### 4. Emocje
-- Ciepłe kolory
+- Pastelowe, ciepłe kolory
 - Pozytywne komunikaty
 - Celebracja osiągnięć
 

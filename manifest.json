@@ -4,8 +4,8 @@
   "description": "Rodzinna aplikacja do śledzenia celów finansowych",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f14",
-  "theme_color": "#0f0f14",
+  "background_color": "#faf8f5",
+  "theme_color": "#faf8f5",
   "orientation": "portrait",
   "lang": "pl-PL",
   "icons": [
