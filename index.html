@@ -46,6 +46,12 @@
       <span class="month-badge" id="month-badge">Grudzień 2025</span>
     </header>
 
+    <!-- Alerts Section -->
+    <div id="alerts-container" class="alerts-container"></div>
+
+    <!-- Daily Tip Section -->
+    <div id="daily-tip" class="daily-tip-card" style="display: none;"></div>
+
     <!-- Savings Hero -->
     <div class="income-hero">
       <div class="income-hero-title">🎯 Do odłożenia w tym miesiącu</div>
@@ -498,12 +504,12 @@
         <div class="form-group">
           <label>Kategoria</label>
           <div class="chips">
-            <button type="button" class="chip">🏠 Mieszkanie</button>
-            <button type="button" class="chip active">🍽️ Jedzenie</button>
-            <button type="button" class="chip">🚗 Transport</button>
-            <button type="button" class="chip">👶 Dzieci</button>
-            <button type="button" class="chip">❤️ Zdrowie</button>
-            <button type="button" class="chip">🎬 Rozrywka</button>
+            <button type="button" class="chip" data-category-id="housing">🏠 Mieszkanie</button>
+            <button type="button" class="chip active" data-category-id="food">🍽️ Jedzenie</button>
+            <button type="button" class="chip" data-category-id="transport">🚗 Transport</button>
+            <button type="button" class="chip" data-category-id="kids">👶 Dzieci</button>
+            <button type="button" class="chip" data-category-id="health">❤️ Zdrowie</button>
+            <button type="button" class="chip" data-category-id="entertainment">🎬 Rozrywka</button>
           </div>
         </div>
         <div class="form-group">
@@ -596,26 +602,60 @@
 
   <!-- Load managers first -->
   <script src="js/data-manager.js"></script>
+  <script src="js/event-bus.js"></script>
   <script src="js/gamification-manager.js"></script>
   <script src="js/engagement-manager.js"></script>
+  <script src="js/alert-manager.js"></script>
+  <script src="js/pin-manager.js"></script>
+  <script src="js/recurring-manager.js"></script>
+  <script src="js/ai-advisor.js"></script>
+  <script src="js/family-unity.js"></script>
+  <script src="js/family-balance.js"></script>
   <script src="js/app.js"></script>
   <script>
-    // PIN
-    var pin = '';
-    var correctPin = localStorage.getItem('familygoals_data') ? JSON.parse(localStorage.getItem('familygoals_data')).pin || '9890' : '9890';
+    // PIN - using PinManager
+    var pinInput = '';
     var dots = document.querySelectorAll('.pin-dot');
     var container = document.getElementById('pin-container');
 
+    // Check if PIN is enabled, if not - skip to dashboard
+    (function checkPinRequired() {
+      if (typeof PinManager !== 'undefined') {
+        if (!PinManager.isEnabled()) {
+          // No PIN set - go directly to dashboard
+          document.getElementById('pin-screen').classList.remove('active');
+          document.getElementById('screen-dashboard').classList.add('active');
+          document.getElementById('bottom-nav').classList.add('visible');
+        } else if (PinManager.isSessionActive()) {
+          // Session still active - go directly to dashboard
+          document.getElementById('pin-screen').classList.remove('active');
+          document.getElementById('screen-dashboard').classList.add('active');
+          document.getElementById('bottom-nav').classList.add('visible');
+        }
+      }
+    })();
+
     function pinKey(k) {
-      if (k === 'del') { pin = pin.slice(0, -1); }
-      else if (pin.length < 4) { pin += k; }
+      if (k === 'del') { pinInput = pinInput.slice(0, -1); }
+      else if (pinInput.length < 4) { pinInput += k; }
       dots.forEach(function(d, i) {
-        d.classList.toggle('filled', i < pin.length);
+        d.classList.toggle('filled', i < pinInput.length);
         d.classList.remove('error');
       });
-      if (pin.length === 4) {
+      if (pinInput.length === 4) {
         setTimeout(function() {
-          if (pin === correctPin) {
+          var isValid = false;
+          if (typeof PinManager !== 'undefined' && PinManager.isEnabled()) {
+            isValid = PinManager.verify(pinInput);
+            if (isValid) {
+              PinManager.startSession();
+            }
+          } else {
+            // Fallback - default PIN
+            isValid = (pinInput === '9890');
+          }
+
+          if (isValid) {
             document.getElementById('pin-screen').classList.remove('active');
             document.getElementById('screen-dashboard').classList.add('active');
             document.getElementById('bottom-nav').classList.add('visible');
@@ -624,7 +664,7 @@
             dots.forEach(function(d) { d.classList.add('error'); });
             setTimeout(function() {
               container.classList.remove('shake');
-              pin = '';
+              pinInput = '';
               dots.forEach(function(d) { d.classList.remove('filled', 'error'); });
             }, 400);
           }
@@ -653,6 +693,15 @@
     }
     function closeAllModals() {
       document.querySelectorAll('.modal').forEach(function(m) { m.classList.remove('active'); });
+      // Reset edit state in app
+      if (typeof app !== 'undefined' && app.resetEditState) {
+        app.resetEditState();
+      }
+      // Reset modal titles
+      var goalModal = document.getElementById('modal-goal');
+      if (goalModal) goalModal.querySelector('.modal-header h2').textContent = '🎯 Nowy cel';
+      var incomeModal = document.getElementById('modal-income');
+      if (incomeModal) incomeModal.querySelector('.modal-header h2').textContent = '💵 Dodaj przychód';
     }
 
     // Chips

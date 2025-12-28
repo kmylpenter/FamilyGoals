@@ -9,10 +9,15 @@
   let dataManager = null;
   let gamificationManager = null;
   let engagementManager = null;
+  let aiAdvisor = null;
+  let familyUnity = null;
+  let familyBalance = null;
 
   // Current state
   let currentMonth = new Date();
   let currentPerson = 'wife'; // 'wife' lub 'husband'
+  let editingGoalId = null;
+  let editingSourceId = null;
 
   // ============ HELPERS ============
   const $ = id => document.getElementById(id);
@@ -40,6 +45,16 @@
       dataManager = new DataManager();
       await dataManager.init();
 
+      // Connect EventBus for reactivity
+      if (typeof connectDataManagerToEventBus !== 'undefined') {
+        connectDataManagerToEventBus(dataManager);
+      }
+
+      // Process recurring expenses/income
+      if (typeof RecurringManager !== 'undefined') {
+        RecurringManager.processIfNeeded();
+      }
+
       // Init GamificationManager (requires dataManager)
       if (typeof GamificationManager !== 'undefined') {
         gamificationManager = new GamificationManager(dataManager);
@@ -51,11 +66,33 @@
         engagementManager.recordLogin(currentPerson);
       }
 
-      // Setup UI
+      // Init AIAdvisor
+      if (typeof AIAdvisor !== 'undefined') {
+        aiAdvisor = new AIAdvisor(dataManager);
+      }
+
+      // Init FamilyUnityManager
+      if (typeof FamilyUnityManager !== 'undefined') {
+        familyUnity = new FamilyUnityManager(dataManager);
+      }
+
+      // Init FamilyBalanceManager
+      if (typeof FamilyBalanceManager !== 'undefined') {
+        familyBalance = new FamilyBalanceManager(dataManager);
+      }
+
+      // Setup UI event listeners
       setupEventListeners();
+
+      // Subscribe to data changes for auto-refresh
+      if (typeof EventBus !== 'undefined') {
+        EventBus.on('data:changed', () => renderAll());
+      }
+
+      // Render UI
       renderAll();
 
-      console.log('FamilyGoals App initialized');
+      console.log('FamilyGoals App initialized with all managers');
     } catch (err) {
       console.error('Init error:', err);
     }
@@ -111,9 +148,70 @@
   // ============ RENDER FUNCTIONS ============
   function renderAll() {
     renderDashboard();
+    renderAlerts();
+    renderDailyTip();
     renderIncome();
     renderGoals();
     renderAchievements();
+  }
+
+  function renderAlerts() {
+    const container = $('alerts-container');
+    if (!container) return;
+
+    // Get alerts from AlertManager if available
+    if (typeof AlertManager !== 'undefined') {
+      const alerts = AlertManager.getFormattedAlerts();
+
+      if (alerts.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = alerts.slice(0, 3).map(alert => `
+        <div class="alert-item ${alert.type}" data-alert-id="${alert.categoryId || alert.goalId || ''}">
+          <span class="alert-icon">${alert.icon}</span>
+          <div class="alert-content">
+            <div class="alert-title">${alert.title}</div>
+            <div class="alert-message">${alert.message}</div>
+          </div>
+          ${alert.dismissable ? `<button class="alert-dismiss" onclick="app.dismissAlert(this.parentElement)">✕</button>` : ''}
+        </div>
+      `).join('');
+    }
+  }
+
+  function dismissAlert(alertEl) {
+    if (typeof AlertManager !== 'undefined') {
+      const alertId = alertEl.dataset.alertId;
+      // Find and dismiss the alert
+      const alerts = AlertManager.getFormattedAlerts();
+      const alert = alerts.find(a => (a.categoryId || a.goalId || '') === alertId);
+      if (alert) {
+        AlertManager.dismiss(alert);
+      }
+    }
+    alertEl.remove();
+  }
+
+  function renderDailyTip() {
+    const container = $('daily-tip');
+    if (!container) return;
+
+    // Get daily tip from AIAdvisor if available
+    if (aiAdvisor && typeof aiAdvisor.getDailyTip === 'function') {
+      const tip = aiAdvisor.getDailyTip();
+      if (tip) {
+        container.style.display = 'block';
+        container.innerHTML = `
+          <div class="tip-header">
+            <span class="tip-icon">💡</span>
+            <span class="tip-label">Porada dnia</span>
+          </div>
+          <div class="tip-content">${tip.text || tip}</div>
+        `;
+      }
+    }
   }
 
   function renderDashboard() {
@@ -422,9 +520,13 @@
       const catNames = {
         start: '🌟 Pierwsze kroki',
         savings: '💰 Oszczędności',
+        spending: '💸 Wydatki',
         goals: '🎯 Cele',
-        coop: '💑 Współpraca',
+        income: '💵 Przychody',
+        couple: '💑 Para',
+        coop: '🤝 Współpraca',
         streak: '🔥 Streak',
+        level: '📊 Poziomy',
         special: '🎉 Specjalne',
         expert: '🏆 Ekspert'
       };
@@ -460,26 +562,45 @@
       const date = form.querySelector('input[type="date"]').value;
       const note = form.querySelector('input[type="text"]')?.value || '';
 
-      // Check if source exists
-      const sources = dataManager.getIncomeSources();
-      let source = sources.find(s => s.name === sourceName && s.owner === owner);
+      let source;
 
-      if (!source) {
-        // Create new source
-        source = dataManager.addIncomeSource({
-          name: sourceName,
-          expectedAmount: amount,
-          owner,
-          icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
-        });
+      if (editingSourceId) {
+        // Update existing source
+        source = dataManager.getIncomeSources().find(s => s.id === editingSourceId);
+        if (source) {
+          dataManager.updateIncomeSource(editingSourceId, {
+            name: sourceName,
+            expectedAmount: amount,
+            owner,
+            icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
+          });
+        }
+        editingSourceId = null;
+      } else {
+        // Check if source exists
+        const sources = dataManager.getIncomeSources();
+        source = sources.find(s => s.name === sourceName && s.owner === owner);
+
+        if (!source) {
+          // Create new source
+          source = dataManager.addIncomeSource({
+            name: sourceName,
+            expectedAmount: amount,
+            owner,
+            icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
+          });
+        }
+
+        // Record payment
+        dataManager.recordPayment(source.id, { amount, date, note });
       }
-
-      // Record payment
-      dataManager.recordPayment(source.id, { amount, date, note });
 
       // Check achievements
       if (gamificationManager) {
-        gamificationManager.checkAndUnlock('first_income', owner);
+        const newAchievements = gamificationManager.checkAchievements(owner);
+        if (newAchievements.length > 0) {
+          console.log('New achievements:', newAchievements);
+        }
       }
 
       closeAllModals();
@@ -494,7 +615,41 @@
   }
 
   function editIncomeSource(id) {
-    // TODO: Prefill form with source data
+    const source = dataManager.getIncomeSources().find(s => s.id === id);
+    if (!source) return;
+
+    editingSourceId = id;
+
+    const modal = $('modal-income');
+    const form = modal.querySelector('form');
+
+    // Prefill form
+    form.querySelector('input[type="number"]').value = source.expectedAmount || '';
+
+    // Set source chip
+    const sourceChips = form.querySelectorAll('.chips')[0].querySelectorAll('.chip');
+    sourceChips.forEach(c => {
+      c.classList.remove('active');
+      const chipName = c.textContent.trim().split(' ').pop();
+      if (source.name && source.name.includes(chipName)) {
+        c.classList.add('active');
+      }
+    });
+
+    // Set person chip
+    const personChips = form.querySelectorAll('.chips')[1]?.querySelectorAll('.chip');
+    if (personChips) {
+      personChips.forEach(c => c.classList.remove('active'));
+      if (source.owner === 'wife') {
+        personChips[0].classList.add('active');
+      } else {
+        personChips[1].classList.add('active');
+      }
+    }
+
+    // Update modal title
+    modal.querySelector('.modal-header h2').textContent = '💵 Edytuj źródło';
+
     openModal('modal-income');
   }
 
@@ -515,7 +670,7 @@
       const iconChip = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active');
       const icon = iconChip?.textContent || '🎯';
 
-      dataManager.addPlannedGoal({
+      const goalData = {
         name,
         type,
         targetAmount: target,
@@ -523,11 +678,23 @@
         targetDate: deadline + '-01',
         icon,
         monthlyContribution: type === 'recurring' ? target : null
-      });
+      };
+
+      if (editingGoalId) {
+        // Update existing goal
+        dataManager.updatePlannedGoal(editingGoalId, goalData);
+        editingGoalId = null;
+      } else {
+        // Add new goal
+        dataManager.addPlannedGoal(goalData);
+      }
 
       // Check achievements
       if (gamificationManager) {
-        gamificationManager.checkAndUnlock('first_goal', currentPerson);
+        const newAchievements = gamificationManager.checkAchievements(currentPerson);
+        if (newAchievements.length > 0) {
+          console.log('New achievements:', newAchievements);
+        }
       }
 
       closeAllModals();
@@ -542,7 +709,47 @@
   }
 
   function editGoal(id) {
-    // TODO: Prefill form with goal data
+    const goal = dataManager.getPlannedExpenses().find(g => g.id === id);
+    if (!goal) return;
+
+    editingGoalId = id;
+
+    const modal = $('modal-goal');
+    const form = modal.querySelector('form');
+
+    // Prefill form
+    form.querySelector('input[type="text"]').value = goal.name || '';
+    form.querySelectorAll('input[type="number"]')[0].value = goal.targetAmount || '';
+    form.querySelectorAll('input[type="number"]')[1].value = goal.currentAmount || 0;
+
+    // Set deadline (month format)
+    if (goal.targetDate) {
+      form.querySelector('input[type="month"]').value = goal.targetDate.slice(0, 7);
+    }
+
+    // Set type chip
+    const typeChips = form.querySelectorAll('.chips')[0].querySelectorAll('.chip');
+    typeChips.forEach(c => c.classList.remove('active'));
+    if (goal.type === 'recurring') {
+      typeChips[1].classList.add('active');
+    } else {
+      typeChips[0].classList.add('active');
+    }
+
+    // Set icon chip
+    const iconChips = form.querySelectorAll('.chips')[1]?.querySelectorAll('.chip');
+    if (iconChips && goal.icon) {
+      iconChips.forEach(c => {
+        c.classList.remove('active');
+        if (c.textContent.trim() === goal.icon) {
+          c.classList.add('active');
+        }
+      });
+    }
+
+    // Update modal title
+    modal.querySelector('.modal-header h2').textContent = '🎯 Edytuj cel';
+
     openModal('modal-goal');
   }
 
@@ -568,7 +775,10 @@
       });
 
       if (gamificationManager) {
-        gamificationManager.checkAndUnlock('first_expense', currentPerson);
+        const newAchievements = gamificationManager.checkAchievements(currentPerson);
+        if (newAchievements.length > 0) {
+          console.log('New achievements:', newAchievements);
+        }
       }
 
       closeAllModals();
@@ -591,10 +801,17 @@
   function changePin() {
     const newPin = prompt('Nowy PIN (4 cyfry):');
     if (newPin && /^\d{4}$/.test(newPin)) {
-      const settings = JSON.parse(localStorage.getItem('familygoals_settings') || '{}');
-      settings.pin = newPin;
-      localStorage.setItem('familygoals_settings', JSON.stringify(settings));
-      alert('PIN zmieniony!');
+      if (typeof PinManager !== 'undefined') {
+        PinManager.setPin(newPin);
+        PinManager.startSession();
+        alert('PIN zmieniony!');
+      } else {
+        // Fallback
+        const settings = JSON.parse(localStorage.getItem('familygoals_settings') || '{}');
+        settings.pin = newPin;
+        localStorage.setItem('familygoals_settings', JSON.stringify(settings));
+        alert('PIN zmieniony!');
+      }
     } else if (newPin) {
       alert('PIN musi mieć 4 cyfry');
     }
@@ -684,9 +901,13 @@
     const catNames = {
       start: '🌟 Pierwsze kroki',
       savings: '💰 Oszczędności',
+      spending: '💸 Wydatki',
       goals: '🎯 Cele',
-      coop: '💑 Współpraca',
+      income: '💵 Przychody',
+      couple: '💑 Para',
+      coop: '🤝 Współpraca',
       streak: '🔥 Streak',
+      level: '📊 Poziomy',
       special: '🎉 Specjalne',
       expert: '🏆 Ekspert'
     };
@@ -732,6 +953,12 @@
     modal.classList.add('active');
   }
 
+  // ============ RESET EDIT STATE ============
+  function resetEditState() {
+    editingGoalId = null;
+    editingSourceId = null;
+  }
+
   // ============ EXPOSE API ============
   window.app = {
     changeMonth,
@@ -744,7 +971,9 @@
     exportData,
     importData,
     clearData,
-    renderAll
+    renderAll,
+    resetEditState,
+    dismissAlert
   };
 
   // ============ START ============
