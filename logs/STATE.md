@@ -15,29 +15,32 @@
 
 ## Active Work
 
-- Inicjalizacja projektu FamilyGoals
+- Architektura i logika biznesowa (bez UI)
+- Czekamy na frontend-design plugin
 
 ---
 
 ## Blockers
 
-- Brak
+- Plugin frontend-design do zainstalowania
 
 ---
 
 ## Recently Completed
 
-- ✅ Initial commit - LFG project setup (10:50)
-
-- ✅ Projekt zainicjalizowany z Log File Genius (2025-12-28)
+- ✅ Dokumentacja: ARCHITECTURE.md, DESIGN.md
+- ✅ Logika: data-manager.js, pin-manager.js
+- ✅ PWA: manifest.json, sw.js
+- ✅ Dane: config.json, inflation.json, planned.json
+- ✅ LFG adoption + ADR-001
 
 ---
 
 ## Next Priorities (TAKTYCZNE - dziś/ta sesja)
 
-1. Przeczytać dokumentację LFG
-2. Ustalić pierwszy feature do implementacji
-3. Stworzyć podstawową strukturę plików
+1. Zainstalować frontend-design plugin
+2. Dokończyć logikę (recurring, alerty)
+3. Wygenerować UI z pluginem
 
 ---
 

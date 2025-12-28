@@ -1,0 +1,32 @@
+{
+  "lastUpdated": "2025-12-28",
+
+  "plannedExpenses": [
+    {
+      "id": "child-education",
+      "name": "Edukacja dziecka",
+      "description": "Studia, kursy, korepetycje",
+      "targetAmount": 50000,
+      "currentAmount": 0,
+      "targetDate": "2030-09-01",
+      "priority": "high",
+      "monthlyContribution": 500,
+      "icon": "graduation-cap",
+      "color": "#9C27B0"
+    },
+    {
+      "id": "apartment-renovation",
+      "name": "Remont mieszkania",
+      "description": "Kuchnia, łazienka, podłogi",
+      "targetAmount": 80000,
+      "currentAmount": 0,
+      "targetDate": "2027-06-01",
+      "priority": "medium",
+      "monthlyContribution": 1500,
+      "icon": "hammer",
+      "color": "#FF7043"
+    }
+  ],
+
+  "notes": "Wydatki planowane - aktualizowane przez Claude co miesiąc"
+}

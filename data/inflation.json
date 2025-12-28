@@ -1,0 +1,30 @@
+{
+  "lastUpdated": "2025-12-28",
+  "source": "GUS - Główny Urząd Statystyczny",
+  "sourceUrl": "https://stat.gov.pl/",
+
+  "currentRate": {
+    "year": 2025,
+    "month": 11,
+    "cpi": 4.7,
+    "note": "Dane za listopad 2025"
+  },
+
+  "categoryRates": {
+    "housing": 5.2,
+    "food": 4.1,
+    "transport": 3.8,
+    "health": 6.1,
+    "education": 4.5,
+    "entertainment": 3.2,
+    "clothing": 2.1,
+    "hygiene": 3.5,
+    "children": 4.8
+  },
+
+  "history": [
+    { "year": 2025, "month": 11, "cpi": 4.7 },
+    { "year": 2025, "month": 10, "cpi": 5.0 },
+    { "year": 2025, "month": 9, "cpi": 4.9 }
+  ]
+}

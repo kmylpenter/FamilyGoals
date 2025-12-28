@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4A90A4">
+  <title>FamilyGoals</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div id="app">
+    <p>UI będzie wygenerowane przez frontend-design plugin</p>
+    <p>Logika gotowa w js/</p>
+  </div>
+
+  <!-- Logic only - no UI yet -->
+  <script src="js/pin-manager.js"></script>
+  <script src="js/data-manager.js"></script>
+
+  <!-- PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
