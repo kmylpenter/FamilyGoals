@@ -27,6 +27,8 @@
 
 ## Recently Completed
 
+- ✅ fix: Add fallback PIN handler and better error handling (16:23)
+
 - ✅ fix: Add fallback for PIN screen display (16:19)
 
 - ✅ feat: Add frontend UI v1 (PIN + Dashboard) (16:09)
