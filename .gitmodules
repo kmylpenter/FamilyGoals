@@ -1,0 +1,4 @@
+[submodule ".log-file-genius"]
+	path = .log-file-genius
+	url = https://github.com/clark-mackey/log-file-genius.git
+	branch = main

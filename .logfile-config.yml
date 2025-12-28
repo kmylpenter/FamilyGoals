@@ -1,0 +1,15 @@
+# Log File Genius Configuration
+# All log files are in /logs/ folder (standard structure)
+
+# Version tracking
+log_file_genius_version: "0.2.0"
+
+# Profile selection
+profile: solo-developer
+
+# AI assistant
+ai_assistant: claude-code
+
+# For customization options, see:
+# - .log-file-genius/docs/profile-selection-guide.md
+# - .log-file-genius/profiles/*.yml
