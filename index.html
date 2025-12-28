@@ -664,6 +664,13 @@
     var months = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
     var now = new Date();
     document.getElementById('month-badge').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
+
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(function(reg) { console.log('SW registered'); })
+        .catch(function(err) { console.log('SW error:', err); });
+    }
   </script>
 
 </body>
