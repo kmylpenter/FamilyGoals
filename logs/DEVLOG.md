@@ -28,6 +28,39 @@
 
 ## Daily Log
 
+### 2025-12-28: Integracja frontend + PWA + luka LFG
+
+**Sytuacja:**
+Frontend v2 gotowy, ale nie podłączony
+do warstwy logiki. PWA wymaga ikon i
+manifest do generowania APK.
+
+**Wyzwanie:**
+1. PWABuilder wymagał kompletnego manifest
+2. app.js nie używał istniejących managerów
+3. Napisałem CRUD od zera zamiast użyć
+   DataManager - klasyczny błąd duplikacji
+
+**Decyzja:**
+1. Przepisać app.js na integrację z:
+   - DataManager (CRUD)
+   - GamificationManager (osiągnięcia)
+   - EngagementManager (streak)
+2. Utworzyć CODEBASE.md - katalog API
+3. Zgłosić lukę do projektu LFG
+
+**Rezultat:**
+- PWA manifest 44/44 pkt
+- app.js integruje 3 managery
+- CODEBASE.md z API 10 modułów
+- Raport do LFG zapisany w Raporty-MD
+
+**Files:**
+`js/app.js`, `manifest.json`,
+`logs/CODEBASE.md`, `icons/`, `screenshots/`
+
+---
+
 ### 2025-12-28: System motywacji - współpraca rodzinna
 
 **Sytuacja:**

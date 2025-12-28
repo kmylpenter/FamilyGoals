@@ -14,9 +14,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Fixed
+- fix: Correct manager initialization and method names. Files: `js/app.js`. Commit: `0eb6e45`
 - fix: Add service worker registration for PWA. Files: `index.html`. Commit: `e72415e`
 
 ### Added
+- **CODEBASE.md** - dokumentacja API wszystkich managerów. Files: `logs/CODEBASE.md`. Commit: `0eb6e45`
+- **app.js** - UI controller integrujący managery z frontendem. Files: `js/app.js`. Commit: `b3ac4c5`
+- **PWA icons** - ikony 192x192 i 512x512. Files: `icons/`. Commit: `4aab851`
+- **PWA screenshots** - dashboard i goals. Files: `screenshots/`. Commit: `c680d78`
+- **PWA manifest** - kompletny z shortcuts, screenshots, id. Files: `manifest.json`. Commit: `c680d78`
 - **Frontend v2** - jasny pastelowy motyw, fokus na przychody. Files: `css/main.css`, `index.html`. Commit: `608d9e4`
 - **Complete UI** - wszystkie ekrany + modale. Files: `index.html`, `css/main.css`. Commit: `6248915`
 - **New goals logic** - suma celów → miesięczne oszczędności. Files: `index.html`. Commit: `19e7fff`
