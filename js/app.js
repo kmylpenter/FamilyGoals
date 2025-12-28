@@ -35,23 +35,30 @@
 
   // ============ INIT ============
   async function init() {
-    // Init managers
-    dataManager = new DataManager();
-    await dataManager.init();
+    try {
+      // Init DataManager first
+      dataManager = new DataManager();
+      await dataManager.init();
 
-    if (typeof GamificationManager !== 'undefined') {
-      gamificationManager = new GamificationManager();
+      // Init GamificationManager (requires dataManager)
+      if (typeof GamificationManager !== 'undefined') {
+        gamificationManager = new GamificationManager(dataManager);
+      }
+
+      // Init EngagementManager (requires dataManager and gamificationManager)
+      if (typeof EngagementManager !== 'undefined') {
+        engagementManager = new EngagementManager(dataManager, gamificationManager);
+        engagementManager.recordLogin(currentPerson);
+      }
+
+      // Setup UI
+      setupEventListeners();
+      renderAll();
+
+      console.log('FamilyGoals App initialized');
+    } catch (err) {
+      console.error('Init error:', err);
     }
-    if (typeof EngagementManager !== 'undefined') {
-      engagementManager = new EngagementManager();
-      engagementManager.recordLogin();
-    }
-
-    // Setup UI
-    setupEventListeners();
-    renderAll();
-
-    console.log('FamilyGoals App initialized');
   }
 
   // ============ EVENT LISTENERS ============
@@ -357,9 +364,10 @@
   function renderAchievements() {
     if (!gamificationManager) return;
 
-    const wifeData = gamificationManager.getUserAchievements('wife');
-    const husbandData = gamificationManager.getUserAchievements('husband');
-    const categories = gamificationManager.constructor.CATEGORIES || {};
+    const wifeData = gamificationManager.getPlayerStats('wife');
+    const husbandData = gamificationManager.getPlayerStats('husband');
+    const wifeUnlocked = gamificationManager.unlockedAchievements?.wife?.unlocked || [];
+    const husbandUnlocked = gamificationManager.unlockedAchievements?.husband?.unlocked || [];
 
     // Stats cards
     const statsCards = $$('#screen-achievements .stat-card');
@@ -367,24 +375,25 @@
       statsCards[0].innerHTML = `
         <div class="stat-icon">👩</div>
         <div class="stat-value">${wifeData?.points || 0} pkt</div>
-        <div class="stat-label">Żona • ${wifeData?.unlocked?.length || 0}/105</div>
+        <div class="stat-label">Żona • ${wifeData?.unlockedCount || 0}/${wifeData?.totalCount || 105}</div>
       `;
       statsCards[1].innerHTML = `
         <div class="stat-icon">👨</div>
         <div class="stat-value">${husbandData?.points || 0} pkt</div>
-        <div class="stat-label">Mąż • ${husbandData?.unlocked?.length || 0}/105</div>
+        <div class="stat-label">Mąż • ${husbandData?.unlockedCount || 0}/${husbandData?.totalCount || 105}</div>
       `;
     }
 
     // Streak
     if (engagementManager) {
-      const streak = engagementManager.getStreak();
+      const streakStats = engagementManager.getStreakStats(currentPerson);
+      const streak = streakStats?.currentStreak || 0;
+      const mult = streakStats?.multiplier || 1;
       const streakCard = document.querySelector('.streak-card');
       if (streakCard) {
-        const mult = engagementManager.getMultiplier?.() || 1;
         streakCard.innerHTML = `
           <div class="streak-info">
-            <span class="streak-days">${streak || 0} dni</span>
+            <span class="streak-days">${streak} dni</span>
             <span class="streak-label">z rzędu</span>
           </div>
           <div class="streak-bonus">Mnożnik: ${mult}x</div>
@@ -397,7 +406,7 @@
     // Categories progress
     const catList = document.querySelector('#screen-achievements .list:last-of-type');
     if (catList) {
-      const allAchievements = gamificationManager.constructor.ACHIEVEMENTS;
+      const allAchievements = GamificationManager.ACHIEVEMENTS;
       const catCounts = {};
 
       Object.values(allAchievements).forEach(a => {
@@ -405,7 +414,7 @@
           catCounts[a.category] = { total: 0, unlocked: 0 };
         }
         catCounts[a.category].total++;
-        if (wifeData?.unlocked?.includes(a.id) || husbandData?.unlocked?.includes(a.id)) {
+        if (wifeUnlocked.includes(a.id) || husbandUnlocked.includes(a.id)) {
           catCounts[a.category].unlocked++;
         }
       });
@@ -599,8 +608,8 @@
       goals: dataManager.getPlannedExpenses(),
       categories: dataManager.getCustomCategories(),
       achievements: gamificationManager ? {
-        wife: gamificationManager.getUserAchievements('wife'),
-        husband: gamificationManager.getUserAchievements('husband')
+        wife: gamificationManager.getPlayerStats('wife'),
+        husband: gamificationManager.getPlayerStats('husband')
       } : null,
       exportDate: new Date().toISOString()
     };
@@ -667,10 +676,10 @@
   function showAchievementCategory(category) {
     if (!gamificationManager) return;
 
-    const allAchievements = gamificationManager.constructor.ACHIEVEMENTS;
+    const allAchievements = GamificationManager.ACHIEVEMENTS;
     const achievements = Object.values(allAchievements).filter(a => a.category === category);
-    const wifeData = gamificationManager.getUserAchievements('wife');
-    const husbandData = gamificationManager.getUserAchievements('husband');
+    const wifeUnlocked = gamificationManager.unlockedAchievements?.wife?.unlocked || [];
+    const husbandUnlocked = gamificationManager.unlockedAchievements?.husband?.unlocked || [];
 
     const catNames = {
       start: '🌟 Pierwsze kroki',
@@ -703,8 +712,8 @@
 
     modal.querySelector('.modal-header h2').textContent = catNames[category] || category;
     modal.querySelector('.achievement-list').innerHTML = achievements.map(a => {
-      const wifeHas = wifeData?.unlocked?.includes(a.id);
-      const husbandHas = husbandData?.unlocked?.includes(a.id);
+      const wifeHas = wifeUnlocked.includes(a.id);
+      const husbandHas = husbandUnlocked.includes(a.id);
       const unlocked = wifeHas || husbandHas;
 
       return `

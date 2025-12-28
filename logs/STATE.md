@@ -15,39 +15,19 @@
 
 ## Active Work
 
-- 🔧 Naprawa krytycznych bugów frontendu
+- PWA gotowe do testu na GitHub Pages
 
 ---
 
-## Blockers / Bugs (KRYTYCZNE)
+## Blockers / Bugs
 
-1. **Brak interakcji z elementami**
-   - Nie można usunąć przychodów/celów
-   - Kliknięcie otwiera tylko modal dodawania
-   - Dodawanie nowych też nie działa
-
-2. **Zmiana miesiąca nie działa**
-   - Strzałki +/- bez efektu
-
-3. **Wykres pusty**
-   - Powinien: obecne vs potrzebne zarobki
-   - Jest: pusty
-
-4. **Guziki w Ustawieniach**
-   - Wszystkie nieaktywne
-
-5. **Brak listy osiągnięć**
-   - 105 osiągnięć ale nie widać jakie
-
-6. **Wydajność**
-   - Wolne działanie, brak cache
-
-7. **Wygląd przeglądarkowy**
-   - Nie wygląda jak natywna apka Android
+- Brak (wszystkie naprawione)
 
 ---
 
 ## Recently Completed
+
+- ✅ feat: Integrate frontend with existing managers - full CRUD, achievements, settings (20:50)
 
 - ✅ feat: Complete PWA manifest with screenshots and shortcuts (20:19)
 
