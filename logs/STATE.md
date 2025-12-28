@@ -27,6 +27,8 @@
 
 ## Recently Completed
 
+- ✅ feat: FamilyGoals v2 - Light pastel theme, income focus (16:50)
+
 - ✅ fix: Set PIN to 9890 for testing (16:28)
 
 - ✅ fix: Add inline onclick handlers for PIN (16:27)
