@@ -228,6 +228,12 @@ body {
 .app-info { text-align: center; padding: var(--s4) 0; color: var(--text-muted); font-size: 0.8rem; }
 .muted { color: var(--text-muted); }
 
+/* Empty State */
+.empty-state {
+  text-align: center; padding: var(--s4); color: var(--text-muted);
+  font-size: 0.9rem; background: var(--bg-subtle); border-radius: var(--r1);
+}
+
 /* Bottom Nav */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
@@ -284,6 +290,72 @@ body {
 .btn-primary:active { opacity: 0.9; }
 .calculated-info { display: flex; justify-content: space-between; padding: var(--s2); background: var(--mint-light); border-radius: var(--r1); }
 .calculated-value { font-family: var(--font-display); font-weight: 700; color: var(--mint); }
+
+/* Delete Button */
+.delete-btn {
+  width: 28px; height: 28px; border: none; background: var(--danger);
+  color: white; border-radius: 50%; font-size: 0.9rem;
+  cursor: pointer; opacity: 0; transition: opacity 0.15s;
+  flex-shrink: 0; margin-left: var(--s1);
+}
+.list-item:hover .delete-btn,
+.goal-item:hover .delete-btn { opacity: 1; }
+@media (hover: none) {
+  .delete-btn { opacity: 0.7; }
+}
+
+/* Chart with needed line */
+.timeline-bar { position: relative; }
+.timeline-bar-needed {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--peach); opacity: 0.3;
+  border-radius: 4px 4px 0 0;
+}
+
+/* Achievement locked state */
+.achievement-item.locked { opacity: 0.5; }
+.achievement-item.locked .achievement-icon { filter: grayscale(1); }
+.achievement-who { font-size: 0.8rem; margin-top: 4px; }
+
+/* Achievement list in modal */
+.achievement-list {
+  max-height: 60vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: var(--s1);
+}
+
+/* Android Native Feel */
+* { -webkit-tap-highlight-color: transparent; }
+button, .list-item, .goal-item, .goal-card, .stat-card, .category-progress {
+  position: relative; overflow: hidden;
+}
+button:active::after, .list-item:active::after, .goal-item:active::after,
+.goal-card:active::after, .stat-card:active::after, .category-progress:active::after {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(0,0,0,0.08); pointer-events: none;
+}
+
+/* Remove browser defaults */
+input, button, select, textarea {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+}
+input[type="date"], input[type="month"] {
+  min-height: 48px; font-size: 16px !important;
+}
+
+/* Touch targets */
+button, .list-item, .nav-item, .chip { min-height: 44px; }
+
+/* Safe areas for notch */
+.dashboard, .list-screen { padding-top: max(var(--s2), env(safe-area-inset-top)); }
+.bottom-nav { padding-bottom: max(8px, env(safe-area-inset-bottom)); height: auto; min-height: 70px; }
+
+/* Smooth scrolling */
+html { scroll-behavior: smooth; }
+.screen { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* Performance */
+.screen, .modal, .bottom-nav { will-change: transform; }
+img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
 
 /* Responsive */
 @media (min-width: 480px) {

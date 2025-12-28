@@ -15,17 +15,47 @@
 
 ## Active Work
 
-- Brak (sesja zamknięta)
+- 🔧 Naprawa krytycznych bugów frontendu
 
 ---
 
-## Blockers
+## Blockers / Bugs (KRYTYCZNE)
 
-- Brak
+1. **Brak interakcji z elementami**
+   - Nie można usunąć przychodów/celów
+   - Kliknięcie otwiera tylko modal dodawania
+   - Dodawanie nowych też nie działa
+
+2. **Zmiana miesiąca nie działa**
+   - Strzałki +/- bez efektu
+
+3. **Wykres pusty**
+   - Powinien: obecne vs potrzebne zarobki
+   - Jest: pusty
+
+4. **Guziki w Ustawieniach**
+   - Wszystkie nieaktywne
+
+5. **Brak listy osiągnięć**
+   - 105 osiągnięć ale nie widać jakie
+
+6. **Wydajność**
+   - Wolne działanie, brak cache
+
+7. **Wygląd przeglądarkowy**
+   - Nie wygląda jak natywna apka Android
 
 ---
 
 ## Recently Completed
+
+- ✅ feat: Complete PWA manifest with screenshots and shortcuts (20:19)
+
+- ✅ feat: Add PWA icons and fix manifest for APK build (20:13)
+
+- ✅ fix: Add service worker registration for PWA (18:46)
+
+- ✅ EOS: 2025-12-28 - Complete frontend v2 (18:09)
 
 **Sesja 3 (28.12 noc) - FRONTEND:**
 - ✅ Frontend v1 (dark theme) - testowany, odrzucony

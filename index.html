@@ -594,10 +594,15 @@
     </button>
   </nav>
 
+  <!-- Load managers first -->
+  <script src="js/data-manager.js"></script>
+  <script src="js/gamification-manager.js"></script>
+  <script src="js/engagement-manager.js"></script>
+  <script src="js/app.js"></script>
   <script>
     // PIN
     var pin = '';
-    var correctPin = '9890';
+    var correctPin = localStorage.getItem('familygoals_data') ? JSON.parse(localStorage.getItem('familygoals_data')).pin || '9890' : '9890';
     var dots = document.querySelectorAll('.pin-dot');
     var container = document.getElementById('pin-container');
 
