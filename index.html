@@ -53,8 +53,10 @@
 
     <script>
       var _pin = '';
+      var _correctPin = '9890';
       function pinKey(k) {
         var dots = document.querySelectorAll('.pin-dot');
+        var container = document.getElementById('pin-container');
         if (k === 'del') {
           _pin = _pin.slice(0, -1);
         } else if (_pin.length < 4) {
@@ -62,11 +64,25 @@
         }
         dots.forEach(function(d, i) {
           d.classList.toggle('filled', i < _pin.length);
+          d.classList.remove('error');
         });
         if (_pin.length === 4) {
           setTimeout(function() {
-            document.getElementById('pin-screen').classList.remove('active');
-            document.getElementById('dashboard-screen').classList.add('active');
+            if (_pin === _correctPin) {
+              document.getElementById('pin-screen').classList.remove('active');
+              document.getElementById('dashboard-screen').classList.add('active');
+            } else {
+              // Shake + red dots
+              container.classList.add('shake');
+              dots.forEach(function(d) { d.classList.add('error'); });
+              setTimeout(function() {
+                container.classList.remove('shake');
+                _pin = '';
+                dots.forEach(function(d) {
+                  d.classList.remove('filled', 'error');
+                });
+              }, 400);
+            }
           }, 200);
         }
       }

@@ -27,6 +27,8 @@
 
 ## Recently Completed
 
+- ✅ fix: Add inline onclick handlers for PIN (16:27)
+
 - ✅ fix: Add fallback PIN handler and better error handling (16:23)
 
 - ✅ fix: Add fallback for PIN screen display (16:19)
