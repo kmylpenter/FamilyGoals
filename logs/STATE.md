@@ -1,6 +1,6 @@
 # Current State
 
-**Last Updated:** 2025-12-28 (sesja 2)
+**Last Updated:** 2025-12-28 (EOS sesja 2)
 **Updated By:** Developer (main)
 
 ---
@@ -15,67 +15,52 @@
 
 ## Active Work
 
-Testowanie napraw na urządzeniu Android
+Brak - sesja zamknięta
 
 ---
 
-## Recently Completed
+## Recently Completed (2025-12-28)
 
-- ✅ fix: Emoji icons + significantly larger mobile UI (23:03)
+### Sesja 2 - UI/UX + Nowe funkcje
 
-- ✅ fix: Critical form submission and mobile UX improvements (22:53) (sesja 2)
+**Krytyczne naprawy:**
+- ✅ Przyciski "Zapisz" - naprawione
+- ✅ Ikony emoji zamiast tekstu
+- ✅ Kompaktowy UI dla mobile
 
-### 🔴 KRYTYCZNE - Naprawione
+**Nowa funkcja:**
+- ✅ Zakres dat (od-do) dla stałych wydatków
+  - np. "Leasing: sty 2024 - lip 2028"
 
-1. ✅ **Przyciski "Zapisz"** zamykały modal
-   bez zapisywania - NAPRAWIONE
-2. ✅ **Skalowanie mobile** - zwiększone
-   elementy, paddingi, touch targets
-3. ✅ **Wykres** - dodane wartości na
-   słupkach, placeholder gdy brak danych
+**Commity:**
+- `ef29a2c` Compact UI
+- `f2c555f` Font size 16px
+- `8d8f52a` Date range feature
+- `afef4af` Emoji icons
+- `5a35029` Form submission fix
 
-### Naprawione UI
+### Sesja 1 - Deep integration
 
-4. ✅ Bottom nav - wyższy (80px)
-5. ✅ FAB - większy i wyżej
-6. ✅ Kategorie wydatków - pełna lista (12)
-7. ✅ Dane demo - automatyczna inicjalizacja
-
-### Poprzednia sesja (22:39)
-
-- ✅ Deep integration fixes
 - ✅ EventBus, PinManager, AlertManager
-- ✅ Mapowanie kategorii osiągnięć
+- ✅ checkAchievements() fix
+- ✅ 11 skryptów managerów
 
 ---
 
 ## Blockers / Bugs
 
-⚠️ **Do przetestowania na urządzeniu:**
-
-- Czy elementy są wystarczająco duże?
-- Czy wykres pokazuje wartości?
-- Czy można dodawać/edytować?
-
----
-
-## Statistics
-
-```
-Naprawione błędy:       7
-Pliki zmodyfikowane:    3
-```
+🎉 **BRAK ZNANYCH BŁĘDÓW**
 
 ---
 
 ## Next Priorities
 
-1. **Test na urządzeniu** - weryfikacja napraw
-2. Test na GitHub Pages
-3. APK przez PWABuilder
+1. Test pełnego flow na urządzeniu
+2. APK przez PWABuilder
+3. Testy z prawdziwymi danymi
 
 ---
 
 ## Branch Status
 
-- **main**: Gotowy do commit/push
+- **master**: Zsynchronizowany z origin

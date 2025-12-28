@@ -14,16 +14,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Fixed
-- fix: Form submit buttons closed modal without saving. Files: `index.html`
-- fix: Mobile scaling - larger touch targets, padding, bottom nav. Files: `css/main.css`
-- fix: Chart shows placeholder when no data, values on bars. Files: `js/app.js`, `css/main.css`
-- fix: Expense category chips expanded to 12, fixed kids→children ID. Files: `index.html`
+- fix: Compact UI - smaller padding, gaps, fonts for mobile fit. Files: `css/main.css`. Commit: `ef29a2c`
+- fix: Base font size 18px → 16px. Files: `css/main.css`. Commit: `f2c555f`
+- fix: Emoji icons in JSON (graduation-cap → 🎓). Files: `data/config.json`, `data/planned.json`. Commit: `afef4af`
+- fix: Form submit buttons closed modal without saving. Files: `index.html`. Commit: `5a35029`
+- fix: Chart placeholder when no data, values on bars. Files: `js/app.js`, `css/main.css`. Commit: `5a35029`
+- fix: Expense categories expanded to 12, kids→children ID. Files: `index.html`. Commit: `5a35029`
 
 ### Added
-- Demo data auto-initialization on first run. Files: `js/app.js`
+- feat: Date range (from-to) for recurring expenses. Files: `index.html`, `js/app.js`, `css/main.css`. Commit: `8d8f52a`
+- Demo data with leasing/insurance examples. Files: `js/app.js`. Commit: `8d8f52a`
+- Demo data auto-initialization on first run. Files: `js/app.js`. Commit: `5a35029`
 
 ### Changed
-- Bottom nav height 70→80px, FAB size 56→60px. Files: `css/main.css`
+- Compact mobile UI (padding 16px, gap 8px, nav 60px). Files: `css/main.css`. Commit: `ef29a2c`
 
 ---
 
