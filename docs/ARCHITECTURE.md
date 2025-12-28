@@ -133,6 +133,71 @@ Webapp do śledzenia celów finansowych rodziny:
 }
 ```
 
+### 7. IncomeSource (Źródło przychodu)
+
+```javascript
+{
+  id: string,
+  name: string,           // np. "Pensja"
+  expectedAmount: number, // oczekiwana kwota/mies.
+  frequency: 'monthly'|'weekly'|'irregular',
+  owner: 'wife'|'husband'|'shared',
+  icon: string,
+  color: string,
+  isActive: boolean,
+  payments: [             // historia wpłat
+    {
+      id: string,
+      amount: number,
+      date: string,
+      note: string
+    }
+  ]
+}
+```
+
+### 8. Achievement (Osiągnięcie)
+
+```javascript
+{
+  id: string,
+  name: string,
+  description: string,
+  icon: string,
+  category: 'start'|'savings'|'spending'|'goals'|'couple'|'streak'|'income'|'special'|'level',
+  points: number,
+  secret: boolean,      // ukryte do odblokowania
+  legendary: boolean    // specjalne osiągnięcia
+}
+```
+
+### 9. UserAchievements (Stan gracza)
+
+```javascript
+{
+  wife: {
+    unlocked: string[],   // IDs odblokowanych
+    points: number,
+    rewards: [
+      { rewardId, purchasedAt, redeemed, redeemedAt }
+    ]
+  },
+  husband: { /* identycznie */ }
+}
+```
+
+### 10. Reward (Nagroda)
+
+```javascript
+{
+  id: string,
+  name: string,
+  description: string,
+  cost: number,         // w punktach
+  icon: string
+}
+```
+
 ---
 
 ## Funkcje Biznesowe
@@ -177,8 +242,14 @@ class DataManager {
 
   // === CELE ===
   getPlannedExpenses()
+  addPlannedGoal(goal)       // Dodaj nowy cel
+  updatePlannedGoal(id,data) // Edytuj cel (deadline, kwota)
+  deletePlannedGoal(id)      // Usuń cel
   updatePlannedProgress(id, amount)
   calculateTimeToGoal(id)
+  calculateRequiredMonthlySavings(target, current, date)
+  getGoalProjections(id)     // Warianty deadline'ów
+  simulateDeadlineChange(id, newDate) // Preview zmiany
 
   // === INFLACJA ===
   getInflationRate()
@@ -236,6 +307,93 @@ class AlertManager {
   static checkGoalDeadlines(planned)
 }
 ```
+
+### GamificationManager
+
+```javascript
+class GamificationManager {
+  // 105 osiągnięć w 9 kategoriach
+  static ACHIEVEMENTS = {...}  // Definicje osiągnięć
+  static REWARDS = {...}       // 12 nagród
+
+  checkAchievements(owner)     // Sprawdź i odblokuj
+  getAllAchievements(owner)    // Wszystkie z statusem
+  getPlayerStats(owner)        // Punkty, poziom, postęp
+  purchaseReward(id, owner)    // Kup nagrodę
+  getAvailableRewards(owner)   // Dostępne nagrody
+  getPurchasedRewards(owner)   // Kupione nagrody
+  redeemReward(index, owner)   // Wykorzystaj nagrodę
+  getLeaderboard()             // Ranking żona vs mąż
+  getRecentUnlocks(owner)      // Ostatnie osiągnięcia
+}
+```
+
+### AIAdvisor
+
+```javascript
+class AIAdvisor {
+  generateAdvice()             // Pełny raport na przyszły miesiąc
+  getDailyTip()                // Porada dnia
+  getMonthRating()             // Ocena miesiąca (A-F)
+
+  // Wewnętrznie:
+  _analyzeData()               // Analiza trendów
+  _generateAdvice()            // Generuj porady
+  _getKeyMessage()             // Kluczowy komunikat
+  _getPriorities()             // Lista priorytetów
+  _getWarnings()               // Ostrzeżenia
+  _getOpportunities()          // Możliwości
+  _getProjections()            // Projekcja 6 miesięcy
+  _getSeasonalAdvice()         // Porady sezonowe
+}
+```
+
+---
+
+## Reaktywność UI (Dynamiczne dane)
+
+### Zasady:
+1. **Każda zmiana = natychmiastowy update UI**
+2. **Brak przeładowań strony**
+3. **Animacje przejść** (fade, slide)
+
+### Implementacja:
+
+```javascript
+// Event-based updates
+class EventBus {
+  static emit(event, data)
+  static on(event, callback)
+}
+
+// Events:
+// - 'expense:added', 'expense:deleted'
+// - 'income:added', 'income:recorded'
+// - 'goal:updated', 'goal:completed'
+// - 'achievement:unlocked'
+// - 'data:changed'
+
+// Komponenty subskrybują eventy:
+EventBus.on('expense:added', () => {
+  updateStats();
+  updateCharts();
+  checkAchievements();
+});
+```
+
+### Co się aktualizuje:
+- **Dashboard:** stats, wykresy, alerty
+- **Goals:** progress bary, kwoty/mies.
+- **Income:** statusy źródeł, procenty
+- **Achievements:** nowe odblokowania
+- **Advisor:** porady na podstawie nowych danych
+
+### Animacje przy zmianach:
+- **Liczby:** count-up animation
+- **Progress bary:** smooth transition
+- **Nowe elementy:** fade-in
+- **Usunięte:** slide-out
+- **Osiągnięcia:** celebracja (confetti)
 
 ---
 
@@ -309,6 +467,14 @@ class AlertManager {
 - Wyczyść dane
 - Info o aplikacji
 
+### 7. Goals (Cele)
+- Lista celów z progress barami
+- Każdy cel: nazwa, kwota, deadline, wymagane/mies.
+- Dodaj/edytuj cel (modal)
+- Interaktywne przesuwanie deadline'u
+- Wizualizacja wariantów terminów
+- Live preview zmiany kwoty/mies.
+
 ---
 
 ## Nawigacja
@@ -316,12 +482,14 @@ class AlertManager {
 ```
 Bottom Navigation (4 tabs):
 ┌─────────────────────────────────────┐
-│  🏠 Start │ 💰 Wydatki │ 📁 Kategorie │ ⚙️ Ustawienia │
+│  🏠 Start │ 💰 Wydatki │ 🎯 Cele │ ⚙️ Ustawienia │
 └─────────────────────────────────────┘
 
 FAB (Floating Action Button):
-  [+] → Wydatek / Przychód
+  [+] → Wydatek / Przychód / Cel
 ```
+
+Kategorie dostępne przez Settings lub długi tap na Dashboard.
 
 ---
 

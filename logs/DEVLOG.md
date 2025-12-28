@@ -28,6 +28,42 @@
 
 ## Daily Log
 
+### 2025-12-28: System motywacji - współpraca rodzinna
+
+**Sytuacja:**
+Rozbudowa logiki o dodatkowe funkcje:
+cele, źródła przychodów, gamifikację.
+Potrzeba systemu motywującego OBOJE.
+
+**Wyzwanie:**
+Mąż więcej pracuje i zarabia.
+Żona docenia czas razem.
+Jak zmotywować oboje, nie dzieląc?
+Rywalizacja punktowa = niesprawiedliwa.
+
+**Decyzja:**
+Filozofia "ŁĄCZYĆ nie dzielić":
+1. Wspólne punkty rodzinne (nie osobne)
+2. Role zamiast punktów (różne wkłady)
+3. Cele z "dlaczego" (pieniądze → czas)
+4. Personalizacja: mąż za czas z rodziną,
+   żona za kontrolę finansów
+
+**Rezultat:**
+- 8 nowych plików JS (1500+ linii)
+- 105 osiągnięć + 15 streakowych
+- Login streak z mnożnikami 1x-10x
+- Family Unity: poziomy rodziny 1-10
+- Konwersja: 50000 zł = rok mniej pracy
+
+**Files:**
+`js/gamification-manager.js`,
+`js/ai-advisor.js`, `js/event-bus.js`,
+`js/engagement-manager.js`,
+`js/family-unity.js`, `js/family-balance.js`
+
+---
+
 ### 2025-12-28: Kompletna warstwa logiki
 
 **Sytuacja:**

@@ -7,7 +7,12 @@ Webapp do śledzenia celów finansowych rodziny.
 - PWA (Progressive Web App) - działa offline
 - Zabezpieczenie PIN-em
 - Śledzenie celów oszczędnościowych
-- Dostęp z każdego urządzenia
+- Źródła przychodów z śledzeniem wpłat
+- Gamifikacja: 120+ osiągnięć, nagrody
+- Login streak z bonusami
+- AI Advisor - szczere porady finansowe
+- System współpracy rodzinnej (nie rywalizacji)
+- Personalizacja dla różnych ról w rodzinie
 
 ## Technologie
 

@@ -14,6 +14,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Added
+- **Goals system** - cele z dynamicznym deadline. Files: `js/data-manager.js`
+- **Income Sources** - źródła przychodów + śledzenie wpłat. Files: `js/data-manager.js`
+- **Gamification** - 105 osiągnięć, 12 nagród. Files: `js/gamification-manager.js`
+- **AI Advisor** - szczere porady, ocena A-F. Files: `js/ai-advisor.js`
+- **EventBus** - reaktywność UI. Files: `js/event-bus.js`
+- **Engagement** - login streak, freeze, daily challenges. Files: `js/engagement-manager.js`
+- **Family Unity** - współpraca > rywalizacja, wspólne punkty. Files: `js/family-unity.js`
+- **Family Balance** - personalizacja mąż/żona, cele z "dlaczego". Files: `js/family-balance.js`
+- Add README.md. Files: `README.md`. Commit: `f2183e1`
 - Log File Genius v0.2.0 installed. Files: `.log-file-genius/`, `.logfile-config.yml`
 - ADR-001: Adopted LFG for documentation. Files: `logs/adr/001-adopt-log-file-genius.md`
 - Architecture + Design docs. Files: `docs/ARCHITECTURE.md`, `docs/DESIGN.md`
@@ -23,6 +32,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Alert Manager - alerty budżetowe. Files: `js/alert-manager.js`
 - PWA config. Files: `manifest.json`, `sw.js`
 - Initial data files. Files: `data/*.json`
+
+### Changed
+- DESIGN.md rozszerzony o 5 nowych ekranów (Goals, Income Sources, Achievements, Rewards, AI Advisor)
+- ARCHITECTURE.md rozszerzony o nowe modele i klasy
+- Nawigacja: 📁 Kategorie → 🎯 Cele
 
 ### Changed
 - Initial commit. Commit: `021b627`

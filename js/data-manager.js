@@ -5,8 +5,10 @@ class DataManager {
   static STORAGE_KEYS = {
     expenses: 'familygoals_expenses',
     income: 'familygoals_income',
+    incomeSources: 'familygoals_income_sources',
     categories: 'familygoals_categories',
     settings: 'familygoals_settings',
+    achievements: 'familygoals_achievements',
     lastSync: 'familygoals_last_sync'
   };
 
@@ -170,6 +172,149 @@ class DataManager {
     const incomes = this.getIncome();
     const filtered = incomes.filter(i => i.id !== id);
     localStorage.setItem(this.constructor.STORAGE_KEYS.income, JSON.stringify(filtered));
+  }
+
+  // === INCOME SOURCES (Źródła przychodów) ===
+
+  /**
+   * Pobierz wszystkie źródła przychodów
+   */
+  getIncomeSources() {
+    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.incomeSources);
+    return data ? JSON.parse(data) : [];
+  }
+
+  /**
+   * Dodaj nowe źródło przychodu
+   * @param {Object} source - {name, expectedAmount, frequency, owner, icon, color}
+   */
+  addIncomeSource(source) {
+    const sources = this.getIncomeSources();
+    const newSource = {
+      id: this._generateId(),
+      createdAt: new Date().toISOString(),
+      isActive: true,
+      payments: [], // historia wpłat
+      ...source
+    };
+    sources.push(newSource);
+    this._saveIncomeSources(sources);
+    return newSource;
+  }
+
+  /**
+   * Edytuj źródło przychodu
+   */
+  updateIncomeSource(id, updates) {
+    const sources = this.getIncomeSources();
+    const index = sources.findIndex(s => s.id === id);
+    if (index === -1) return null;
+    sources[index] = { ...sources[index], ...updates };
+    this._saveIncomeSources(sources);
+    return sources[index];
+  }
+
+  /**
+   * Usuń źródło przychodu
+   */
+  deleteIncomeSource(id) {
+    const sources = this.getIncomeSources();
+    this._saveIncomeSources(sources.filter(s => s.id !== id));
+  }
+
+  /**
+   * Oznacz wpłatę ze źródła
+   * @param {string} sourceId - ID źródła
+   * @param {Object} payment - {amount, date, note}
+   */
+  recordPayment(sourceId, payment) {
+    const sources = this.getIncomeSources();
+    const source = sources.find(s => s.id === sourceId);
+    if (!source) return null;
+
+    const newPayment = {
+      id: this._generateId(),
+      recordedAt: new Date().toISOString(),
+      date: payment.date || new Date().toISOString(),
+      amount: payment.amount,
+      note: payment.note || ''
+    };
+
+    source.payments = source.payments || [];
+    source.payments.push(newPayment);
+    this._saveIncomeSources(sources);
+
+    // Opcjonalnie dodaj też do ogólnych przychodów
+    this.addIncome({
+      amount: payment.amount,
+      source: source.name,
+      sourceId: sourceId,
+      description: payment.note,
+      date: payment.date
+    });
+
+    return newPayment;
+  }
+
+  /**
+   * Pobierz wpłaty ze źródła w danym miesiącu
+   */
+  getPaymentsByMonth(sourceId, year, month) {
+    const source = this.getIncomeSources().find(s => s.id === sourceId);
+    if (!source) return [];
+
+    return (source.payments || []).filter(p => {
+      const d = new Date(p.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
+  }
+
+  /**
+   * Status źródeł w danym miesiącu
+   */
+  getIncomeSourcesStatus(year, month) {
+    const sources = this.getIncomeSources().filter(s => s.isActive);
+
+    return sources.map(source => {
+      const payments = this.getPaymentsByMonth(source.id, year, month);
+      const totalReceived = payments.reduce((sum, p) => sum + p.amount, 0);
+      const expected = source.expectedAmount || 0;
+
+      return {
+        ...source,
+        paymentsThisMonth: payments,
+        totalReceived,
+        expected,
+        percentReceived: expected > 0 ? Math.round((totalReceived / expected) * 100) : 0,
+        status: totalReceived >= expected ? 'complete' :
+                totalReceived > 0 ? 'partial' : 'pending',
+        remaining: Math.max(0, expected - totalReceived)
+      };
+    });
+  }
+
+  /**
+   * Podsumowanie wszystkich źródeł w miesiącu
+   */
+  getMonthlyIncomeSummary(year, month) {
+    const statuses = this.getIncomeSourcesStatus(year, month);
+
+    const totalExpected = statuses.reduce((sum, s) => sum + s.expected, 0);
+    const totalReceived = statuses.reduce((sum, s) => sum + s.totalReceived, 0);
+
+    return {
+      sources: statuses,
+      totalExpected,
+      totalReceived,
+      percentReceived: totalExpected > 0 ? Math.round((totalReceived / totalExpected) * 100) : 0,
+      completeCount: statuses.filter(s => s.status === 'complete').length,
+      partialCount: statuses.filter(s => s.status === 'partial').length,
+      pendingCount: statuses.filter(s => s.status === 'pending').length
+    };
+  }
+
+  _saveIncomeSources(sources) {
+    localStorage.setItem(this.constructor.STORAGE_KEYS.incomeSources, JSON.stringify(sources));
   }
 
   // === CATEGORIES ===
@@ -423,6 +568,181 @@ class DataManager {
       onTrack: months <= monthsUntilDeadline,
       targetDate: item.targetDate
     };
+  }
+
+  /**
+   * Dodaj nowy cel finansowy
+   */
+  addPlannedGoal(goal) {
+    const planned = this._getPlannedFromStorage();
+    const newGoal = {
+      id: this._generateId(),
+      createdAt: new Date().toISOString(),
+      currentAmount: 0,
+      ...goal
+    };
+
+    // Auto-calculate monthly contribution if not provided
+    if (!newGoal.monthlyContribution && newGoal.targetDate) {
+      newGoal.monthlyContribution = this.calculateRequiredMonthlySavings(
+        newGoal.targetAmount,
+        newGoal.currentAmount || 0,
+        newGoal.targetDate
+      );
+    }
+
+    planned.push(newGoal);
+    this._savePlanned(planned);
+    return newGoal;
+  }
+
+  /**
+   * Edytuj cel (w tym deadline)
+   */
+  updatePlannedGoal(id, updates) {
+    const planned = this._getPlannedFromStorage();
+    const index = planned.findIndex(p => p.id === id);
+    if (index === -1) return null;
+
+    const updated = { ...planned[index], ...updates };
+
+    // Recalculate monthly contribution when deadline changes
+    if (updates.targetDate || updates.targetAmount) {
+      updated.monthlyContribution = this.calculateRequiredMonthlySavings(
+        updated.targetAmount,
+        updated.currentAmount || 0,
+        updated.targetDate
+      );
+    }
+
+    planned[index] = updated;
+    this._savePlanned(planned);
+    return updated;
+  }
+
+  /**
+   * Usuń cel
+   */
+  deletePlannedGoal(id) {
+    const planned = this._getPlannedFromStorage();
+    const filtered = planned.filter(p => p.id !== id);
+    this._savePlanned(filtered);
+  }
+
+  /**
+   * Oblicz wymagane oszczędności miesięczne
+   */
+  calculateRequiredMonthlySavings(targetAmount, currentAmount, targetDate) {
+    const remaining = targetAmount - (currentAmount || 0);
+    if (remaining <= 0) return 0;
+
+    const now = new Date();
+    const target = new Date(targetDate);
+    const monthsLeft = Math.max(1,
+      (target.getFullYear() - now.getFullYear()) * 12 +
+      (target.getMonth() - now.getMonth())
+    );
+
+    return Math.ceil(remaining / monthsLeft);
+  }
+
+  /**
+   * Projekcja celu przy różnych deadline'ach
+   * Zwraca tablicę opcji: [{date, requiredMonthly, feasibility}]
+   */
+  getGoalProjections(id, options = { variants: [6, 12, 18, 24] }) {
+    const item = this.getPlannedExpenses().find(p => p.id === id);
+    if (!item) return [];
+
+    const remaining = item.targetAmount - (item.currentAmount || 0);
+    const now = new Date();
+    const avgSavings = this._getAverageMonthlySavings();
+
+    return options.variants.map(monthsFromNow => {
+      const targetDate = new Date(now);
+      targetDate.setMonth(targetDate.getMonth() + monthsFromNow);
+
+      const requiredMonthly = Math.ceil(remaining / monthsFromNow);
+      const feasibility = avgSavings > 0
+        ? Math.min(100, Math.round((avgSavings / requiredMonthly) * 100))
+        : 0;
+
+      return {
+        monthsFromNow,
+        targetDate: targetDate.toISOString().split('T')[0],
+        targetDateFormatted: this.formatDate(targetDate),
+        requiredMonthly,
+        feasibility,
+        feasibilityLabel: feasibility >= 80 ? 'łatwe' :
+                          feasibility >= 50 ? 'możliwe' :
+                          feasibility >= 30 ? 'trudne' : 'bardzo trudne'
+      };
+    });
+  }
+
+  /**
+   * Dynamiczna wizualizacja - co się zmienia przy przesunięciu deadline'u
+   */
+  simulateDeadlineChange(id, newTargetDate) {
+    const item = this.getPlannedExpenses().find(p => p.id === id);
+    if (!item) return null;
+
+    const remaining = item.targetAmount - (item.currentAmount || 0);
+    const now = new Date();
+    const newTarget = new Date(newTargetDate);
+    const oldTarget = new Date(item.targetDate);
+
+    const oldMonths = Math.max(1,
+      (oldTarget.getFullYear() - now.getFullYear()) * 12 +
+      (oldTarget.getMonth() - now.getMonth())
+    );
+    const newMonths = Math.max(1,
+      (newTarget.getFullYear() - now.getFullYear()) * 12 +
+      (newTarget.getMonth() - now.getMonth())
+    );
+
+    const oldRequired = Math.ceil(remaining / oldMonths);
+    const newRequired = Math.ceil(remaining / newMonths);
+    const difference = newRequired - oldRequired;
+
+    return {
+      goalName: item.name,
+      remaining,
+      oldDeadline: item.targetDate,
+      newDeadline: newTargetDate,
+      oldMonthsLeft: oldMonths,
+      newMonthsLeft: newMonths,
+      oldRequiredMonthly: oldRequired,
+      newRequiredMonthly: newRequired,
+      monthlyDifference: difference,
+      changePercent: Math.round((difference / oldRequired) * 100),
+      impact: difference > 0 ? 'więcej/mies.' :
+              difference < 0 ? 'mniej/mies.' : 'bez zmian'
+    };
+  }
+
+  _getPlannedFromStorage() {
+    // Check for local overrides first
+    const override = localStorage.getItem('familygoals_planned_override');
+    if (override) return JSON.parse(override);
+    return this.planned?.plannedExpenses || [];
+  }
+
+  _savePlanned(planned) {
+    localStorage.setItem('familygoals_planned_override', JSON.stringify(planned));
+    // Also update in-memory
+    if (this.planned) {
+      this.planned.plannedExpenses = planned;
+    }
+  }
+
+  _getAverageMonthlySavings() {
+    const trend = this.getTrend(6);
+    const savingsData = trend.filter(t => t.savings > 0);
+    if (savingsData.length === 0) return 0;
+    return Math.round(
+      savingsData.reduce((sum, t) => sum + t.savings, 0) / savingsData.length
+    );
   }
 
   // === INFLATION ===

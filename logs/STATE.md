@@ -15,7 +15,7 @@
 
 ## Active Work
 
-- Brak (sesja zakończona)
+- Brak (sesja zamknięta)
 
 ---
 
@@ -27,10 +27,30 @@
 
 ## Recently Completed
 
+**Sesja 2 (28.12 wieczór):**
+- ✅ Cele finansowe z dynamicznym deadline
+- ✅ Źródła przychodów (IncomeSource)
+- ✅ Gamifikacja (105 osiągnięć!)
+- ✅ AI Advisor - szczere porady
+- ✅ EventBus - reaktywność UI
+- ✅ EngagementManager - login streak
+  - Mnożniki 1x-10x za streak
+  - Freeze (zamrożenie streak)
+  - Daily challenges
+- ✅ FamilyUnity - współpraca > rywalizacja
+  - Wspólne punkty rodzinne
+  - Poziomy rodziny (1-10)
+  - Role zamiast porównywania
+- ✅ FamilyBalance - personalizacja
+  - Mąż: nagrody za CZAS z rodziną
+  - Żona: motywacja do finansów
+  - Cele z "dlaczego" (czas razem)
+  - Konwersja pieniądze → czas
+
+**Sesja 1 (28.12 dzień):**
 - ✅ Kompletna warstwa logiki (30+ funkcji)
-- ✅ RecurringManager - wydatki stałe
-- ✅ AlertManager - alerty budżetowe
-- ✅ DataManager rozszerzony (stats, trends, inflacja)
+- ✅ RecurringManager, AlertManager
+- ✅ DataManager rozszerzony
 - ✅ Dokumentacja: ARCHITECTURE.md, DESIGN.md
 - ✅ PWA: manifest.json, sw.js
 - ✅ LFG adoption + ADR-001
