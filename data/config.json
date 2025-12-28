@@ -11,18 +11,18 @@
   },
 
   "categories": [
-    { "id": "housing", "name": "Mieszkanie", "icon": "home", "color": "#4A90A4", "budget": 3000 },
-    { "id": "food", "name": "Jedzenie", "icon": "utensils", "color": "#7CB342", "budget": 2000 },
-    { "id": "transport", "name": "Transport", "icon": "car", "color": "#FF7043", "budget": 800 },
-    { "id": "health", "name": "Zdrowie", "icon": "heart", "color": "#E91E63", "budget": 500 },
-    { "id": "education", "name": "Edukacja", "icon": "book", "color": "#9C27B0", "budget": 300 },
-    { "id": "entertainment", "name": "Rozrywka", "icon": "film", "color": "#FF9800", "budget": 400 },
-    { "id": "clothing", "name": "Ubrania", "icon": "shirt", "color": "#00BCD4", "budget": 300 },
-    { "id": "hygiene", "name": "Higiena", "icon": "droplet", "color": "#8BC34A", "budget": 200 },
-    { "id": "children", "name": "Dzieci", "icon": "baby", "color": "#FFEB3B", "budget": 500 },
-    { "id": "savings", "name": "Oszczędności", "icon": "piggy-bank", "color": "#4CAF50", "budget": 2000 },
-    { "id": "gifts", "name": "Prezenty", "icon": "gift", "color": "#F44336", "budget": 200 },
-    { "id": "other", "name": "Inne", "icon": "ellipsis", "color": "#607D8B", "budget": 300 }
+    { "id": "housing", "name": "Mieszkanie", "icon": "🏠", "color": "#4A90A4", "budget": 3000 },
+    { "id": "food", "name": "Jedzenie", "icon": "🍽️", "color": "#7CB342", "budget": 2000 },
+    { "id": "transport", "name": "Transport", "icon": "🚗", "color": "#FF7043", "budget": 800 },
+    { "id": "health", "name": "Zdrowie", "icon": "❤️", "color": "#E91E63", "budget": 500 },
+    { "id": "education", "name": "Edukacja", "icon": "📚", "color": "#9C27B0", "budget": 300 },
+    { "id": "entertainment", "name": "Rozrywka", "icon": "🎬", "color": "#FF9800", "budget": 400 },
+    { "id": "clothing", "name": "Ubrania", "icon": "👕", "color": "#00BCD4", "budget": 300 },
+    { "id": "hygiene", "name": "Higiena", "icon": "🧴", "color": "#8BC34A", "budget": 200 },
+    { "id": "children", "name": "Dzieci", "icon": "👶", "color": "#FFEB3B", "budget": 500 },
+    { "id": "savings", "name": "Oszczędności", "icon": "💰", "color": "#4CAF50", "budget": 2000 },
+    { "id": "gifts", "name": "Prezenty", "icon": "🎁", "color": "#F44336", "budget": 200 },
+    { "id": "other", "name": "Inne", "icon": "📦", "color": "#607D8B", "budget": 300 }
   ],
 
   "fixedExpenses": [

@@ -11,7 +11,7 @@
       "targetDate": "2030-09-01",
       "priority": "high",
       "monthlyContribution": 500,
-      "icon": "graduation-cap",
+      "icon": "🎓",
       "color": "#9C27B0"
     },
     {
@@ -23,7 +23,7 @@
       "targetDate": "2027-06-01",
       "priority": "medium",
       "monthlyContribution": 1500,
-      "icon": "hammer",
+      "icon": "🔨",
       "color": "#FF7043"
     }
   ],
