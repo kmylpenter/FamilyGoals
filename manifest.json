@@ -1,29 +1,90 @@
 {
   "name": "FamilyGoals - Cele Rodzinne",
   "short_name": "FamilyGoals",
-  "description": "Rodzinna aplikacja do śledzenia celów finansowych",
+  "description": "Rodzinna aplikacja do śledzenia celów finansowych. Planuj budżet, ustalaj cele oszczędnościowe i śledź postępy całej rodziny.",
   "id": "/FamilyGoals/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#faf8f5",
-  "theme_color": "#faf8f5",
+  "theme_color": "#a8d5ba",
   "orientation": "portrait",
   "lang": "pl-PL",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "categories": ["finance", "lifestyle", "productivity"],
+  "iarc_rating_id": "",
   "icons": [
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["finance", "lifestyle"],
-  "screenshots": []
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard - przegląd finansów rodziny"
+    },
+    {
+      "src": "screenshots/goals.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Cele - śledzenie oszczędności"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dodaj przychód",
+      "short_name": "Przychód",
+      "description": "Szybko dodaj nowy przychód",
+      "url": "./index.html?action=income",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dodaj wydatek",
+      "short_name": "Wydatek",
+      "description": "Szybko dodaj nowy wydatek",
+      "url": "./index.html?action=expense",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Cele",
+      "short_name": "Cele",
+      "description": "Zobacz cele oszczędnościowe",
+      "url": "./index.html?screen=goals",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
