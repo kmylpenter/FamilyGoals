@@ -2,27 +2,219 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#4A90A4">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0f0f14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="FamilyGoals - Rodzinna aplikacja do śledzenia celów finansowych">
+
   <title>FamilyGoals</title>
+
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
   <div id="app">
-    <p>UI będzie wygenerowane przez frontend-design plugin</p>
-    <p>Logika gotowa w js/</p>
+
+    <!-- ========== PIN SCREEN ========== -->
+    <div id="pin-screen" class="screen pin-screen">
+      <div class="pin-logo">👨‍👩‍👧‍👦</div>
+
+      <h1 class="pin-title" id="pin-title">Wprowadź PIN</h1>
+      <p class="pin-setup-hint hidden" id="pin-setup-hint">Ustaw 4-cyfrowy PIN</p>
+
+      <div class="pin-container" id="pin-container">
+        <div class="pin-dots" id="pin-dots">
+          <div class="pin-dot" data-index="0"></div>
+          <div class="pin-dot" data-index="1"></div>
+          <div class="pin-dot" data-index="2"></div>
+          <div class="pin-dot" data-index="3"></div>
+        </div>
+      </div>
+
+      <div class="pin-keypad" id="pin-keypad">
+        <button class="pin-key" data-key="1">1</button>
+        <button class="pin-key" data-key="2">2</button>
+        <button class="pin-key" data-key="3">3</button>
+        <button class="pin-key" data-key="4">4</button>
+        <button class="pin-key" data-key="5">5</button>
+        <button class="pin-key" data-key="6">6</button>
+        <button class="pin-key" data-key="7">7</button>
+        <button class="pin-key" data-key="8">8</button>
+        <button class="pin-key" data-key="9">9</button>
+        <button class="pin-key empty"></button>
+        <button class="pin-key" data-key="0">0</button>
+        <button class="pin-key delete" data-key="delete">⌫</button>
+      </div>
+    </div>
+
+    <!-- ========== DASHBOARD SCREEN ========== -->
+    <div id="dashboard-screen" class="screen dashboard-screen">
+
+      <!-- Header -->
+      <header class="dashboard-header">
+        <div class="dashboard-brand">
+          <span class="dashboard-brand-icon">🏠</span>
+          <span class="dashboard-brand-text">FamilyGoals</span>
+        </div>
+        <span class="dashboard-date" id="current-month">Grudzień 2025</span>
+      </header>
+
+      <!-- Main Content -->
+      <main class="dashboard-content">
+
+        <!-- Savings Card (Hero) -->
+        <div class="card savings-card">
+          <div class="savings-header">
+            <div>
+              <div class="savings-label">💰 Oszczędności</div>
+              <div class="savings-amount" id="savings-amount">0 zł</div>
+            </div>
+            <div class="savings-goal">
+              <div class="savings-goal-label">Cel</div>
+              <div class="savings-goal-amount" id="savings-target">2 000 zł</div>
+            </div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" id="savings-progress" style="width: 0%"></div>
+            </div>
+            <div class="progress-text">
+              <span id="savings-remaining">Pozostało: 2 000 zł</span>
+              <span class="progress-percent" id="savings-percent">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alert Banner (conditional) -->
+        <div class="alert-banner warning hidden" id="budget-alert">
+          <span>⚠️</span>
+          <span id="alert-message">Jedzenie: 95% budżetu</span>
+        </div>
+
+        <!-- Streak Widget -->
+        <div class="card streak-widget" id="streak-widget">
+          <div class="streak-header">
+            <span class="streak-icon">🔥</span>
+            <span class="streak-value" id="streak-days">0 dni</span>
+            <span class="streak-label">Mnożnik: <span id="streak-multiplier">1.0x</span></span>
+          </div>
+          <div class="progress-bar" style="height: 6px;">
+            <div class="progress-fill" id="streak-progress" style="width: 0%"></div>
+          </div>
+          <div class="streak-bonus" id="streak-bonus">
+            ❄️ Freeze: <span id="freeze-count">0</span> dostępne
+          </div>
+        </div>
+
+        <!-- Income/Expense Stats -->
+        <div class="stats-row">
+          <div class="card stat-card income">
+            <div class="stat-icon">📈</div>
+            <div class="stat-amount" id="income-amount">+0 zł</div>
+            <div class="stat-label">Przychody</div>
+          </div>
+          <div class="card stat-card expense">
+            <div class="stat-icon">📉</div>
+            <div class="stat-amount" id="expense-amount">-0 zł</div>
+            <div class="stat-label">Wydatki</div>
+          </div>
+        </div>
+
+        <!-- Category List -->
+        <section class="category-section">
+          <div class="section-header">
+            <h2 class="section-title">Wydatki wg kategorii</h2>
+            <a href="#" class="section-link">Zobacz więcej</a>
+          </div>
+          <div class="category-list" id="category-list">
+            <!-- Categories will be rendered by JS -->
+            <div class="category-item">
+              <div class="category-icon">🏠</div>
+              <div class="category-info">
+                <div class="category-name">Mieszkanie</div>
+                <div class="category-progress">
+                  <div class="category-progress-fill medium" style="width: 75%"></div>
+                </div>
+              </div>
+              <div class="category-amount">2 900 zł</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tip Widget -->
+        <div class="card tip-widget">
+          <div class="tip-header">
+            <span>💡</span>
+            <span>PORADA DNIA</span>
+          </div>
+          <div class="tip-content" id="daily-tip">
+            Przed zakupem poczekaj 24h. Nadal chcesz? Kup.
+          </div>
+        </div>
+
+      </main>
+
+      <!-- FAB -->
+      <div class="fab-container">
+        <div class="fab-menu" id="fab-menu">
+          <button class="fab-item" id="fab-expense">
+            <span class="fab-item-icon">💸</span>
+            <span>Wydatek</span>
+          </button>
+          <button class="fab-item" id="fab-income">
+            <span class="fab-item-icon">💵</span>
+            <span>Przychód</span>
+          </button>
+        </div>
+        <button class="fab" id="fab-button">+</button>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <nav class="bottom-nav">
+        <button class="nav-item active" data-screen="dashboard">
+          <span class="nav-icon">🏠</span>
+          <span>Start</span>
+        </button>
+        <button class="nav-item" data-screen="expenses">
+          <span class="nav-icon">💰</span>
+          <span>Wydatki</span>
+        </button>
+        <button class="nav-item" data-screen="goals">
+          <span class="nav-icon">🎯</span>
+          <span>Cele</span>
+        </button>
+        <button class="nav-item" data-screen="settings">
+          <span class="nav-icon">⚙️</span>
+          <span>Więcej</span>
+        </button>
+      </nav>
+
+    </div>
+
   </div>
 
-  <!-- Logic layer - complete -->
+  <!-- Logic layer -->
+  <script src="js/event-bus.js"></script>
   <script src="js/pin-manager.js"></script>
   <script src="js/data-manager.js"></script>
   <script src="js/recurring-manager.js"></script>
   <script src="js/alert-manager.js"></script>
+  <script src="js/engagement-manager.js"></script>
+  <script src="js/gamification-manager.js"></script>
+
+  <!-- UI layer -->
+  <script src="js/ui-controller.js"></script>
 
   <!-- PWA -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registered'))
+        .catch(err => console.log('SW failed:', err));
     }
   </script>
 </body>

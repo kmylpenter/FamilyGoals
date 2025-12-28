@@ -1,11 +1,11 @@
 {
   "name": "FamilyGoals - Cele Rodzinne",
   "short_name": "FamilyGoals",
-  "description": "Śledzenie celów finansowych rodziny",
+  "description": "Rodzinna aplikacja do śledzenia celów finansowych",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#4A90A4",
+  "background_color": "#0f0f14",
+  "theme_color": "#0f0f14",
   "orientation": "portrait",
   "lang": "pl-PL",
   "icons": [

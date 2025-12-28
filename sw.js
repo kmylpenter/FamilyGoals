@@ -1,18 +1,20 @@
-const CACHE_NAME = 'familygoals-v1';
+const CACHE_NAME = 'familygoals-v2';
 const ASSETS = [
   '/',
   '/index.html',
-  '/css/styles.css',
-  '/js/app.js',
-  '/js/data-manager.js',
+  '/manifest.json',
+  '/css/main.css',
+  '/js/event-bus.js',
   '/js/pin-manager.js',
-  '/js/components/fg-dashboard.js',
-  '/js/components/fg-expense-form.js',
-  '/js/components/fg-category-list.js',
-  '/js/components/fg-progress-bar.js',
-  '/js/components/fg-alerts.js',
-  '/js/components/fg-pin-screen.js',
-  '/manifest.json'
+  '/js/data-manager.js',
+  '/js/recurring-manager.js',
+  '/js/alert-manager.js',
+  '/js/engagement-manager.js',
+  '/js/gamification-manager.js',
+  '/js/ui-controller.js',
+  '/data/config.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
 ];
 
 // Install - cache assets
