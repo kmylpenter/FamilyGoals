@@ -27,23 +27,13 @@
 
 ## Recently Completed
 
-- ✅ feat: New goals logic - monthly savings breakdown (16:56)
-
-- ✅ feat: FamilyGoals v2 - Light pastel theme, income focus (16:50)
-
-- ✅ fix: Set PIN to 9890 for testing (16:28)
-
-- ✅ fix: Add inline onclick handlers for PIN (16:27)
-
-- ✅ fix: Add fallback PIN handler and better error handling (16:23)
-
-- ✅ fix: Add fallback for PIN screen display (16:19)
-
-- ✅ feat: Add frontend UI v1 (PIN + Dashboard) (16:09)
-
-- ✅ docs: Complete architecture and design for new systems (15:18)
-
-- ✅ EOS: 2025-12-28 - Complete motivation system (15:13)
+**Sesja 3 (28.12 noc) - FRONTEND:**
+- ✅ Frontend v1 (dark theme) - testowany, odrzucony
+- ✅ Frontend v2 (light pastel) - zaakceptowany
+- ✅ Nowa logika celów: suma → miesięczne oszczędności
+- ✅ Wszystkie ekrany: Dashboard, Przychody, Cele, Osiągnięcia, Ustawienia
+- ✅ Modale: Dodaj przychód/wydatek/cel
+- ✅ GitHub Pages deployment
 
 **Sesja 2 (28.12 wieczór):**
 - ✅ Cele finansowe z dynamicznym deadline
@@ -77,9 +67,10 @@
 
 ## Next Priorities (TAKTYCZNE - następna sesja)
 
-1. Zainstalować frontend-design plugin
-2. Wygenerować UI na podstawie docs/DESIGN.md
-3. Przetestować aplikację
+1. Podłączyć frontend do warstwy logiki (data-manager.js)
+2. Dodać faktyczne zapisywanie danych (localStorage)
+3. Integracja z gamification-manager.js
+4. Testowanie pełnego flow użytkownika
 
 ---
 

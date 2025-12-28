@@ -2,6 +2,8 @@
 
 Webapp do śledzenia celów finansowych rodziny.
 
+**Demo:** https://kmylpenter.github.io/FamilyGoals/ (PIN: 9890)
+
 ## Funkcje
 
 - PWA (Progressive Web App) - działa offline

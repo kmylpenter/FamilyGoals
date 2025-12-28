@@ -14,6 +14,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Added
+- **Frontend v2** - jasny pastelowy motyw, fokus na przychody. Files: `css/main.css`, `index.html`. Commit: `608d9e4`
+- **Complete UI** - wszystkie ekrany + modale. Files: `index.html`, `css/main.css`. Commit: `6248915`
+- **New goals logic** - suma celów → miesięczne oszczędności. Files: `index.html`. Commit: `19e7fff`
+- **GitHub Pages** - publiczny deploy. Commit: `2413bfa`
 - **Goals system** - cele z dynamicznym deadline. Files: `js/data-manager.js`
 - **Income Sources** - źródła przychodów + śledzenie wpłat. Files: `js/data-manager.js`
 - **Gamification** - 105 osiągnięć, 12 nagród. Files: `js/gamification-manager.js`
