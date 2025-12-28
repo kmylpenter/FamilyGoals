@@ -14,6 +14,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Fixed
+- fix: Form submit buttons closed modal without saving. Files: `index.html`
+- fix: Mobile scaling - larger touch targets, padding, bottom nav. Files: `css/main.css`
+- fix: Chart shows placeholder when no data, values on bars. Files: `js/app.js`, `css/main.css`
+- fix: Expense category chips expanded to 12, fixed kids→children ID. Files: `index.html`
+
+### Added
+- Demo data auto-initialization on first run. Files: `js/app.js`
+
+### Changed
+- Bottom nav height 70→80px, FAB size 56→60px. Files: `css/main.css`
+
+---
+
+### Fixed (previous session)
 - fix: Deep frontend-backend integration (10 issues). Files: `js/app.js`, `index.html`. Commit: `1cb28ea`
 - fix: checkAndUnlock() → checkAchievements() crash. Files: `js/app.js`. Commit: `1cb28ea`
 - fix: Expense category chips missing data-category-id. Files: `index.html`. Commit: `1cb28ea`

@@ -1,6 +1,6 @@
 # Current State
 
-**Last Updated:** 2025-12-28 (po naprawach)
+**Last Updated:** 2025-12-28 (sesja 2)
 **Updated By:** Developer (main)
 
 ---
@@ -15,61 +15,63 @@
 
 ## Active Work
 
-Brak - wszystkie naprawy zakończone
+Testowanie napraw na urządzeniu Android
 
 ---
 
-## Recently Completed
+## Recently Completed (sesja 2)
 
-- ✅ fix: Deep frontend-backend integration fixes (22:31) (2025-12-28)
+### 🔴 KRYTYCZNE - Naprawione
 
-### Naprawione błędy krytyczne
+1. ✅ **Przyciski "Zapisz"** zamykały modal
+   bez zapisywania - NAPRAWIONE
+2. ✅ **Skalowanie mobile** - zwiększone
+   elementy, paddingi, touch targets
+3. ✅ **Wykres** - dodane wartości na
+   słupkach, placeholder gdy brak danych
 
-1. ✅ `checkAndUnlock()` → `checkAchievements()`
-2. ✅ Kategorie wydatków z data-category-id
-3. ✅ Załadowano wszystkie skrypty (11/11)
+### Naprawione UI
 
-### Naprawione ważne funkcje
+4. ✅ Bottom nav - wyższy (80px)
+5. ✅ FAB - większy i wyżej
+6. ✅ Kategorie wydatków - pełna lista (12)
+7. ✅ Dane demo - automatyczna inicjalizacja
 
-4. ✅ Edit prefill dla celów i źródeł
-5. ✅ PIN używa PinManager (ujednolicone)
-6. ✅ EventBus podłączony (reaktywność)
-7. ✅ RecurringManager inicjalizowany
-8. ✅ Mapowanie kategorii osiągnięć
+### Poprzednia sesja (22:39)
 
-### Nowe integracje
-
-9. ✅ AlertManager na dashboard
-10. ✅ AIAdvisor - porada dnia
+- ✅ Deep integration fixes
+- ✅ EventBus, PinManager, AlertManager
+- ✅ Mapowanie kategorii osiągnięć
 
 ---
 
 ## Blockers / Bugs
 
-🎉 **BRAK ZNANYCH BŁĘDÓW**
+⚠️ **Do przetestowania na urządzeniu:**
 
-Wszystkie 12 problemów naprawione.
+- Czy elementy są wystarczająco duże?
+- Czy wykres pokazuje wartości?
+- Czy można dodawać/edytować?
 
 ---
 
 ## Statistics
 
 ```
-Naprawione błędy:      10
-Nowe integracje:        2
-Pliki zmodyfikowane:    4
+Naprawione błędy:       7
+Pliki zmodyfikowane:    3
 ```
 
 ---
 
 ## Next Priorities
 
-1. Test na GitHub Pages
-2. APK przez PWABuilder
-3. Pełny test flow użytkownika
+1. **Test na urządzeniu** - weryfikacja napraw
+2. Test na GitHub Pages
+3. APK przez PWABuilder
 
 ---
 
 ## Branch Status
 
-- **main**: Gotowy do commit
+- **main**: Gotowy do commit/push

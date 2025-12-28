@@ -38,9 +38,54 @@
     return { year: currentMonth.getFullYear(), month: currentMonth.getMonth() };
   }
 
+  // ============ DEMO DATA ============
+  function initDemoDataIfEmpty() {
+    const hasData = localStorage.getItem('familygoals_income_sources') ||
+                    localStorage.getItem('familygoals_planned_override');
+    if (hasData) return;
+
+    // Demo income sources
+    const demoSources = [
+      { id: 'demo-salary-wife', name: 'Pensja', expectedAmount: 6000, owner: 'wife', icon: '💼', isActive: true, payments: [
+        { id: 'p1', amount: 6000, date: new Date().toISOString(), note: 'Grudzień' }
+      ]},
+      { id: 'demo-salary-husband', name: 'Pensja', expectedAmount: 4500, owner: 'husband', icon: '💼', isActive: true, payments: [] },
+      { id: 'demo-freelance', name: 'Freelance', expectedAmount: 1500, owner: 'husband', icon: '💻', isActive: true, payments: [] }
+    ];
+
+    // Demo goals
+    const now = new Date();
+    const demoGoals = [
+      { id: 'demo-goal-1', name: 'Studia Kasi', icon: '🎓', type: 'oneoff', targetAmount: 50000, currentAmount: 32000, targetDate: '2026-09-01' },
+      { id: 'demo-goal-2', name: 'Remont kuchni', icon: '🏠', type: 'oneoff', targetAmount: 25000, currentAmount: 5000, targetDate: '2026-12-01' },
+      { id: 'demo-goal-3', name: 'Wakacje', icon: '🏖️', type: 'oneoff', targetAmount: 10000, currentAmount: 4500, targetDate: '2025-08-01' }
+    ];
+
+    // Demo income records (for chart)
+    const demoIncome = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 10);
+      const baseIncome = 8000 + Math.floor(Math.random() * 3000);
+      demoIncome.push({
+        id: `demo-inc-${i}`,
+        amount: baseIncome,
+        source: 'Pensja',
+        date: d.toISOString()
+      });
+    }
+
+    localStorage.setItem('familygoals_income_sources', JSON.stringify(demoSources));
+    localStorage.setItem('familygoals_planned_override', JSON.stringify(demoGoals));
+    localStorage.setItem('familygoals_income', JSON.stringify(demoIncome));
+    console.log('Demo data initialized');
+  }
+
   // ============ INIT ============
   async function init() {
     try {
+      // Init demo data if first run
+      initDemoDataIfEmpty();
+
       // Init DataManager first
       dataManager = new DataManager();
       await dataManager.init();
@@ -305,17 +350,36 @@
     if (!chart) return;
 
     const trend = dataManager.getTrend(6);
+    const hasData = trend.some(t => t.totalIncome > 0);
+
+    // If no data, show placeholder
+    if (!hasData) {
+      chart.innerHTML = trend.map((t, i, arr) => {
+        const isCurrent = i === arr.length - 1;
+        return `
+          <div class="timeline-bar">
+            <div class="timeline-bar-fill ${isCurrent ? 'current' : ''}" style="height: 20%"></div>
+            <span class="timeline-bar-label">${t.monthName}</span>
+          </div>
+        `;
+      }).join('');
+      return;
+    }
+
     const maxIncome = Math.max(neededIncome, ...trend.map(t => t.totalIncome));
 
     chart.innerHTML = trend.map((t, i, arr) => {
       const incomePercent = maxIncome > 0 ? (t.totalIncome / maxIncome) * 100 : 0;
       const neededPercent = maxIncome > 0 ? (neededIncome / maxIncome) * 100 : 0;
       const isCurrent = i === arr.length - 1;
+      const valueText = t.totalIncome > 0 ? Math.round(t.totalIncome / 1000) + 'k' : '';
 
       return `
         <div class="timeline-bar">
           <div class="timeline-bar-needed" style="height: ${neededPercent}%"></div>
-          <div class="timeline-bar-fill ${isCurrent ? 'current' : ''}" style="height: ${incomePercent}%"></div>
+          <div class="timeline-bar-fill ${isCurrent ? 'current' : ''}" style="height: ${Math.max(5, incomePercent)}%">
+            ${valueText ? `<span class="bar-value">${valueText}</span>` : ''}
+          </div>
           <span class="timeline-bar-label">${t.monthName}</span>
         </div>
       `;
