@@ -43,17 +43,20 @@ class UIController {
   // === INITIALIZATION ===
 
   async init() {
+    // ALWAYS setup event listeners first
+    this.setupEventListeners();
+    console.log('Event listeners ready');
+
     try {
       // Initialize data manager
-      await dataManager.init();
+      if (typeof dataManager !== 'undefined') {
+        await dataManager.init();
+      }
 
       // Check if engagement manager exists and record login
       if (typeof EngagementManager !== 'undefined') {
         EngagementManager.recordLogin();
       }
-
-      // Setup event listeners
-      this.setupEventListeners();
 
       // Determine initial screen
       this.showInitialScreen();
@@ -69,7 +72,6 @@ class UIController {
       console.error('Init error:', error);
       // Fallback - show PIN screen
       this.showScreen('pin-screen');
-      this.setupEventListeners();
     }
   }
 
@@ -485,6 +487,45 @@ class UIController {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  window.ui = new UIController();
-  window.ui.init();
+  try {
+    window.ui = new UIController();
+    window.ui.init();
+  } catch (e) {
+    console.error('UI init failed:', e);
+    // Fallback PIN handler
+    setupFallbackPIN();
+  }
 });
+
+// Fallback PIN handler if main UI fails
+function setupFallbackPIN() {
+  let pin = '';
+  const dots = document.querySelectorAll('.pin-dot');
+  const keypad = document.getElementById('pin-keypad');
+
+  if (!keypad) return;
+
+  keypad.addEventListener('click', (e) => {
+    const key = e.target.closest('.pin-key');
+    if (!key || !key.dataset.key) return;
+
+    if (key.dataset.key === 'delete') {
+      pin = pin.slice(0, -1);
+    } else if (pin.length < 4) {
+      pin += key.dataset.key;
+    }
+
+    // Update dots
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('filled', i < pin.length);
+    });
+
+    // Auto-submit at 4 digits
+    if (pin.length === 4) {
+      setTimeout(() => {
+        document.getElementById('pin-screen').classList.remove('active');
+        document.getElementById('dashboard-screen').classList.add('active');
+      }, 200);
+    }
+  });
+}

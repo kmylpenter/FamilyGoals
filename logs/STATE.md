@@ -27,6 +27,8 @@
 
 ## Recently Completed
 
+- ✅ fix: Add fallback for PIN screen display (16:19)
+
 - ✅ feat: Add frontend UI v1 (PIN + Dashboard) (16:09)
 
 - ✅ docs: Complete architecture and design for new systems (15:18)
