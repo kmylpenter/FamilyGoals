@@ -21,11 +21,17 @@
 
 ## Blockers
 
-- Plugin frontend-design do zainstalowania
+- Brak
 
 ---
 
 ## Recently Completed
+
+- ✅ feat: Add frontend UI v1 (PIN + Dashboard) (16:09)
+
+- ✅ docs: Complete architecture and design for new systems (15:18)
+
+- ✅ EOS: 2025-12-28 - Complete motivation system (15:13)
 
 **Sesja 2 (28.12 wieczór):**
 - ✅ Cele finansowe z dynamicznym deadline

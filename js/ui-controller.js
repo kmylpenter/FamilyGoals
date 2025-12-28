@@ -43,27 +43,34 @@ class UIController {
   // === INITIALIZATION ===
 
   async init() {
-    // Initialize data manager
-    await dataManager.init();
+    try {
+      // Initialize data manager
+      await dataManager.init();
 
-    // Check if engagement manager exists and record login
-    if (typeof EngagementManager !== 'undefined') {
-      EngagementManager.recordLogin();
+      // Check if engagement manager exists and record login
+      if (typeof EngagementManager !== 'undefined') {
+        EngagementManager.recordLogin();
+      }
+
+      // Setup event listeners
+      this.setupEventListeners();
+
+      // Determine initial screen
+      this.showInitialScreen();
+
+      // Update month display
+      this.updateMonthDisplay();
+
+      // Set random daily tip
+      this.setRandomTip();
+
+      console.log('FamilyGoals UI initialized');
+    } catch (error) {
+      console.error('Init error:', error);
+      // Fallback - show PIN screen
+      this.showScreen('pin-screen');
+      this.setupEventListeners();
     }
-
-    // Setup event listeners
-    this.setupEventListeners();
-
-    // Determine initial screen
-    this.showInitialScreen();
-
-    // Update month display
-    this.updateMonthDisplay();
-
-    // Set random daily tip
-    this.setRandomTip();
-
-    console.log('FamilyGoals UI initialized');
   }
 
   showInitialScreen() {
