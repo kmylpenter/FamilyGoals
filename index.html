@@ -545,22 +545,42 @@
         </div>
         <div class="form-group">
           <label>Typ</label>
-          <div class="chips">
-            <button type="button" class="chip active">💰 Jednorazowy</button>
-            <button type="button" class="chip">🔄 Stały wydatek</button>
+          <div class="chips" id="goal-type-chips">
+            <button type="button" class="chip active" data-type="oneoff">💰 Jednorazowy</button>
+            <button type="button" class="chip" data-type="recurring">🔄 Stały wydatek</button>
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="goal-amount-group">
           <label>Docelowa kwota (zł)</label>
-          <input type="number" placeholder="10000">
+          <input type="number" id="goal-target" placeholder="10000">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="goal-saved-group">
           <label>Już zebrano (zł)</label>
-          <input type="number" placeholder="0" value="0">
+          <input type="number" id="goal-saved" placeholder="0" value="0">
         </div>
-        <div class="form-group">
+        <!-- Dla jednorazowych: termin -->
+        <div class="form-group" id="goal-deadline-group">
           <label>Termin</label>
-          <input type="month" value="2025-08">
+          <input type="month" id="goal-deadline" value="2025-08">
+        </div>
+        <!-- Dla stałych: zakres dat -->
+        <div class="form-group date-range-group" id="goal-daterange-group" style="display: none;">
+          <label>Okres trwania</label>
+          <div class="date-range">
+            <div class="date-field">
+              <span>Od:</span>
+              <input type="month" id="goal-start-date">
+            </div>
+            <div class="date-field">
+              <span>Do:</span>
+              <input type="month" id="goal-end-date">
+            </div>
+          </div>
+          <div class="date-hint">np. leasing: sty 2024 - lip 2028</div>
+        </div>
+        <div class="form-group" id="goal-monthly-group" style="display: none;">
+          <label>Kwota miesięczna (zł)</label>
+          <input type="number" id="goal-monthly" placeholder="500">
         </div>
         <div class="form-group">
           <label>Ikona</label>

@@ -34,6 +34,11 @@
     return MONTHS[date.getMonth()] + ' ' + date.getFullYear();
   }
 
+  function formatMonthShort(date) {
+    const shortMonths = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
+    return shortMonths[date.getMonth()] + ' ' + date.getFullYear();
+  }
+
   function getYearMonth() {
     return { year: currentMonth.getFullYear(), month: currentMonth.getMonth() };
   }
@@ -58,7 +63,9 @@
     const demoGoals = [
       { id: 'demo-goal-1', name: 'Studia Kasi', icon: '🎓', type: 'oneoff', targetAmount: 50000, currentAmount: 32000, targetDate: '2026-09-01' },
       { id: 'demo-goal-2', name: 'Remont kuchni', icon: '🏠', type: 'oneoff', targetAmount: 25000, currentAmount: 5000, targetDate: '2026-12-01' },
-      { id: 'demo-goal-3', name: 'Wakacje', icon: '🏖️', type: 'oneoff', targetAmount: 10000, currentAmount: 4500, targetDate: '2025-08-01' }
+      { id: 'demo-goal-3', name: 'Wakacje', icon: '🏖️', type: 'oneoff', targetAmount: 10000, currentAmount: 4500, targetDate: '2025-08-01' },
+      { id: 'demo-goal-4', name: 'Leasing auta', icon: '🚗', type: 'recurring', monthlyContribution: 1200, startDate: '2024-01-01', endDate: '2028-07-01' },
+      { id: 'demo-goal-5', name: 'Ubezpieczenie', icon: '🛡️', type: 'recurring', monthlyContribution: 350, startDate: '2025-01-01', endDate: '2025-12-01' }
     ];
 
     // Demo income records (for chart)
@@ -506,20 +513,39 @@
     // Recurring goals
     const recurringList = document.querySelectorAll('#screen-goals .list')[1];
     if (recurringList && recurring.length > 0) {
-      recurringList.innerHTML = recurring.map(g => `
-        <div class="goal-item future" data-edit-id="${g.id}" data-edit-type="goal">
+      recurringList.innerHTML = recurring.map(g => {
+        // Format date range
+        let dateText = '';
+        if (g.startDate && g.endDate) {
+          dateText = `${formatMonthShort(new Date(g.startDate))} - ${formatMonthShort(new Date(g.endDate))}`;
+        } else if (g.startDate) {
+          dateText = `Od ${formatMonthShort(new Date(g.startDate))}`;
+        } else if (g.targetDate) {
+          dateText = `Od ${formatMonth(new Date(g.targetDate))}`;
+        } else {
+          dateText = 'Stały wydatek';
+        }
+
+        // Check if currently active
+        const now = new Date();
+        const isActive = (!g.startDate || new Date(g.startDate) <= now) &&
+                        (!g.endDate || new Date(g.endDate) >= now);
+
+        return `
+        <div class="goal-item future ${isActive ? 'active-recurring' : ''}" data-edit-id="${g.id}" data-edit-type="goal">
           <div class="goal-item-header">
             <span class="goal-item-icon">${g.icon || '🏦'}</span>
             <div class="goal-item-info">
               <div class="goal-item-name">${g.name}</div>
-              <div class="goal-item-date">Od ${g.targetDate ? formatMonth(new Date(g.targetDate)) : 'nieokreślone'}</div>
+              <div class="goal-item-date">${dateText}</div>
             </div>
-            <div class="goal-item-monthly warning">+${formatMoney(g.monthlyContribution || g.targetAmount).replace(' zł', '')}/m</div>
+            <div class="goal-item-monthly warning">${formatMoney(g.monthlyContribution || g.targetAmount).replace(' zł', '')}/m</div>
           </div>
-          <div class="goal-item-warning">⚠️ Podnieście zarobki o ${formatMoney(g.monthlyContribution || g.targetAmount)} do tego czasu!</div>
+          ${isActive ? '' : '<div class="goal-item-warning">⏳ Jeszcze nieaktywny</div>'}
           <button class="delete-btn" data-id="${g.id}" data-type="goal">✕</button>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
   }
 
@@ -722,48 +748,111 @@
     const form = document.querySelector('#modal-goal form');
     if (!form) return;
 
+    // Type switching - show/hide fields based on type
+    const typeChips = $('goal-type-chips');
+    if (typeChips) {
+      typeChips.addEventListener('click', e => {
+        if (e.target.classList.contains('chip')) {
+          const isRecurring = e.target.dataset.type === 'recurring';
+          toggleGoalFormType(isRecurring);
+        }
+      });
+    }
+
     form.onsubmit = e => {
       e.preventDefault();
 
       const name = form.querySelector('input[type="text"]').value;
-      const typeChip = form.querySelector('.chips .chip.active');
-      const type = typeChip?.textContent.includes('Stały') ? 'recurring' : 'oneoff';
-      const target = parseFloat(form.querySelectorAll('input[type="number"]')[0].value) || 0;
-      const saved = parseFloat(form.querySelectorAll('input[type="number"]')[1].value) || 0;
-      const deadline = form.querySelector('input[type="month"]').value;
-      const iconChip = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active');
-      const icon = iconChip?.textContent || '🎯';
+      const typeChip = form.querySelector('#goal-type-chips .chip.active');
+      const type = typeChip?.dataset.type || 'oneoff';
+      const icon = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active')?.textContent || '🎯';
 
-      const goalData = {
-        name,
-        type,
-        targetAmount: target,
-        currentAmount: saved,
-        targetDate: deadline + '-01',
-        icon,
-        monthlyContribution: type === 'recurring' ? target : null
-      };
+      let goalData;
+
+      if (type === 'recurring') {
+        // Stały wydatek - z zakresem dat
+        const monthly = parseFloat($('goal-monthly')?.value) || 0;
+        const startDate = $('goal-start-date')?.value;
+        const endDate = $('goal-end-date')?.value;
+
+        goalData = {
+          name,
+          type: 'recurring',
+          monthlyContribution: monthly,
+          targetAmount: monthly, // dla wyświetlania
+          startDate: startDate ? startDate + '-01' : null,
+          endDate: endDate ? endDate + '-01' : null,
+          icon
+        };
+      } else {
+        // Jednorazowy cel
+        const target = parseFloat($('goal-target')?.value) || 0;
+        const saved = parseFloat($('goal-saved')?.value) || 0;
+        const deadline = $('goal-deadline')?.value;
+
+        goalData = {
+          name,
+          type: 'oneoff',
+          targetAmount: target,
+          currentAmount: saved,
+          targetDate: deadline ? deadline + '-01' : null,
+          icon
+        };
+      }
 
       if (editingGoalId) {
-        // Update existing goal
         dataManager.updatePlannedGoal(editingGoalId, goalData);
         editingGoalId = null;
       } else {
-        // Add new goal
         dataManager.addPlannedGoal(goalData);
       }
 
       // Check achievements
       if (gamificationManager) {
-        const newAchievements = gamificationManager.checkAchievements(currentPerson);
-        if (newAchievements.length > 0) {
-          console.log('New achievements:', newAchievements);
-        }
+        gamificationManager.checkAchievements(currentPerson);
       }
 
       closeAllModals();
       renderAll();
     };
+  }
+
+  function toggleGoalFormType(isRecurring) {
+    // Pola dla jednorazowych
+    const savedGroup = $('goal-saved-group');
+    const deadlineGroup = $('goal-deadline-group');
+    const amountGroup = $('goal-amount-group');
+
+    // Pola dla stałych
+    const daterangeGroup = $('goal-daterange-group');
+    const monthlyGroup = $('goal-monthly-group');
+
+    if (isRecurring) {
+      // Stały wydatek
+      if (savedGroup) savedGroup.style.display = 'none';
+      if (deadlineGroup) deadlineGroup.style.display = 'none';
+      if (amountGroup) amountGroup.style.display = 'none';
+      if (daterangeGroup) daterangeGroup.style.display = 'block';
+      if (monthlyGroup) monthlyGroup.style.display = 'block';
+
+      // Set default dates
+      const now = new Date();
+      const startInput = $('goal-start-date');
+      const endInput = $('goal-end-date');
+      if (startInput && !startInput.value) {
+        startInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      }
+      if (endInput && !endInput.value) {
+        endInput.value = `${now.getFullYear() + 2}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      }
+    } else {
+      // Jednorazowy cel
+      if (savedGroup) savedGroup.style.display = 'block';
+      if (deadlineGroup) deadlineGroup.style.display = 'block';
+      if (amountGroup) amountGroup.style.display = 'block';
+      if (daterangeGroup) daterangeGroup.style.display = 'none';
+      if (monthlyGroup) monthlyGroup.style.display = 'none';
+    }
   }
 
   function deleteGoal(id) {
@@ -780,24 +869,43 @@
 
     const modal = $('modal-goal');
     const form = modal.querySelector('form');
+    const isRecurring = goal.type === 'recurring';
 
-    // Prefill form
+    // Prefill name
     form.querySelector('input[type="text"]').value = goal.name || '';
-    form.querySelectorAll('input[type="number"]')[0].value = goal.targetAmount || '';
-    form.querySelectorAll('input[type="number"]')[1].value = goal.currentAmount || 0;
 
-    // Set deadline (month format)
-    if (goal.targetDate) {
-      form.querySelector('input[type="month"]').value = goal.targetDate.slice(0, 7);
+    // Set type chip and toggle form
+    const typeChips = $('goal-type-chips')?.querySelectorAll('.chip');
+    if (typeChips) {
+      typeChips.forEach(c => c.classList.remove('active'));
+      if (isRecurring) {
+        typeChips[1].classList.add('active');
+      } else {
+        typeChips[0].classList.add('active');
+      }
     }
+    toggleGoalFormType(isRecurring);
 
-    // Set type chip
-    const typeChips = form.querySelectorAll('.chips')[0].querySelectorAll('.chip');
-    typeChips.forEach(c => c.classList.remove('active'));
-    if (goal.type === 'recurring') {
-      typeChips[1].classList.add('active');
+    if (isRecurring) {
+      // Stały wydatek
+      const monthlyInput = $('goal-monthly');
+      if (monthlyInput) monthlyInput.value = goal.monthlyContribution || goal.targetAmount || '';
+
+      const startInput = $('goal-start-date');
+      if (startInput && goal.startDate) startInput.value = goal.startDate.slice(0, 7);
+
+      const endInput = $('goal-end-date');
+      if (endInput && goal.endDate) endInput.value = goal.endDate.slice(0, 7);
     } else {
-      typeChips[0].classList.add('active');
+      // Jednorazowy cel
+      const targetInput = $('goal-target');
+      if (targetInput) targetInput.value = goal.targetAmount || '';
+
+      const savedInput = $('goal-saved');
+      if (savedInput) savedInput.value = goal.currentAmount || 0;
+
+      const deadlineInput = $('goal-deadline');
+      if (deadlineInput && goal.targetDate) deadlineInput.value = goal.targetDate.slice(0, 7);
     }
 
     // Set icon chip

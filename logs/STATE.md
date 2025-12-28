@@ -21,6 +21,8 @@ Testowanie napraw na urządzeniu Android
 
 ## Recently Completed
 
+- ✅ fix: Emoji icons + significantly larger mobile UI (23:03)
+
 - ✅ fix: Critical form submission and mobile UX improvements (22:53) (sesja 2)
 
 ### 🔴 KRYTYCZNE - Naprawione

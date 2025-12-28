@@ -130,6 +130,7 @@ body {
 .goal-type { background: var(--bg-subtle); padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
 .goal-card.future { background: linear-gradient(135deg, var(--peach-light) 0%, var(--bg-card) 100%); border: 1px dashed var(--peach); }
 .goal-card.future .goal-type { background: var(--peach-light); color: var(--danger); }
+.goal-item.active-recurring { border: 2px solid var(--mint); border-style: solid; }
 
 /* Goal Items (list) */
 .goal-item {
@@ -294,6 +295,14 @@ body {
 .btn-primary:active { opacity: 0.9; }
 .calculated-info { display: flex; justify-content: space-between; padding: var(--s3); background: var(--mint-light); border-radius: var(--r1); font-size: 1rem; }
 .calculated-value { font-family: var(--font-display); font-weight: 700; color: var(--mint); font-size: 1.1rem; }
+
+/* Date Range */
+.date-range { display: flex; gap: var(--s2); }
+.date-field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.date-field span { font-size: 0.85rem; color: var(--text-muted); }
+.date-field input { width: 100%; }
+.date-hint { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
+.date-range-group { background: var(--lavender-light); padding: var(--s3); border-radius: var(--r2); margin: var(--s1) 0; }
 
 /* Delete Button */
 .delete-btn {
