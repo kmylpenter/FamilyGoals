@@ -703,6 +703,225 @@ lub long-tap na Dashboard.
 
 ---
 
+### 12. Login Streak
+
+**Widget na Dashboard:**
+```
+┌─────────────────────────┐
+│ 🔥 STREAK: 14 dni       │
+│ ████████████████░░░░    │
+│ Do 30 dni: 16 dni       │
+│                         │
+│ Dzienny bonus: 10 pkt   │
+│ Mnożnik: 2.0x           │
+│                         │
+│ ❄️ Freeze: 2 dostępne   │
+└─────────────────────────┘
+```
+
+**Daily Challenges (widget):**
+```
+┌─────────────────────────┐
+│ 📋 WYZWANIA DNIA        │
+├─────────────────────────┤
+│ ✅ Zapisz wydatek  +10  │
+│ ⬜ Oszczędny dzień +20  │
+│ ⬜ Sprawdź budżet   +5  │
+├─────────────────────────┤
+│ 💑 WSPÓLNE (weekend):   │
+│ ⬜ Narada budżetowa +60 │
+└─────────────────────────┘
+```
+
+**Streak przerwany (modal):**
+```
+┌─────────────────────────┐
+│ ⚠️ Przegapiłeś 2 dni!   │
+├─────────────────────────┤
+│                         │
+│ Twój streak: 14 dni     │
+│                         │
+│ Użyj Freeze żeby        │
+│ zachować streak?        │
+│                         │
+│ Koszt: 100 punktów      │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   ❄️ UŻYJ FREEZE    │ │
+│ └─────────────────────┘ │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   Zacznij od nowa   │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
+```
+
+---
+
+### 13. Family Dashboard (Nasza Rodzina)
+
+**Główny widok rodzinny:**
+```
+┌─────────────────────────┐
+│ 👨‍👩‍👧 NASZA RODZINA       │
+├─────────────────────────┤
+│ ┌─────────────────────┐ │
+│ │ 🌳 Lv.3 Zorganizow. │ │
+│ │ ████████░░░░  65%   │ │
+│ │ Do Lv.4: 520 XP     │ │
+│ │ Bonus: 1.2x         │ │
+│ └─────────────────────┘ │
+├─────────────────────────┤
+│ WSPÓLNE PUNKTY: 1,850   │
+├─────────────────────────┤
+│ 👩 ŻONA           👨 MĄŻ│
+│ 🛡️ Strażnik     💼 Żywi-│
+│    budżetu         ciel │
+│ 📊 Dokumen-    🌟 Moty- │
+│    talista        wator │
+├─────────────────────────┤
+│ 💕 Uzupełniacie się     │
+│    doskonale!           │
+├─────────────────────────┤
+│ NAGRODY RODZINNE:       │
+│ ┌─────────────────────┐ │
+│ │ 🍕 Pizza     150 ✅ │ │
+│ │ 🎬 Kino      200 ✅ │ │
+│ │ 🚗 Wycieczka 400 🔒 │ │
+│ │ Brakuje: 150 pkt    │ │
+│ └─────────────────────┘ │
+├─────────────────────────┤
+│ 🏠  │  💰  │  🎯  │  ⚙️  │
+└─────────────────────────┘
+```
+
+**Cele zespołowe:**
+```
+┌─────────────────────────┐
+│ 🎯 CELE ZESPOŁOWE       │
+├─────────────────────────┤
+│ ⬜ Tydzień razem   +100 │
+│   Oboje logujcie się 7d │
+│                         │
+│ ⬜ Budżet w ryzach +150 │
+│   Żadne przekroczenie   │
+│                         │
+│ ✅ Narada finansowa +50 │
+│   Przejrzeliście razem  │
+└─────────────────────────┘
+```
+
+---
+
+### 14. Balance (Personalizacja)
+
+**Widok dla MĘŻA:**
+```
+┌─────────────────────────┐
+│ 👨 TWÓJ BALANS          │
+├─────────────────────────┤
+│ ┌─────────────────────┐ │
+│ │ ⚖️ Praca ◄━━━━●━━► │ │
+│ │         Rodzina     │ │
+│ │ Stan: Do poprawy    │ │
+│ └─────────────────────┘ │
+├─────────────────────────┤
+│ 💡 PORADA DLA CIEBIE:   │
+│                         │
+│ "Twoja praca się opłaca │
+│  ale dziecko rośnie.    │
+│  Każdy wieczór liczy."  │
+│                         │
+│ [Wyjdź dziś o 17:00]    │
+├─────────────────────────┤
+│ ZDOBĄDŹ PUNKTY ZA:      │
+│                         │
+│ ⬜ 👨‍👧 Weekend z rodziną  │
+│      +50 pkt            │
+│ ⬜ 💑 Randka z żoną      │
+│      +40 pkt            │
+│ ⬜ 📵 Dzień offline      │
+│      +30 pkt            │
+│ ⬜ 📖 Bajka na dobranoc  │
+│      +25 pkt            │
+├─────────────────────────┤
+│ 🏠  │  💰  │  🎯  │  ⚙️  │
+└─────────────────────────┘
+```
+
+**Widok dla ŻONY:**
+```
+┌─────────────────────────┐
+│ 👩 TWÓJ BALANS          │
+├─────────────────────────┤
+│ ┌─────────────────────┐ │
+│ │ 💪 Kontrola finansów│ │
+│ │ ████████████░░  80% │ │
+│ │ Świetna robota!     │ │
+│ └─────────────────────┘ │
+├─────────────────────────┤
+│ 💡 PORADA DLA CIEBIE:   │
+│                         │
+│ "Każdy zapisany wydatek │
+│  = lepsze planowanie    │
+│  WSPÓLNEGO czasu."      │
+│                         │
+│ [Zapisz dzisiejsze]     │
+├─────────────────────────┤
+│ ZDOBĄDŹ PUNKTY ZA:      │
+│                         │
+│ ✅ 📝 Strażniczka       │
+│      +20 pkt  DZIŚ      │
+│ ⬜ 🐷 Oszczędna mama    │
+│      +30 pkt            │
+│ ⬜ 🌟 Wpłata na cel     │
+│      +40 pkt            │
+│ ⬜ 💪 Odmów impulsu     │
+│      +35 pkt            │
+├─────────────────────────┤
+│ 🏠  │  💰  │  🎯  │  ⚙️  │
+└─────────────────────────┘
+```
+
+---
+
+### 15. Cel z "Dlaczego"
+
+**Widok celu z znaczeniem:**
+```
+┌─────────────────────────┐
+│ 🏖️ Wakacje rodzinne    │
+├─────────────────────────┤
+│ ████████░░░░░░░   45%   │
+│ 4,500 / 10,000 zł       │
+│ Do sierpnia 2026        │
+├─────────────────────────┤
+│ DLACZEGO TO WAŻNE:      │
+│                         │
+│ "Wspólne wspomnienia"   │
+│                         │
+│ 👨 Dla męża:            │
+│ Czas z rodziną bez      │
+│ myślenia o pracy        │
+│                         │
+│ 👩 Dla żony:            │
+│ Wakacje, o których      │
+│ marzymy razem           │
+├─────────────────────────┤
+│ ⏰ TO OZNACZA:          │
+│                         │
+│ 🏖️ 2 tygodnie razem    │
+│    bez stresu           │
+├─────────────────────────┤
+│ Już macie na:           │
+│ 🚗 3 dni wycieczki      │
+├─────────────────────────┤
+│ 🏠  │  💰  │  🎯  │  ⚙️  │
+└─────────────────────────┘
+```
+
+---
+
 ## Komponenty
 
 ### Progress Bar

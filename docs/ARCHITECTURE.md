@@ -348,6 +348,196 @@ class AIAdvisor {
 }
 ```
 
+### EngagementManager
+
+```javascript
+class EngagementManager {
+  // === LOGIN STREAK ===
+  recordLogin(owner)           // Rejestruj login, zwróć bonus
+  useFreeze(owner)             // Zamroź streak (za punkty)
+  buyFreeze(owner)             // Kup dodatkowy freeze
+  getStreakStats(owner)        // Statystyki streak
+
+  // === DAILY CHALLENGES ===
+  getDailyChallengesStatus()   // Dzisiejsze wyzwania
+  checkDailyChallenges()       // Sprawdź ukończone
+
+  // === COUPLE STREAK ===
+  getCoupleStats()             // Wspólny streak obojga
+}
+```
+
+**Konfiguracja streak:**
+```javascript
+STREAK_CONFIG = {
+  baseDaily: 5,              // Bazowe punkty/dzień
+  multipliers: {
+    3: 1.2,   7: 1.5,        // Mnożniki za długość
+    14: 2.0,  30: 2.5,
+    60: 3.0,  90: 4.0,
+    180: 5.0, 365: 10.0      // Rok = 10x punkty!
+  },
+  milestones: {
+    7: { bonus: 50 },        // Kamienie milowe
+    30: { bonus: 200 },
+    365: { bonus: 2500 }
+  },
+  freezeCost: { 1: 50, 2: 100, 3: 200 }
+}
+```
+
+### FamilyUnityManager
+
+**Filozofia: ŁĄCZYĆ nie DZIELIĆ**
+
+```javascript
+class FamilyUnityManager {
+  // === WSPÓLNE PUNKTY (nie osobne!) ===
+  addSharedPoints(amount)      // Dodaj do wspólnej puli
+  spendSharedPoints(amount)    // Wydaj na nagrodę
+
+  // === POZIOM RODZINY ===
+  addFamilyXP(amount)          // XP dla całej rodziny
+  getFamilyStatus()            // Poziom, postęp, bonus
+
+  // === ROLE (nie punkty!) ===
+  assignRole(owner, roleId)    // Przyznaj rolę
+  autoAssignRoles()            // Auto na podstawie aktywności
+  getRoles(owner)              // Pobierz role
+
+  // === WKŁAD (różne typy równe!) ===
+  recordContribution(owner, type)
+  getContributionsSummary()
+
+  // === CELE ZESPOŁOWE ===
+  checkTeamGoals()
+  confirmTeamActivity(goalId)
+
+  // === NAGRODY ===
+  purchaseFamilyReward(id)     // Ze wspólnych punktów
+  getAvailableRewards()
+}
+```
+
+**Poziomy rodziny:**
+```
+Lv.1  🌱 Początkująca rodzina    (0 XP)      1.0x
+Lv.2  🌿 Rozwijająca się         (500 XP)    1.1x
+Lv.3  🌳 Zorganizowana           (1500 XP)   1.2x
+Lv.5  ⭐ Finansowo świadoma      (7000 XP)   1.5x
+Lv.7  💎 Mistrzowie finansów     (20000 XP)  2.0x
+Lv.9  👑 Legenda rodzinna        (50000 XP)  3.0x
+Lv.10 🎖️ Dynastia                (100000 XP) 5.0x
+```
+
+**Role (zamiast porównywania punktów):**
+```
+FINANSOWE:
+💼 Główny żywiciel     - główne źródło przychodów
+💰 Dodatkowy dochód    - przynosi extra pieniądze
+
+DOMOWE:
+🏠 Szef/Szefowa domu   - zarządza domem
+🛡️ Strażnik budżetu    - pilnuje wydatków
+🛒 Sprytny kupujący    - znajduje okazje
+
+RODZICIELSKIE:
+👶 Główny opiekun      - główna opieka nad dziećmi
+📚 Pomocnik w lekcjach - pomaga z nauką
+
+ORGANIZACYJNE:
+📋 Strateg rodzinny    - planuje przyszłość
+📊 Dokumentalista      - śledzi wydatki
+🌟 Motywator           - wspiera partnera
+```
+
+**Typy wkładu (wszystkie równe!):**
+```
+💵 Finansowy    - zarabianie pieniędzy
+📝 Śledzenie    - kontrola budżetu
+🎯 Planowanie   - ustalanie celów
+🐷 Oszczędzanie - znajdowanie oszczędności
+🏠 Praca domowa - gotowanie, sprzątanie
+👨‍👩‍👧‍👦 Opieka      - czas z dziećmi
+```
+
+### FamilyBalanceManager
+
+**Personalizacja dla różnych ról w rodzinie**
+
+```javascript
+class FamilyBalanceManager {
+  // === CELE Z "DLACZEGO" ===
+  assignMeaningToGoal(goalId, meaningType)
+  getGoalWithMeaning(goalId)
+
+  // === BALANS ===
+  recordHusbandTimeActivity(id)   // Mąż: za CZAS z rodziną
+  recordWifeFinanceActivity(id)   // Żona: za FINANSE
+  recordTogetherActivity(id)      // Wspólne
+
+  // === PERSONALIZOWANE PORADY ===
+  getAdviceForHusband()
+  getAdviceForWife()
+
+  // === STATUS ===
+  getBalanceStatus()
+
+  // === KONWERSJA ===
+  convertSavingsToTime(amount)    // Pieniądze → czas razem
+  getGoalAsTime(goalId)
+}
+```
+
+**Cele z znaczeniem (nie tylko kwota!):**
+```javascript
+GOAL_MEANINGS = {
+  vacation: {
+    meaning: "Wspólne wspomnienia",
+    motivation: {
+      husband: "Czas z rodziną bez myślenia o pracy",
+      wife: "Wakacje, o których marzymy razem"
+    },
+    timeValue: "2 tygodnie razem bez stresu"
+  },
+  emergency: {
+    meaning: "Bezpieczeństwo rodziny",
+    motivation: {
+      husband: "Możesz zwolnić tempo bez strachu",
+      wife: "Spokój, że damy radę w każdej sytuacji"
+    },
+    timeValue: "6 miesięcy bez stresu finansowego"
+  }
+}
+```
+
+**Nagrody dla męża (za CZAS z rodziną):**
+```
+👨‍👧 Obecny tata        - weekend bez pracy
+💑 Randka z żoną      - wieczór we dwoje
+📵 Offline            - dzień bez maili
+🏠 Wczesny powrót     - przed 17:00
+👨‍🍳 Szef kuchni       - ugotuj obiad
+📖 Bajka na dobranoc  - ułóż dziecko spać
+```
+
+**Nagrody dla żony (za FINANSE = więcej czasu razem!):**
+```
+📝 Strażniczka budżetu - zapisz wydatki
+🐷 Oszczędna mama      - tańsza alternatywa
+📋 Planistka           - plan na tydzień
+🌟 Marzycielka         - wpłata na cel
+💪 Silna wola          - odmów impulsu
+```
+
+**Konwersja pieniądze → czas:**
+```
+100 zł    = ☕ 1 wspólna kawa
+500 zł    = 🚗 1 dzień wycieczki
+5000 zł   = 🏖️ 1 tydzień wakacji
+50000 zł  = 🌅 1 rok mniej pracy!
+```
+
 ---
 
 ## Reaktywność UI (Dynamiczne dane)
