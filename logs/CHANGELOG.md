@@ -14,8 +14,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Fixed
+- fix: Deep frontend-backend integration (10 issues). Files: `js/app.js`, `index.html`. Commit: `1cb28ea`
+- fix: checkAndUnlock() → checkAchievements() crash. Files: `js/app.js`. Commit: `1cb28ea`
+- fix: Expense category chips missing data-category-id. Files: `index.html`. Commit: `1cb28ea`
 - fix: Correct manager initialization and method names. Files: `js/app.js`. Commit: `0eb6e45`
 - fix: Add service worker registration for PWA. Files: `index.html`. Commit: `e72415e`
+
+### Added
+- AlertManager integration on dashboard. Files: `js/app.js`, `index.html`, `css/main.css`. Commit: `1cb28ea`
+- AIAdvisor daily tip on dashboard. Files: `js/app.js`, `index.html`, `css/main.css`. Commit: `1cb28ea`
+- Edit prefill for goals and income sources. Files: `js/app.js`. Commit: `1cb28ea`
+- All 11 manager scripts loaded. Files: `index.html`. Commit: `1cb28ea`
+
+### Changed
+- PIN handling unified with PinManager. Files: `index.html`, `js/app.js`. Commit: `1cb28ea`
+- EventBus connected for UI reactivity. Files: `js/app.js`. Commit: `1cb28ea`
+- RecurringManager initialized on app start. Files: `js/app.js`. Commit: `1cb28ea`
+- Achievement category mapping expanded. Files: `js/app.js`. Commit: `1cb28ea`
 
 ### Added
 - **CODEBASE.md** - dokumentacja API wszystkich managerów. Files: `logs/CODEBASE.md`. Commit: `0eb6e45`

@@ -28,6 +28,41 @@
 
 ## Daily Log
 
+### 2025-12-28: Głęboka analiza i naprawa integracji
+
+**Sytuacja:**
+Frontend działał, ale tylko pozornie.
+Głęboka analiza ujawniła 12 problemów:
+3 krytyczne (crash), 5 ważnych, 4 brakujące
+integracje.
+
+**Wyzwanie:**
+1. checkAndUnlock() nie istnieje → crash
+2. Kategorie wydatków bez ID → null
+3. 7/11 managerów niezaładowanych
+4. Edit bez prefill, PIN zduplikowany
+5. EventBus, RecurringManager nieużywane
+
+**Decyzja:**
+Systematyczna naprawa wszystkich 12 problemów:
+- Najpierw crash fixes (3)
+- Potem funkcjonalne (5)
+- Na końcu nowe integracje (4)
+
+**Rezultat:**
+- Wszystkie 12 problemów naprawione
+- AlertManager pokazuje alerty na dashboard
+- AIAdvisor wyświetla poradę dnia
+- Edit prefill działa dla celów/źródeł
+- PIN ujednolicony z PinManager
+- EventBus podłączony (reaktywność)
+
+**Files:**
+`js/app.js`, `index.html`,
+`css/main.css`, `logs/STATE.md`
+
+---
+
 ### 2025-12-28: Integracja frontend + PWA + luka LFG
 
 **Sytuacja:**
