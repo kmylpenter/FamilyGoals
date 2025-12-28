@@ -27,6 +27,8 @@
 
 ## Recently Completed
 
+- ✅ feat: New goals logic - monthly savings breakdown (16:56)
+
 - ✅ feat: FamilyGoals v2 - Light pastel theme, income focus (16:50)
 
 - ✅ fix: Set PIN to 9890 for testing (16:28)

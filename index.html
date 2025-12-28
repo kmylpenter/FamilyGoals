@@ -11,11 +11,10 @@
 </head>
 <body>
 
-  <!-- PIN Screen -->
+  <!-- ========== PIN Screen ========== -->
   <div id="pin-screen" class="screen pin-screen active">
     <div class="pin-logo">👨‍👩‍👧‍👦</div>
     <h1 class="pin-title">Wprowadź PIN</h1>
-
     <div class="pin-container" id="pin-container">
       <div class="pin-dots">
         <div class="pin-dot"></div>
@@ -24,7 +23,6 @@
         <div class="pin-dot"></div>
       </div>
     </div>
-
     <div class="pin-keypad">
       <button class="pin-key" onclick="pinKey('1')">1</button>
       <button class="pin-key" onclick="pinKey('2')">2</button>
@@ -41,17 +39,16 @@
     </div>
   </div>
 
-  <!-- Dashboard -->
-  <div id="dashboard" class="screen dashboard">
-
+  <!-- ========== Dashboard ========== -->
+  <div id="screen-dashboard" class="screen dashboard">
     <header class="header">
       <div class="brand">🏠 FamilyGoals</div>
       <span class="month-badge" id="month-badge">Grudzień 2025</span>
     </header>
 
-    <!-- Savings Required Hero -->
+    <!-- Savings Hero -->
     <div class="income-hero">
-      <div class="income-hero-title">🎯 Do odłożenia w styczniu</div>
+      <div class="income-hero-title">🎯 Do odłożenia w tym miesiącu</div>
       <div class="income-row">
         <div class="income-actual" id="savings-required">3 855 zł</div>
         <div class="income-required">
@@ -63,68 +60,55 @@
         <div class="income-bar-fill" id="savings-bar" style="width: 31%"></div>
       </div>
       <div class="income-bar-text">
-        <span id="savings-diff">Zostało: 2 655 zł</span>
-        <span id="savings-percent">31%</span>
+        <span>Zostało: 2 655 zł</span>
+        <span>31%</span>
       </div>
     </div>
 
     <!-- Goals breakdown -->
     <h2 class="section-title">📋 Skąd ta kwota?</h2>
-
-    <div class="goal-card">
-      <div class="goal-header">
-        <span class="goal-name">🎓 Studia Kasi</span>
-        <span class="goal-amount monthly">1 500 zł/m</span>
+    <div id="goals-list">
+      <div class="goal-card" onclick="showScreen('screen-goals')">
+        <div class="goal-header">
+          <span class="goal-name">🎓 Studia Kasi</span>
+          <span class="goal-amount monthly">1 500 zł/m</span>
+        </div>
+        <div class="goal-detail">
+          <span class="goal-type">Jednorazowy</span>
+          <span>32 000 / 50 000 zł</span>
+        </div>
       </div>
-      <div class="goal-detail">
-        <span class="goal-type">Jednorazowy</span>
-        <span>32 000 / 50 000 zł • wrz 2026</span>
+      <div class="goal-card" onclick="showScreen('screen-goals')">
+        <div class="goal-header">
+          <span class="goal-name">🏠 Remont kuchni</span>
+          <span class="goal-amount monthly">1 667 zł/m</span>
+        </div>
+        <div class="goal-detail">
+          <span class="goal-type">Jednorazowy</span>
+          <span>5 000 / 25 000 zł</span>
+        </div>
       </div>
-    </div>
-
-    <div class="goal-card">
-      <div class="goal-header">
-        <span class="goal-name">🏠 Remont kuchni</span>
-        <span class="goal-amount monthly">1 667 zł/m</span>
-      </div>
-      <div class="goal-detail">
-        <span class="goal-type">Jednorazowy</span>
-        <span>5 000 / 25 000 zł • gru 2026</span>
-      </div>
-    </div>
-
-    <div class="goal-card">
-      <div class="goal-header">
-        <span class="goal-name">🏖️ Wakacje</span>
-        <span class="goal-amount monthly">688 zł/m</span>
-      </div>
-      <div class="goal-detail">
-        <span class="goal-type">Jednorazowy</span>
-        <span>4 500 / 10 000 zł • sie 2025</span>
-      </div>
-    </div>
-
-    <div class="goal-card future">
-      <div class="goal-header">
-        <span class="goal-name">🏦 Rata kredytu</span>
-        <span class="goal-amount monthly warning">+5 000 zł/m</span>
-      </div>
-      <div class="goal-detail">
-        <span class="goal-type">Stały od sty 2027</span>
-        <span>⚠️ Podnieście zarobki o 5k do tego czasu!</span>
+      <div class="goal-card future" onclick="showScreen('screen-goals')">
+        <div class="goal-header">
+          <span class="goal-name">🏦 Rata kredytu</span>
+          <span class="goal-amount monthly warning">+5 000 zł/m</span>
+        </div>
+        <div class="goal-detail">
+          <span class="goal-type">Stały od 2027</span>
+          <span>⚠️ Podnieś zarobki!</span>
+        </div>
       </div>
     </div>
 
     <!-- Income Status -->
     <h2 class="section-title">💰 Wasze przychody</h2>
-
-    <div class="income-status-card">
+    <div class="income-status-card" onclick="showScreen('screen-income')">
       <div class="income-status-row">
-        <span>Wymagane (wydatki + cele)</span>
+        <span>Wymagane</span>
         <span class="income-value">12 000 zł</span>
       </div>
       <div class="income-status-row">
-        <span>Wasze przychody</span>
+        <span>Przychody</span>
         <span class="income-value positive">8 500 zł</span>
       </div>
       <div class="income-status-row total">
@@ -134,34 +118,15 @@
     </div>
 
     <!-- Timeline -->
-    <h2 class="section-title">📈 Wasze zarobki</h2>
-
+    <h2 class="section-title">📈 Historia zarobków</h2>
     <div class="timeline-card">
-      <div class="timeline-chart" id="timeline-chart">
-        <div class="timeline-bar">
-          <div class="timeline-bar-fill" style="height: 60%"></div>
-          <span class="timeline-bar-label">Lip</span>
-        </div>
-        <div class="timeline-bar">
-          <div class="timeline-bar-fill" style="height: 75%"></div>
-          <span class="timeline-bar-label">Sie</span>
-        </div>
-        <div class="timeline-bar">
-          <div class="timeline-bar-fill" style="height: 68%"></div>
-          <span class="timeline-bar-label">Wrz</span>
-        </div>
-        <div class="timeline-bar">
-          <div class="timeline-bar-fill" style="height: 82%"></div>
-          <span class="timeline-bar-label">Paź</span>
-        </div>
-        <div class="timeline-bar">
-          <div class="timeline-bar-fill" style="height: 90%"></div>
-          <span class="timeline-bar-label">Lis</span>
-        </div>
-        <div class="timeline-bar">
-          <div class="timeline-bar-fill current" style="height: 71%"></div>
-          <span class="timeline-bar-label">Gru</span>
-        </div>
+      <div class="timeline-chart">
+        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 60%"></div><span class="timeline-bar-label">Lip</span></div>
+        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 75%"></div><span class="timeline-bar-label">Sie</span></div>
+        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 68%"></div><span class="timeline-bar-label">Wrz</span></div>
+        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 82%"></div><span class="timeline-bar-label">Paź</span></div>
+        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 90%"></div><span class="timeline-bar-label">Lis</span></div>
+        <div class="timeline-bar"><div class="timeline-bar-fill current" style="height: 71%"></div><span class="timeline-bar-label">Gru</span></div>
       </div>
     </div>
 
@@ -179,78 +144,526 @@
       </div>
     </div>
 
-    <!-- FAB -->
-    <button class="fab" onclick="alert('Dodaj przychód')">+</button>
-
-    <!-- Bottom Nav -->
-    <nav class="bottom-nav">
-      <button class="nav-item active">
-        <span class="nav-icon">🏠</span>
-        <span>Start</span>
-      </button>
-      <button class="nav-item">
-        <span class="nav-icon">💰</span>
-        <span>Przychody</span>
-      </button>
-      <button class="nav-item">
-        <span class="nav-icon">🎯</span>
-        <span>Cele</span>
-      </button>
-      <button class="nav-item">
-        <span class="nav-icon">⚙️</span>
-        <span>Więcej</span>
-      </button>
-    </nav>
-
+    <button class="fab" onclick="openModal('modal-add')">+</button>
   </div>
 
+  <!-- ========== Income Screen ========== -->
+  <div id="screen-income" class="screen list-screen">
+    <header class="header">
+      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+      <h1 class="header-title">💰 Przychody</h1>
+      <button class="add-btn" onclick="openModal('modal-income')">+</button>
+    </header>
+
+    <div class="month-selector">
+      <button class="month-arrow">←</button>
+      <span>Grudzień 2025</span>
+      <button class="month-arrow">→</button>
+    </div>
+
+    <div class="summary-card mint">
+      <div class="summary-row">
+        <span>Otrzymane</span>
+        <span class="summary-value">8 500 zł</span>
+      </div>
+      <div class="summary-row">
+        <span>Oczekiwane</span>
+        <span class="summary-value muted">12 000 zł</span>
+      </div>
+      <div class="income-bar"><div class="income-bar-fill" style="width: 71%"></div></div>
+    </div>
+
+    <h2 class="section-title">Źródła przychodów</h2>
+    <div class="list">
+      <div class="list-item" onclick="openModal('modal-income')">
+        <div class="list-icon">💼</div>
+        <div class="list-content">
+          <div class="list-title">Pensja (Żona)</div>
+          <div class="list-subtitle">Wpłynęło 10 gru</div>
+        </div>
+        <div class="list-amount positive">6 000 zł</div>
+        <div class="list-status done">✓</div>
+      </div>
+      <div class="list-item" onclick="openModal('modal-income')">
+        <div class="list-icon">💼</div>
+        <div class="list-content">
+          <div class="list-title">Pensja (Mąż)</div>
+          <div class="list-subtitle">Oczekiwane 25 gru</div>
+        </div>
+        <div class="list-amount">2 500 zł</div>
+        <div class="list-status pending">⏳</div>
+      </div>
+      <div class="list-item" onclick="openModal('modal-income')">
+        <div class="list-icon">💻</div>
+        <div class="list-content">
+          <div class="list-title">Freelance</div>
+          <div class="list-subtitle">Brak wpłat</div>
+        </div>
+        <div class="list-amount muted">0 / 1 000 zł</div>
+        <div class="list-status pending">❌</div>
+      </div>
+    </div>
+
+    <button class="fab" onclick="openModal('modal-income')">+</button>
+  </div>
+
+  <!-- ========== Goals Screen ========== -->
+  <div id="screen-goals" class="screen list-screen">
+    <header class="header">
+      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+      <h1 class="header-title">🎯 Cele</h1>
+      <button class="add-btn" onclick="openModal('modal-goal')">+</button>
+    </header>
+
+    <div class="summary-card peach">
+      <div class="summary-row">
+        <span>Miesięczne oszczędności</span>
+        <span class="summary-value">3 855 zł</span>
+      </div>
+      <div class="summary-row">
+        <span>Aktywne cele</span>
+        <span class="summary-value muted">4</span>
+      </div>
+    </div>
+
+    <h2 class="section-title">Jednorazowe</h2>
+    <div class="list">
+      <div class="goal-item" onclick="openModal('modal-goal')">
+        <div class="goal-item-header">
+          <span class="goal-item-icon">🎓</span>
+          <div class="goal-item-info">
+            <div class="goal-item-name">Studia Kasi</div>
+            <div class="goal-item-date">Wrzesień 2026</div>
+          </div>
+          <div class="goal-item-monthly">1 500 zł/m</div>
+        </div>
+        <div class="goal-bar"><div class="goal-bar-fill mint" style="width: 64%"></div></div>
+        <div class="goal-item-footer">
+          <span>32 000 / 50 000 zł</span>
+          <span>64%</span>
+        </div>
+      </div>
+      <div class="goal-item" onclick="openModal('modal-goal')">
+        <div class="goal-item-header">
+          <span class="goal-item-icon">🏠</span>
+          <div class="goal-item-info">
+            <div class="goal-item-name">Remont kuchni</div>
+            <div class="goal-item-date">Grudzień 2026</div>
+          </div>
+          <div class="goal-item-monthly">1 667 zł/m</div>
+        </div>
+        <div class="goal-bar"><div class="goal-bar-fill peach" style="width: 20%"></div></div>
+        <div class="goal-item-footer">
+          <span>5 000 / 25 000 zł</span>
+          <span>20%</span>
+        </div>
+      </div>
+      <div class="goal-item" onclick="openModal('modal-goal')">
+        <div class="goal-item-header">
+          <span class="goal-item-icon">🏖️</span>
+          <div class="goal-item-info">
+            <div class="goal-item-name">Wakacje</div>
+            <div class="goal-item-date">Sierpień 2025</div>
+          </div>
+          <div class="goal-item-monthly">688 zł/m</div>
+        </div>
+        <div class="goal-bar"><div class="goal-bar-fill lavender" style="width: 45%"></div></div>
+        <div class="goal-item-footer">
+          <span>4 500 / 10 000 zł</span>
+          <span>45%</span>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Przyszłe zobowiązania</h2>
+    <div class="list">
+      <div class="goal-item future" onclick="openModal('modal-goal')">
+        <div class="goal-item-header">
+          <span class="goal-item-icon">🏦</span>
+          <div class="goal-item-info">
+            <div class="goal-item-name">Rata kredytu</div>
+            <div class="goal-item-date">Od stycznia 2027</div>
+          </div>
+          <div class="goal-item-monthly warning">+5 000 zł/m</div>
+        </div>
+        <div class="goal-item-warning">
+          ⚠️ Podnieście zarobki o 5 000 zł do tego czasu!
+        </div>
+      </div>
+    </div>
+
+    <button class="fab" onclick="openModal('modal-goal')">+</button>
+  </div>
+
+  <!-- ========== Achievements Screen ========== -->
+  <div id="screen-achievements" class="screen list-screen">
+    <header class="header">
+      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+      <h1 class="header-title">🏆 Osiągnięcia</h1>
+    </header>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">👩</div>
+        <div class="stat-value">1 250 pkt</div>
+        <div class="stat-label">Żona • 23/105</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👨</div>
+        <div class="stat-value">980 pkt</div>
+        <div class="stat-label">Mąż • 19/105</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🔥 Streak</h2>
+    <div class="streak-card">
+      <div class="streak-info">
+        <span class="streak-days">14 dni</span>
+        <span class="streak-label">z rzędu</span>
+      </div>
+      <div class="streak-bonus">Mnożnik: 2.0x</div>
+      <div class="income-bar"><div class="income-bar-fill" style="width: 47%"></div></div>
+      <div class="streak-footer">Do 30 dni: jeszcze 16</div>
+    </div>
+
+    <h2 class="section-title">Ostatnio odblokowane</h2>
+    <div class="list">
+      <div class="achievement-item unlocked">
+        <div class="achievement-icon">💰</div>
+        <div class="achievement-content">
+          <div class="achievement-name">Tysiącznik</div>
+          <div class="achievement-desc">Zaoszczędź 1000 zł</div>
+        </div>
+        <div class="achievement-points">+50 pkt</div>
+      </div>
+      <div class="achievement-item unlocked">
+        <div class="achievement-icon">🔥</div>
+        <div class="achievement-content">
+          <div class="achievement-name">Tydzień w akcji</div>
+          <div class="achievement-desc">7 dni streak</div>
+        </div>
+        <div class="achievement-points">+35 pkt</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Kategorie</h2>
+    <div class="list">
+      <div class="category-progress">
+        <span>🌟 Pierwsze kroki</span>
+        <div class="income-bar small"><div class="income-bar-fill" style="width: 80%"></div></div>
+        <span>8/10</span>
+      </div>
+      <div class="category-progress">
+        <span>💰 Oszczędności</span>
+        <div class="income-bar small"><div class="income-bar-fill" style="width: 25%"></div></div>
+        <span>5/20</span>
+      </div>
+      <div class="category-progress">
+        <span>🎯 Cele</span>
+        <div class="income-bar small"><div class="income-bar-fill" style="width: 27%"></div></div>
+        <span>4/15</span>
+      </div>
+      <div class="category-progress">
+        <span>💑 Współpraca</span>
+        <div class="income-bar small"><div class="income-bar-fill" style="width: 13%"></div></div>
+        <span>2/15</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Settings Screen ========== -->
+  <div id="screen-settings" class="screen list-screen">
+    <header class="header">
+      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+      <h1 class="header-title">⚙️ Ustawienia</h1>
+    </header>
+
+    <div class="list">
+      <div class="list-item">
+        <div class="list-icon">🔐</div>
+        <div class="list-content">
+          <div class="list-title">Zmień PIN</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">📁</div>
+        <div class="list-content">
+          <div class="list-title">Kategorie</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">💾</div>
+        <div class="list-content">
+          <div class="list-title">Eksport danych</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">📥</div>
+        <div class="list-content">
+          <div class="list-title">Import danych</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
+      <div class="list-item danger">
+        <div class="list-icon">🗑️</div>
+        <div class="list-content">
+          <div class="list-title">Wyczyść dane</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
+    </div>
+
+    <div class="app-info">
+      <div>FamilyGoals v2.0</div>
+      <div class="muted">Ostatnia sync: dziś, 10:30</div>
+    </div>
+  </div>
+
+  <!-- ========== MODALS ========== -->
+
+  <!-- Add Menu Modal -->
+  <div id="modal-add" class="modal" onclick="closeModal(event)">
+    <div class="modal-menu">
+      <button class="modal-menu-item" onclick="openModal('modal-income')">
+        <span class="modal-menu-icon">💵</span>
+        <span>Dodaj przychód</span>
+      </button>
+      <button class="modal-menu-item" onclick="openModal('modal-expense')">
+        <span class="modal-menu-icon">💸</span>
+        <span>Dodaj wydatek</span>
+      </button>
+      <button class="modal-menu-item" onclick="openModal('modal-goal')">
+        <span class="modal-menu-icon">🎯</span>
+        <span>Dodaj cel</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Income Modal -->
+  <div id="modal-income" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>💵 Dodaj przychód</h2>
+        <button class="modal-close" onclick="closeAllModals()">✕</button>
+      </div>
+      <form class="form">
+        <div class="form-group">
+          <label>Kwota (zł)</label>
+          <input type="number" placeholder="0" class="input-large">
+        </div>
+        <div class="form-group">
+          <label>Źródło</label>
+          <div class="chips">
+            <button type="button" class="chip active">💼 Pensja</button>
+            <button type="button" class="chip">💻 Freelance</button>
+            <button type="button" class="chip">🎁 Bonus</button>
+            <button type="button" class="chip">📈 Inne</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Kto?</label>
+          <div class="chips">
+            <button type="button" class="chip active">👩 Żona</button>
+            <button type="button" class="chip">👨 Mąż</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" value="2025-12-28">
+        </div>
+        <div class="form-group">
+          <label>Notatka (opcjonalnie)</label>
+          <input type="text" placeholder="np. Premia świąteczna">
+        </div>
+        <button type="submit" class="btn-primary" onclick="closeAllModals(); return false;">Zapisz</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Expense Modal -->
+  <div id="modal-expense" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>💸 Dodaj wydatek</h2>
+        <button class="modal-close" onclick="closeAllModals()">✕</button>
+      </div>
+      <form class="form">
+        <div class="form-group">
+          <label>Kwota (zł)</label>
+          <input type="number" placeholder="0" class="input-large">
+        </div>
+        <div class="form-group">
+          <label>Kategoria</label>
+          <div class="chips">
+            <button type="button" class="chip">🏠 Mieszkanie</button>
+            <button type="button" class="chip active">🍽️ Jedzenie</button>
+            <button type="button" class="chip">🚗 Transport</button>
+            <button type="button" class="chip">👶 Dzieci</button>
+            <button type="button" class="chip">❤️ Zdrowie</button>
+            <button type="button" class="chip">🎬 Rozrywka</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Opis</label>
+          <input type="text" placeholder="np. Zakupy Biedronka">
+        </div>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" value="2025-12-28">
+        </div>
+        <button type="submit" class="btn-primary" onclick="closeAllModals(); return false;">Zapisz</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Goal Modal -->
+  <div id="modal-goal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🎯 Nowy cel</h2>
+        <button class="modal-close" onclick="closeAllModals()">✕</button>
+      </div>
+      <form class="form">
+        <div class="form-group">
+          <label>Nazwa celu</label>
+          <input type="text" placeholder="np. Wakacje w Grecji">
+        </div>
+        <div class="form-group">
+          <label>Typ</label>
+          <div class="chips">
+            <button type="button" class="chip active">💰 Jednorazowy</button>
+            <button type="button" class="chip">🔄 Stały wydatek</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Docelowa kwota (zł)</label>
+          <input type="number" placeholder="10000">
+        </div>
+        <div class="form-group">
+          <label>Już zebrano (zł)</label>
+          <input type="number" placeholder="0" value="0">
+        </div>
+        <div class="form-group">
+          <label>Termin</label>
+          <input type="month" value="2025-08">
+        </div>
+        <div class="form-group">
+          <label>Ikona</label>
+          <div class="chips">
+            <button type="button" class="chip">🏖️</button>
+            <button type="button" class="chip active">🎓</button>
+            <button type="button" class="chip">🏠</button>
+            <button type="button" class="chip">🚗</button>
+            <button type="button" class="chip">🏦</button>
+            <button type="button" class="chip">💍</button>
+          </div>
+        </div>
+        <div class="calculated-info">
+          <span>💡 Potrzeba:</span>
+          <span class="calculated-value">1 250 zł/mies.</span>
+        </div>
+        <button type="submit" class="btn-primary" onclick="closeAllModals(); return false;">Zapisz</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== Bottom Navigation ========== -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-item active" onclick="showScreen('screen-dashboard')">
+      <span class="nav-icon">🏠</span>
+      <span>Start</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('screen-income')">
+      <span class="nav-icon">💰</span>
+      <span>Przychody</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('screen-goals')">
+      <span class="nav-icon">🎯</span>
+      <span>Cele</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('screen-achievements')">
+      <span class="nav-icon">🏆</span>
+      <span>Punkty</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('screen-settings')">
+      <span class="nav-icon">⚙️</span>
+      <span>Więcej</span>
+    </button>
+  </nav>
+
   <script>
-    // Simple PIN handler
+    // PIN
     var pin = '';
     var correctPin = '9890';
     var dots = document.querySelectorAll('.pin-dot');
     var container = document.getElementById('pin-container');
 
     function pinKey(k) {
-      if (k === 'del') {
-        pin = pin.slice(0, -1);
-      } else if (pin.length < 4) {
-        pin += k;
-      }
-
-      // Update dots
+      if (k === 'del') { pin = pin.slice(0, -1); }
+      else if (pin.length < 4) { pin += k; }
       dots.forEach(function(d, i) {
         d.classList.toggle('filled', i < pin.length);
         d.classList.remove('error');
       });
-
-      // Check PIN
       if (pin.length === 4) {
         setTimeout(function() {
           if (pin === correctPin) {
             document.getElementById('pin-screen').classList.remove('active');
-            document.getElementById('dashboard').classList.add('active');
+            document.getElementById('screen-dashboard').classList.add('active');
+            document.getElementById('bottom-nav').classList.add('visible');
           } else {
             container.classList.add('shake');
             dots.forEach(function(d) { d.classList.add('error'); });
             setTimeout(function() {
               container.classList.remove('shake');
               pin = '';
-              dots.forEach(function(d) {
-                d.classList.remove('filled', 'error');
-              });
+              dots.forEach(function(d) { d.classList.remove('filled', 'error'); });
             }, 400);
           }
         }, 150);
       }
     }
 
-    // Update month
-    var months = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
-                  'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+    // Navigation
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(function(n, i) {
+        var screens = ['screen-dashboard', 'screen-income', 'screen-goals', 'screen-achievements', 'screen-settings'];
+        n.classList.toggle('active', screens[i] === id);
+      });
+      closeAllModals();
+    }
+
+    // Modals
+    function openModal(id) {
+      closeAllModals();
+      document.getElementById(id).classList.add('active');
+    }
+    function closeModal(e) {
+      if (e.target.classList.contains('modal')) { e.target.classList.remove('active'); }
+    }
+    function closeAllModals() {
+      document.querySelectorAll('.modal').forEach(function(m) { m.classList.remove('active'); });
+    }
+
+    // Chips
+    document.querySelectorAll('.chips').forEach(function(container) {
+      container.addEventListener('click', function(e) {
+        if (e.target.classList.contains('chip')) {
+          container.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
+          e.target.classList.add('active');
+        }
+      });
+    });
+
+    // Month
+    var months = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
     var now = new Date();
-    document.getElementById('month-badge').textContent =
-      months[now.getMonth()] + ' ' + now.getFullYear();
+    document.getElementById('month-badge').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
   </script>
 
 </body>
