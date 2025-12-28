@@ -27,6 +27,8 @@
 
 ## Recently Completed
 
+- ✅ fix: Correct manager initialization and method names (22:05)
+
 - ✅ feat: Integrate frontend with existing managers - full CRUD, achievements, settings (20:50)
 
 - ✅ feat: Complete PWA manifest with screenshots and shortcuts (20:19)
