@@ -26,16 +26,39 @@
 
 ## Daily Log
 
-### 2025-12-28: Inicjalizacja projektu z Log File Genius
+### 2025-12-28: Adopcja Log File Genius
 
-**Sytuacja:** Start nowego projektu FamilyGoals.
+**Sytuacja:**
+Nowy projekt FamilyGoals wymaga systemu
+dokumentacji. AI-assisted development
+potrzebuje efektywnego context management.
 
-**Decyzja:** Użycie Log File Genius dla dokumentacji (CHANGELOG, DEVLOG, STATE, ADR).
+**Wyzwanie:**
+Standardowa dokumentacja (README, wiki)
+jest nieefektywna tokenowo. Claude musi
+czytać całe pliki, nawet gdy potrzebuje
+tylko aktualnego kontekstu.
 
-**Dlaczego:** Token-efficient documentation dla AI-assisted development.
+**Decyzja:**
+Instalacja Log File Genius v0.2.0 z
+profilem solo-developer:
+- CHANGELOG: co się zmieniło (fakty)
+- DEVLOG: dlaczego (narracja)
+- STATE: co teraz (status)
+- ADRs: jak zdecydowano (architektura)
 
-**Rezultat:** Projekt zainicjalizowany, gotowy do pracy.
+**Dlaczego ma znaczenie:**
+- Token budget: <25k łącznie
+- Automatyczna archiwizacja
+- Always-active rules dla Claude
+- Strukturyzowany context loading
 
-**Files:** `logs/`, `.log-file-genius/`, `CLAUDE.md`
+**Rezultat:**
+System zainstalowany, ADR-001 utworzony.
+Projekt gotowy do AI-assisted development.
+
+**Files:**
+`.log-file-genius/`, `logs/`, `.claude/`,
+`logs/adr/001-adopt-log-file-genius.md`
 
 ---

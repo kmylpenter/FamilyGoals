@@ -16,7 +16,7 @@ Index of all ADRs for this project.
 
 | ID | Title | Status | Date |
 |----|-------|--------|------|
-| - | No ADRs yet | - | - |
+| 001 | [Adopt Log File Genius](./001-adopt-log-file-genius.md) | Accepted | 2025-12-28 |
 
 ---
 
