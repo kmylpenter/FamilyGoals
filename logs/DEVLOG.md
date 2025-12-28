@@ -19,12 +19,51 @@
 - **Phase:** Inicjalizacja
 
 ### Current Objectives (STRATEGICZNE - tydzień/sprint)
-- [ ] Zdefiniować architekturę projektu
-- [ ] Zaimplementować core functionality
+- [x] Zdefiniować architekturę projektu
+- [x] Zaimplementować core functionality
+- [ ] Zainstalować frontend-design plugin
+- [ ] Wygenerować UI
 
 ---
 
 ## Daily Log
+
+### 2025-12-28: Kompletna warstwa logiki
+
+**Sytuacja:**
+Projekt FamilyGoals - webapp do celów
+finansowych rodziny. Potrzebna pełna
+architektura przed budową UI.
+
+**Wyzwanie:**
+Standardowe podejście (UI + logika razem)
+utrudnia późniejsze zmiany. Plugin
+frontend-design lepiej działa na czystym
+kodzie bez istniejącego UI.
+
+**Decyzja:**
+Podejście "logic-first":
+1. Najpierw pełna dokumentacja
+2. Potem kompletna logika JS
+3. Na końcu UI z pluginem
+
+**Zaimplementowano:**
+- DataManager: 30+ funkcji CRUD, stats,
+  trends, inflacja, alerty
+- PinManager: autoryzacja PIN
+- RecurringManager: wydatki stałe
+- AlertManager: powiadomienia budżetowe
+
+**Rezultat:**
+Warstwa logiki 100% gotowa.
+Czeka na frontend-design plugin do UI.
+
+**Files:**
+`js/data-manager.js`, `js/pin-manager.js`,
+`js/recurring-manager.js`, `js/alert-manager.js`,
+`docs/ARCHITECTURE.md`, `docs/DESIGN.md`
+
+---
 
 ### 2025-12-28: Adopcja Log File Genius
 

@@ -214,18 +214,27 @@ class DataManager {
     localStorage.setItem(this.constructor.STORAGE_KEYS.categories, JSON.stringify(filtered));
   }
 
-  // === STATS ===
+  // === FILTERED GETTERS ===
 
-  getMonthlyStats(year, month) {
-    const expenses = this.getExpenses().filter(e => {
+  getExpensesByMonth(year, month) {
+    return this.getExpenses().filter(e => {
       const d = new Date(e.date);
       return d.getFullYear() === year && d.getMonth() === month;
     });
+  }
 
-    const income = this.getIncome().filter(i => {
+  getIncomeByMonth(year, month) {
+    return this.getIncome().filter(i => {
       const d = new Date(i.date);
       return d.getFullYear() === year && d.getMonth() === month;
     });
+  }
+
+  // === STATS ===
+
+  getMonthlyStats(year, month) {
+    const expenses = this.getExpensesByMonth(year, month);
+    const income = this.getIncomeByMonth(year, month);
 
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
     const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
@@ -245,6 +254,284 @@ class DataManager {
       expenseCount: expenses.length,
       incomeCount: income.length
     };
+  }
+
+  getYearlyStats(year) {
+    const expenses = this.getExpenses().filter(e =>
+      new Date(e.date).getFullYear() === year
+    );
+    const income = this.getIncome().filter(i =>
+      new Date(i.date).getFullYear() === year
+    );
+
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
+
+    const byMonth = {};
+    for (let m = 0; m < 12; m++) {
+      byMonth[m] = this.getMonthlyStats(year, m);
+    }
+
+    return {
+      totalExpenses,
+      totalIncome,
+      savings: totalIncome - totalExpenses,
+      byMonth
+    };
+  }
+
+  getCategoryStats(categoryId, year = null, month = null) {
+    let expenses = this.getExpenses().filter(e => e.categoryId === categoryId);
+
+    if (year !== null) {
+      expenses = expenses.filter(e => new Date(e.date).getFullYear() === year);
+    }
+    if (month !== null) {
+      expenses = expenses.filter(e => new Date(e.date).getMonth() === month);
+    }
+
+    const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const category = this.getCategories().find(c => c.id === categoryId);
+    const budget = category?.budget || 0;
+
+    return {
+      categoryId,
+      categoryName: category?.name || 'Nieznana',
+      total,
+      budget,
+      percentUsed: budget > 0 ? (total / budget) * 100 : 0,
+      count: expenses.length,
+      expenses
+    };
+  }
+
+  getTrend(months = 6) {
+    const now = new Date();
+    const trend = [];
+
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const stats = this.getMonthlyStats(d.getFullYear(), d.getMonth());
+      trend.push({
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        monthName: d.toLocaleDateString('pl-PL', { month: 'short' }),
+        ...stats
+      });
+    }
+
+    return trend;
+  }
+
+  // === RECURRING ===
+
+  getRecurringExpenses() {
+    return this.getExpenses().filter(e => e.isRecurring);
+  }
+
+  getRecurringIncome() {
+    return this.getIncome().filter(i => i.isRecurring);
+  }
+
+  processRecurring() {
+    const today = new Date();
+    const day = today.getDate();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const processed = [];
+
+    // Process recurring expenses
+    this.getRecurringExpenses().forEach(exp => {
+      if (exp.recurringDay === day) {
+        // Check if already added this month
+        const exists = this.getExpensesByMonth(year, month).some(e =>
+          e.recurringSourceId === exp.id
+        );
+        if (!exists) {
+          const newExp = this.addExpense({
+            amount: exp.amount,
+            categoryId: exp.categoryId,
+            description: exp.description || 'Wydatek stały',
+            isRecurring: false,
+            recurringSourceId: exp.id
+          });
+          processed.push(newExp);
+        }
+      }
+    });
+
+    // Process recurring income
+    this.getRecurringIncome().forEach(inc => {
+      if (inc.recurringDay === day) {
+        const exists = this.getIncomeByMonth(year, month).some(i =>
+          i.recurringSourceId === inc.id
+        );
+        if (!exists) {
+          const newInc = this.addIncome({
+            amount: inc.amount,
+            source: inc.source,
+            description: inc.description || 'Przychód stały',
+            isRecurring: false,
+            recurringSourceId: inc.id
+          });
+          processed.push(newInc);
+        }
+      }
+    });
+
+    return processed;
+  }
+
+  // === PLANNED EXPENSES (GOALS) ===
+
+  getPlannedExpenses() {
+    return this.planned?.plannedExpenses || [];
+  }
+
+  updatePlannedProgress(id, amount) {
+    const planned = this.getPlannedExpenses();
+    const item = planned.find(p => p.id === id);
+    if (item) {
+      item.currentAmount = (item.currentAmount || 0) + amount;
+      // Save to localStorage as user override
+      localStorage.setItem('familygoals_planned_override', JSON.stringify(planned));
+    }
+    return item;
+  }
+
+  calculateTimeToGoal(id) {
+    const item = this.getPlannedExpenses().find(p => p.id === id);
+    if (!item) return null;
+
+    const remaining = item.targetAmount - (item.currentAmount || 0);
+    if (remaining <= 0) return { months: 0, complete: true };
+
+    const monthly = item.monthlyContribution || 0;
+    if (monthly <= 0) return { months: Infinity, complete: false };
+
+    const months = Math.ceil(remaining / monthly);
+    const targetDate = new Date(item.targetDate);
+    const now = new Date();
+    const monthsUntilDeadline = (targetDate.getFullYear() - now.getFullYear()) * 12
+      + (targetDate.getMonth() - now.getMonth());
+
+    return {
+      months,
+      remaining,
+      monthly,
+      complete: false,
+      onTrack: months <= monthsUntilDeadline,
+      targetDate: item.targetDate
+    };
+  }
+
+  // === INFLATION ===
+
+  getInflationRate() {
+    return this.inflation?.currentRate?.cpi || 0;
+  }
+
+  getInflationByCategory(categoryId) {
+    return this.inflation?.categoryRates?.[categoryId] || this.getInflationRate();
+  }
+
+  adjustForInflation(amount, months = 12) {
+    const rate = this.getInflationRate() / 100;
+    const years = months / 12;
+    return amount * Math.pow(1 + rate, years);
+  }
+
+  // === ALERTS ===
+
+  getBudgetAlerts() {
+    const now = new Date();
+    const stats = this.getMonthlyStats(now.getFullYear(), now.getMonth());
+    const categories = this.getCategories();
+    const alerts = [];
+
+    categories.forEach(cat => {
+      if (!cat.budget || cat.budget <= 0) return;
+
+      const spent = stats.byCategory[cat.id] || 0;
+      const percent = (spent / cat.budget) * 100;
+
+      if (percent >= 100) {
+        alerts.push({
+          type: 'danger',
+          categoryId: cat.id,
+          categoryName: cat.name,
+          message: `Przekroczono budżet o ${this.formatCurrency(spent - cat.budget)}`,
+          percent,
+          spent,
+          budget: cat.budget
+        });
+      } else if (percent >= 80) {
+        alerts.push({
+          type: 'warning',
+          categoryId: cat.id,
+          categoryName: cat.name,
+          message: `Wykorzystano ${Math.round(percent)}% budżetu`,
+          percent,
+          spent,
+          budget: cat.budget
+        });
+      }
+    });
+
+    return alerts;
+  }
+
+  getGoalAlerts() {
+    const alerts = [];
+    const now = new Date();
+    const stats = this.getMonthlyStats(now.getFullYear(), now.getMonth());
+
+    // Savings goal
+    const savingsTarget = this.config?.goals?.monthlySavingsTarget || 0;
+    if (savingsTarget > 0) {
+      const percent = (stats.savings / savingsTarget) * 100;
+
+      if (stats.savings >= savingsTarget) {
+        alerts.push({
+          type: 'success',
+          goalType: 'savings',
+          message: `Cel osiągnięty! Oszczędzono ${this.formatCurrency(stats.savings)}`,
+          percent,
+          current: stats.savings,
+          target: savingsTarget
+        });
+      } else if (percent < 50 && now.getDate() > 15) {
+        alerts.push({
+          type: 'warning',
+          goalType: 'savings',
+          message: `Zostało ${this.formatCurrency(savingsTarget - stats.savings)} do celu`,
+          percent,
+          current: stats.savings,
+          target: savingsTarget
+        });
+      }
+    }
+
+    // Planned expenses goals
+    this.getPlannedExpenses().forEach(goal => {
+      const progress = this.calculateTimeToGoal(goal.id);
+      if (progress && !progress.complete && !progress.onTrack) {
+        alerts.push({
+          type: 'warning',
+          goalType: 'planned',
+          goalId: goal.id,
+          goalName: goal.name,
+          message: `${goal.name}: potrzeba ${progress.months} mies., zostało mniej`,
+          ...progress
+        });
+      }
+    });
+
+    return alerts;
+  }
+
+  getAllAlerts() {
+    return [...this.getBudgetAlerts(), ...this.getGoalAlerts()];
   }
 
   // === EXPORT/IMPORT ===

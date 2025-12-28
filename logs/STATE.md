@@ -15,8 +15,7 @@
 
 ## Active Work
 
-- Architektura i logika biznesowa (bez UI)
-- Czekamy na frontend-design plugin
+- Brak (sesja zakończona)
 
 ---
 
@@ -28,19 +27,21 @@
 
 ## Recently Completed
 
+- ✅ Kompletna warstwa logiki (30+ funkcji)
+- ✅ RecurringManager - wydatki stałe
+- ✅ AlertManager - alerty budżetowe
+- ✅ DataManager rozszerzony (stats, trends, inflacja)
 - ✅ Dokumentacja: ARCHITECTURE.md, DESIGN.md
-- ✅ Logika: data-manager.js, pin-manager.js
 - ✅ PWA: manifest.json, sw.js
-- ✅ Dane: config.json, inflation.json, planned.json
 - ✅ LFG adoption + ADR-001
 
 ---
 
-## Next Priorities (TAKTYCZNE - dziś/ta sesja)
+## Next Priorities (TAKTYCZNE - następna sesja)
 
 1. Zainstalować frontend-design plugin
-2. Dokończyć logikę (recurring, alerty)
-3. Wygenerować UI z pluginem
+2. Wygenerować UI na podstawie docs/DESIGN.md
+3. Przetestować aplikację
 
 ---
 
