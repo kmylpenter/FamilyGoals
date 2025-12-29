@@ -518,13 +518,13 @@
                 <div class="goal-item-date">${deadline ? formatMonth(deadline) : 'Bez terminu'}</div>
               </div>
               <div class="goal-item-monthly">${formatMoney(monthly).replace(' zł', '')}/m</div>
+              <button class="delete-btn" data-id="${g.id}" data-type="goal">✕</button>
             </div>
             <div class="goal-bar"><div class="goal-bar-fill mint" style="width: ${percent}%"></div></div>
             <div class="goal-item-footer">
               <span>${formatMoney(g.currentAmount || 0)} / ${formatMoney(g.targetAmount)}</span>
               <span>${percent}%</span>
             </div>
-            <button class="delete-btn" data-id="${g.id}" data-type="goal">✕</button>
           </div>
         `;
       }).join('');
@@ -564,9 +564,9 @@
               <div class="goal-item-date">${dateText}</div>
             </div>
             <div class="goal-item-monthly warning">${formatMoney(g.monthlyContribution || g.targetAmount).replace(' zł', '')}/m</div>
+            <button class="delete-btn" data-id="${g.id}" data-type="goal">✕</button>
           </div>
           ${isActive ? '' : '<div class="goal-item-warning">⏳ Jeszcze nieaktywny</div>'}
-          <button class="delete-btn" data-id="${g.id}" data-type="goal">✕</button>
         </div>
       `;
       }).join('');

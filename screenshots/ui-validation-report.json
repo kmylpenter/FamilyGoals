@@ -145,7 +145,7 @@
       "description": "Savings hero section",
       "found": true,
       "visible": true,
-      "text": "🎯 Do odłożenia w tym miesiącu\n      \n        2000 zł\n        \n          odłożone\n          10 540 zł\n        \n      \n      \n        \n      \n      \n        Zostało: 2 655 zł\n        31%"
+      "text": "🎯 Do odłożenia w tym miesiącu\n      \n        2000 zł\n        \n          odłożone\n          8141 zł\n        \n      \n      \n        \n      \n      \n        Zostało: 2 655 zł\n        31%"
     },
     {
       "selector": "#goals-list .goal-card",
@@ -166,7 +166,7 @@
       "description": "Timeline card",
       "found": true,
       "visible": false,
-      "text": "10k\n          \n          lip\n        \n      \n        \n          \n          \n            8k\n          \n          sie\n        \n      \n        \n          \n          \n            9k\n          \n          wrz\n        \n      \n        \n          \n          \n            11k\n          \n          paź\n        \n      \n        \n          \n          \n            9k\n          \n          lis\n        \n      \n        \n          \n          \n            11k\n          \n          gru"
+      "text": "8k\n          \n          lip\n        \n      \n        \n          \n          \n            8k\n          \n          sie\n        \n      \n        \n          \n          \n            11k\n          \n          wrz\n        \n      \n        \n          \n          \n            10k\n          \n          paź\n        \n      \n        \n          \n          \n            10k\n          \n          lis\n        \n      \n        \n          \n          \n            8k\n          \n          gru"
     },
     {
       "selector": ".stats-row",

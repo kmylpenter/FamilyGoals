@@ -317,10 +317,15 @@ body {
   .delete-btn:hover { background: var(--danger); }
 }
 
-/* Goal item with delete on right */
-.goal-item { position: relative; }
+/* Goal item - delete button in header flow, not absolute */
+.goal-item .goal-item-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
 .goal-item .delete-btn {
-  position: absolute; top: var(--s2); right: var(--s2);
+  /* Remove absolute - stay in flex flow */
+  margin-left: var(--s1);
 }
 
 /* Chart with needed line */
