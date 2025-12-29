@@ -31,6 +31,8 @@ Brak - sesja zamknięta
 
 - ✅ EOS: 2025-12-29 - UI validation + bar chart (sesja 5) (23:15)
 
+- ✅ EOS: 2025-12-29 - UI validation + bar chart (sesja 5) (23:15)
+
 - ✅ EOS: 2025-12-29 - UI improvements batch (sesja 4) (22:58)
 
 - ✅ feat: UI improvements batch - toggle status, categories, recurring income (22:31)

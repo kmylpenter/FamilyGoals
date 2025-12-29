@@ -139,25 +139,10 @@
       </div>
     </div>
 
-    <!-- Expense Bar Chart -->
+    <!-- ARCHIVED: Expense Bar Chart - kod zakomentowany, wydatki usunięte z głównej funkcjonalności
     <h2 class="section-title">📊 Wydatki tego miesiąca</h2>
-    <div id="expense-chart-container">
-      <!-- Rendered by ExpenseChart.render() -->
-    </div>
-
-    <!-- Quick Stats -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-icon">👩</div>
-        <div class="stat-value positive">6 000 zł</div>
-        <div class="stat-label">Żona</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">👨</div>
-        <div class="stat-value positive">6 000 zł</div>
-        <div class="stat-label">Mąż</div>
-      </div>
-    </div>
+    <div id="expense-chart-container"></div>
+    -->
 
     <button type="button" class="fab" onclick="openModal('modal-add')" aria-label="Dodaj nowy element">+</button>
   </div>
@@ -446,14 +431,16 @@
         <span class="modal-menu-icon" aria-hidden="true">💵</span>
         <span>Dodaj przychód</span>
       </button>
-      <button type="button" class="modal-menu-item" onclick="openModal('modal-expense')" role="menuitem">
-        <span class="modal-menu-icon" aria-hidden="true">💸</span>
-        <span>Dodaj wydatek</span>
-      </button>
       <button type="button" class="modal-menu-item" onclick="openModal('modal-goal')" role="menuitem">
         <span class="modal-menu-icon" aria-hidden="true">🎯</span>
         <span>Dodaj cel</span>
       </button>
+      <!-- ARCHIVED: Wydatki usunięte z głównej funkcjonalności
+      <button type="button" class="modal-menu-item" onclick="openModal('modal-expense')" role="menuitem">
+        <span class="modal-menu-icon" aria-hidden="true">💸</span>
+        <span>Dodaj wydatek</span>
+      </button>
+      -->
     </div>
   </div>
 

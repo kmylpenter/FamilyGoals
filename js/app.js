@@ -359,22 +359,35 @@
       }).join('');
     }
 
-    // Update income status
+    // Update income status - show same data as Income screen
     const incomeCard = document.querySelector('.income-status-card');
     if (incomeCard) {
-      const diff = incomeSummary.totalReceived - totalRequired;
+      // Calculate wife and husband income separately
+      let wifeReceived = 0, husbandReceived = 0;
+      let wifeExpected = 0, husbandExpected = 0;
+
+      incomeSummary.sources.forEach(src => {
+        if (src.owner === 'wife') {
+          wifeReceived += src.totalReceived || 0;
+          wifeExpected += src.expected || 0;
+        } else {
+          husbandReceived += src.totalReceived || 0;
+          husbandExpected += src.expected || 0;
+        }
+      });
+
       incomeCard.innerHTML = `
         <div class="income-status-row">
-          <span>Wymagane</span>
-          <span class="income-value">${formatMoney(totalRequired)}</span>
+          <span>👩 Żona</span>
+          <span class="income-value ${wifeReceived > 0 ? 'positive' : ''}">${formatMoney(wifeReceived)} / ${formatMoney(wifeExpected)}</span>
         </div>
         <div class="income-status-row">
-          <span>Przychody</span>
-          <span class="income-value positive">${formatMoney(incomeSummary.totalReceived)}</span>
+          <span>👨 Mąż</span>
+          <span class="income-value ${husbandReceived > 0 ? 'positive' : ''}">${formatMoney(husbandReceived)} / ${formatMoney(husbandExpected)}</span>
         </div>
         <div class="income-status-row total">
-          <span>${diff >= 0 ? 'Nadwyżka' : 'Brakuje'}</span>
-          <span class="income-value ${diff >= 0 ? 'positive' : 'negative'}">${diff >= 0 ? '+' : ''}${formatMoney(diff)}</span>
+          <span>Razem</span>
+          <span class="income-value ${incomeSummary.totalReceived >= incomeSummary.totalExpected ? 'positive' : ''}">${formatMoney(incomeSummary.totalReceived)} / ${formatMoney(incomeSummary.totalExpected)}</span>
         </div>
       `;
     }
@@ -387,7 +400,7 @@
     const container = document.querySelector('#timeline-chart-container');
     if (!container) return;
 
-    const trend = dataManager.getTrendByOwner(6);
+    const trend = dataManager.getTrendByOwner(12);
     const hasData = trend.some(t => t.totalIncome > 0);
 
     // Chart dimensions
@@ -672,7 +685,7 @@
     const wifeUnlocked = gamificationManager.unlockedAchievements?.wife?.unlocked || [];
     const husbandUnlocked = gamificationManager.unlockedAchievements?.husband?.unlocked || [];
 
-    // Stats cards
+    // Stats cards - clickable to show person's achievements
     const statsCards = $$('#screen-achievements .stat-card');
     if (statsCards.length >= 2) {
       statsCards[0].innerHTML = `
@@ -680,11 +693,14 @@
         <div class="stat-value">${wifeData?.points || 0} pkt</div>
         <div class="stat-label">Żona • ${wifeData?.unlockedCount || 0}/${wifeData?.totalCount || 105}</div>
       `;
+      statsCards[0].onclick = () => showPersonAchievements('wife');
+
       statsCards[1].innerHTML = `
         <div class="stat-icon">👨</div>
         <div class="stat-value">${husbandData?.points || 0} pkt</div>
         <div class="stat-label">Mąż • ${husbandData?.unlockedCount || 0}/${husbandData?.totalCount || 105}</div>
       `;
+      statsCards[1].onclick = () => showPersonAchievements('husband');
     }
 
     // Streak
@@ -725,7 +741,7 @@
       const catNames = {
         start: '🌟 Pierwsze kroki',
         savings: '💰 Oszczędności',
-        spending: '💸 Wydatki',
+        consistency: '📈 Systematyczność',
         goals: '🎯 Cele',
         income: '💵 Przychody',
         couple: '💑 Para',
@@ -856,24 +872,36 @@
     if (!source) return;
 
     if (source.status === 'complete') {
-      // Remove payments for this month
-      dataManager.clearPaymentsForMonth(sourceId, year, month);
-      if (typeof Toast !== 'undefined') {
-        Toast.info('Cofnięto', `${source.name} oznaczone jako oczekiwane`);
+      // Confirm before removing
+      if (confirm(`Cofnąć otrzymanie ${source.name}?`)) {
+        dataManager.clearPaymentsForMonth(sourceId, year, month);
+        if (typeof Toast !== 'undefined') {
+          Toast.info('Cofnięto', `${source.name} oznaczone jako oczekiwane`);
+        }
+        renderAll();
       }
     } else {
-      // Add payment for expected amount
-      dataManager.recordPayment(sourceId, {
-        amount: source.expected,
-        date: new Date().toISOString(),
-        note: `Otrzymano ${formatMonth(currentMonth)}`
-      });
-      if (typeof Toast !== 'undefined') {
-        Toast.success('Otrzymano!', `${source.name}: ${formatMoney(source.expected)}`);
+      // Ask for actual amount received (default to expected)
+      const inputAmount = prompt(
+        `Ile otrzymano za ${source.name}?\n(Oczekiwane: ${formatMoney(source.expected)})`,
+        source.expected
+      );
+
+      if (inputAmount !== null) {
+        const amount = parseFloat(inputAmount) || source.expected;
+        dataManager.recordPayment(sourceId, {
+          amount: amount,
+          date: new Date().toISOString(),
+          note: amount !== source.expected
+            ? `Otrzymano ${formatMoney(amount)} (oczekiwane: ${formatMoney(source.expected)})`
+            : `Otrzymano ${formatMonth(currentMonth)}`
+        });
+        if (typeof Toast !== 'undefined') {
+          Toast.success('Otrzymano!', `${source.name}: ${formatMoney(amount)}`);
+        }
+        renderAll();
       }
     }
-
-    renderAll();
   }
 
   function deleteIncomeSource(id) {
@@ -1228,7 +1256,7 @@
         <div class="list-content">
           <div class="list-title">${cat.name}</div>
         </div>
-        ${cat.id.startsWith('custom-') ? `<button class="delete-btn" onclick="deleteCategory('${cat.id}')">✕</button>` : ''}
+        ${cat.isCustom || cat.id.startsWith('custom-') ? `<button class="delete-btn" onclick="window.deleteCategory('${cat.id}')">✕</button>` : ''}
       </div>
     `).join('');
   }
@@ -1363,7 +1391,7 @@
     const catNames = {
       start: '🌟 Pierwsze kroki',
       savings: '💰 Oszczędności',
-      spending: '💸 Wydatki',
+      consistency: '📈 Systematyczność',
       goals: '🎯 Cele',
       income: '💵 Przychody',
       couple: '💑 Para',
@@ -1411,6 +1439,62 @@
         </div>
       `;
     }).join('');
+
+    modal.classList.add('active');
+  }
+
+  function showPersonAchievements(person) {
+    if (!gamificationManager) return;
+
+    const allAchievements = GamificationManager.ACHIEVEMENTS;
+    const unlocked = gamificationManager.unlockedAchievements?.[person]?.unlocked || [];
+    const personName = person === 'wife' ? '👩 Żona' : '👨 Mąż';
+
+    // Get all unlocked achievements for this person
+    const achievements = unlocked
+      .map(id => allAchievements[id])
+      .filter(a => a)
+      .sort((a, b) => b.points - a.points);
+
+    // Create modal if not exists
+    let modal = $('modal-achievements');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modal-achievements';
+      modal.className = 'modal';
+      modal.onclick = e => { if (e.target === modal) modal.classList.remove('active'); };
+      modal.innerHTML = `
+        <div class="modal-content" onclick="event.stopPropagation()">
+          <div class="modal-header">
+            <h2></h2>
+            <button class="modal-close" onclick="this.closest('.modal').classList.remove('active')">✕</button>
+          </div>
+          <div class="achievement-list"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    modal.querySelector('.modal-header h2').textContent = `${personName} - Osiągnięcia`;
+
+    if (achievements.length === 0) {
+      modal.querySelector('.achievement-list').innerHTML = `
+        <div class="empty-state">
+          <p>Brak odblokowanych osiągnięć</p>
+        </div>
+      `;
+    } else {
+      modal.querySelector('.achievement-list').innerHTML = achievements.map(a => `
+        <div class="achievement-item unlocked">
+          <div class="achievement-icon">${a.icon}</div>
+          <div class="achievement-content">
+            <div class="achievement-name">${a.name}</div>
+            <div class="achievement-desc">${a.description}</div>
+          </div>
+          <div class="achievement-points">${a.points} pkt</div>
+        </div>
+      `).join('');
+    }
 
     modal.classList.add('active');
   }

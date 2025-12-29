@@ -257,127 +257,127 @@ class GamificationManager {
     },
 
     // ==========================================
-    // 📉 KONTROLA WYDATKÓW (15)
+    // 📈 SYSTEMATYCZNOŚĆ (15) - zastąpiło kontrolę wydatków
     // ==========================================
-    under_budget: {
-      id: 'under_budget',
-      name: 'W budżecie',
-      description: 'Nie przekrocz żadnego budżetu kategorii',
+    regular_saver: {
+      id: 'regular_saver',
+      name: 'Regularny odkładacz',
+      description: 'Odłóż pieniądze 3 miesiące z rzędu',
       icon: '✨',
-      category: 'spending',
+      category: 'consistency',
       points: 30
     },
-    budget_master: {
-      id: 'budget_master',
-      name: 'Mistrz budżetu',
-      description: 'Nie przekrocz budżetów przez 3 miesiące',
+    discipline_master: {
+      id: 'discipline_master',
+      name: 'Mistrz dyscypliny',
+      description: 'Osiągnij cel oszczędności przez 6 miesięcy',
       icon: '🎖️',
-      category: 'spending',
+      category: 'consistency',
       points: 100
     },
-    frugal_food: {
-      id: 'frugal_food',
-      name: 'Oszczędne zakupy',
-      description: 'Wydaj mniej niż 80% budżetu na jedzenie',
-      icon: '🥗',
-      category: 'spending',
-      points: 25
-    },
-    no_impulse: {
-      id: 'no_impulse',
-      name: 'Bez impulsów',
-      description: 'Miesiąc bez wydatków w kategorii Rozrywka',
-      icon: '🧘',
-      category: 'spending',
-      points: 35
-    },
-    expense_tracker: {
-      id: 'expense_tracker',
-      name: 'Dokładny śledzący',
-      description: 'Dodaj 50 wydatków z opisami',
-      icon: '📝',
-      category: 'spending',
-      points: 30
-    },
-    expense_veteran: {
-      id: 'expense_veteran',
-      name: 'Weteran śledzenia',
-      description: 'Dodaj 200 wydatków',
-      icon: '📚',
-      category: 'spending',
-      points: 75
-    },
-    expense_master: {
-      id: 'expense_master',
-      name: 'Mistrz śledzenia',
-      description: 'Dodaj 500 wydatków',
-      icon: '🏆',
-      category: 'spending',
-      points: 150
-    },
-    cut_spending_10: {
-      id: 'cut_spending_10',
-      name: 'Cięcie 10%',
-      description: 'Zmniejsz wydatki o 10% vs poprzedni miesiąc',
-      icon: '✂️',
-      category: 'spending',
+    income_growth_10: {
+      id: 'income_growth_10',
+      name: 'Wzrost 10%',
+      description: 'Zwiększ przychody o 10% vs poprzedni miesiąc',
+      icon: '📈',
+      category: 'consistency',
       points: 40
     },
-    cut_spending_20: {
-      id: 'cut_spending_20',
-      name: 'Cięcie 20%',
-      description: 'Zmniejsz wydatki o 20% vs poprzedni miesiąc',
-      icon: '✂️',
-      category: 'spending',
+    income_growth_20: {
+      id: 'income_growth_20',
+      name: 'Wzrost 20%',
+      description: 'Zwiększ przychody o 20% vs poprzedni miesiąc',
+      icon: '📈',
+      category: 'consistency',
       points: 80
     },
-    lowest_month: {
-      id: 'lowest_month',
-      name: 'Rekord oszczędności',
-      description: 'Twój najtańszy miesiąc w historii',
-      icon: '📉',
-      category: 'spending',
-      points: 60
-    },
-    all_categories: {
-      id: 'all_categories',
-      name: 'Pełna kontrola',
-      description: 'Ustaw budżety dla wszystkich kategorii',
-      icon: '🎛️',
-      category: 'spending',
-      points: 25
-    },
-    zero_waste: {
-      id: 'zero_waste',
-      name: 'Zero marnowania',
-      description: 'Wykorzystaj 90-100% budżetu (nie więcej)',
-      icon: '🎯',
-      category: 'spending',
-      points: 45
-    },
-    smart_shopper: {
-      id: 'smart_shopper',
-      name: 'Sprytny kupujący',
-      description: 'Średni wydatek poniżej 50 zł przez miesiąc',
-      icon: '🛒',
-      category: 'spending',
+    on_time_3: {
+      id: 'on_time_3',
+      name: 'Punktualność',
+      description: 'Otrzymaj wszystkie przychody na czas 3 miesiące',
+      icon: '⏰',
+      category: 'consistency',
       points: 35
     },
-    daily_tracker: {
-      id: 'daily_tracker',
-      name: 'Codzienny śledzący',
-      description: 'Dodawaj wydatki codziennie przez tydzień',
-      icon: '📆',
-      category: 'spending',
+    full_income: {
+      id: 'full_income',
+      name: 'Pełna kwota',
+      description: 'Otrzymaj 100% oczekiwanych przychodów w miesiącu',
+      icon: '💯',
+      category: 'consistency',
+      points: 25
+    },
+    bonus_hunter: {
+      id: 'bonus_hunter',
+      name: 'Łowca bonusów',
+      description: 'Otrzymaj dodatkowy przychód poza pensją',
+      icon: '🎁',
+      category: 'consistency',
       points: 30
     },
-    category_champion: {
-      id: 'category_champion',
-      name: 'Mistrz kategorii',
-      description: 'Nie przekrocz budżetu kategorii przez 6 miesięcy',
-      icon: '🏅',
-      category: 'spending',
-      points: 100
+    double_income: {
+      id: 'double_income',
+      name: 'Podwójny dochód',
+      description: 'Oboje otrzymajcie przychody w tym samym miesiącu',
+      icon: '👫',
+      category: 'consistency',
+      points: 20
+    },
+    savings_habit: {
+      id: 'savings_habit',
+      name: 'Nawyk oszczędzania',
+      description: 'Odłóż minimum 10% przychodów przez 3 miesiące',
+      icon: '🐷',
+      category: 'consistency',
+      points: 50
+    },
+    goal_contributor: {
+      id: 'goal_contributor',
+      name: 'Wkład w cel',
+      description: 'Wpłać na cel 5 razy',
+      icon: '💪',
+      category: 'consistency',
+      points: 30
+    },
+    monthly_review: {
+      id: 'monthly_review',
+      name: 'Przegląd miesięczny',
+      description: 'Sprawdź podsumowanie na koniec miesiąca',
+      icon: '📊',
+      category: 'consistency',
+      points: 15
+    },
+    early_saver: {
+      id: 'early_saver',
+      name: 'Wczesny odkładacz',
+      description: 'Odłóż pieniądze w pierwszym tygodniu miesiąca',
+      icon: '🌅',
+      category: 'consistency',
+      points: 25
+    },
+    surplus_month: {
+      id: 'surplus_month',
+      name: 'Nadwyżka',
+      description: 'Zakończ miesiąc z nadwyżką przychodów',
+      icon: '🎉',
+      category: 'consistency',
+      points: 35
+    },
+    no_gap: {
+      id: 'no_gap',
+      name: 'Bez luki',
+      description: 'Przychody pokryły wszystkie cele',
+      icon: '✅',
+      category: 'consistency',
+      points: 45
+    },
+    year_planner: {
+      id: 'year_planner',
+      name: 'Planista roczny',
+      description: 'Zaplanuj cele na cały rok',
+      icon: '📅',
+      category: 'consistency',
+      points: 60
     },
 
     // ==========================================
