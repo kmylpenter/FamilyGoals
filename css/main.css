@@ -80,7 +80,7 @@ body {
 }
 
 /* Dashboard & List Screens */
-.dashboard, .list-screen { padding: var(--s2); padding-bottom: 100px; gap: var(--s2); }
+.dashboard, .list-screen { padding: var(--s2); padding-bottom: 140px; gap: var(--s2); }
 .header {
   display: flex; justify-content: space-between; align-items: center;
   padding: var(--s2) 0; min-height: 56px;
