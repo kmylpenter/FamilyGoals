@@ -23,25 +23,25 @@
         <div class="pin-dot"></div>
       </div>
     </div>
-    <div class="pin-keypad">
-      <button class="pin-key" onclick="pinKey('1')">1</button>
-      <button class="pin-key" onclick="pinKey('2')">2</button>
-      <button class="pin-key" onclick="pinKey('3')">3</button>
-      <button class="pin-key" onclick="pinKey('4')">4</button>
-      <button class="pin-key" onclick="pinKey('5')">5</button>
-      <button class="pin-key" onclick="pinKey('6')">6</button>
-      <button class="pin-key" onclick="pinKey('7')">7</button>
-      <button class="pin-key" onclick="pinKey('8')">8</button>
-      <button class="pin-key" onclick="pinKey('9')">9</button>
-      <button class="pin-key empty"></button>
-      <button class="pin-key" onclick="pinKey('0')">0</button>
-      <button class="pin-key delete" onclick="pinKey('del')">⌫</button>
+    <div class="pin-keypad" role="group" aria-label="Klawiatura PIN">
+      <button type="button" class="pin-key" onclick="pinKey('1')" aria-label="1">1</button>
+      <button type="button" class="pin-key" onclick="pinKey('2')" aria-label="2">2</button>
+      <button type="button" class="pin-key" onclick="pinKey('3')" aria-label="3">3</button>
+      <button type="button" class="pin-key" onclick="pinKey('4')" aria-label="4">4</button>
+      <button type="button" class="pin-key" onclick="pinKey('5')" aria-label="5">5</button>
+      <button type="button" class="pin-key" onclick="pinKey('6')" aria-label="6">6</button>
+      <button type="button" class="pin-key" onclick="pinKey('7')" aria-label="7">7</button>
+      <button type="button" class="pin-key" onclick="pinKey('8')" aria-label="8">8</button>
+      <button type="button" class="pin-key" onclick="pinKey('9')" aria-label="9">9</button>
+      <div class="pin-key empty" aria-hidden="true"></div>
+      <button type="button" class="pin-key" onclick="pinKey('0')" aria-label="0">0</button>
+      <button type="button" class="pin-key delete" onclick="pinKey('del')" aria-label="Usuń">⌫</button>
     </div>
   </div>
 
   <!-- ========== Dashboard ========== -->
   <div id="screen-dashboard" class="screen dashboard">
-    <header class="header">
+    <header class="header" aria-label="Nagłówek strony głównej">
       <div class="brand">🏠 FamilyGoals</div>
       <span class="month-badge" id="month-badge">Grudzień 2025</span>
     </header>
@@ -150,21 +150,21 @@
       </div>
     </div>
 
-    <button class="fab" onclick="openModal('modal-add')">+</button>
+    <button type="button" class="fab" onclick="openModal('modal-add')" aria-label="Dodaj nowy element">+</button>
   </div>
 
   <!-- ========== Income Screen ========== -->
   <div id="screen-income" class="screen list-screen">
-    <header class="header">
-      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+    <header class="header" aria-label="Nagłówek przychodów">
+      <button type="button" class="back-btn" onclick="showScreen('screen-dashboard')" aria-label="Wróć">←</button>
       <h1 class="header-title">💰 Przychody</h1>
-      <button class="add-btn" onclick="openModal('modal-income')">+</button>
+      <button type="button" class="add-btn" onclick="openModal('modal-income')" aria-label="Dodaj przychód">+</button>
     </header>
 
-    <div class="month-selector">
-      <button class="month-arrow">←</button>
+    <div class="month-selector" role="group" aria-label="Wybór miesiąca">
+      <button type="button" class="month-arrow" aria-label="Poprzedni miesiąc">←</button>
       <span>Grudzień 2025</span>
-      <button class="month-arrow">→</button>
+      <button type="button" class="month-arrow" aria-label="Następny miesiąc">→</button>
     </div>
 
     <div class="summary-card mint">
@@ -210,15 +210,15 @@
       </div>
     </div>
 
-    <button class="fab" onclick="openModal('modal-income')">+</button>
+    <button type="button" class="fab" onclick="openModal('modal-income')" aria-label="Dodaj przychód">+</button>
   </div>
 
   <!-- ========== Goals Screen ========== -->
   <div id="screen-goals" class="screen list-screen">
-    <header class="header">
-      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+    <header class="header" aria-label="Nagłówek celów">
+      <button type="button" class="back-btn" onclick="showScreen('screen-dashboard')" aria-label="Wróć">←</button>
       <h1 class="header-title">🎯 Cele</h1>
-      <button class="add-btn" onclick="openModal('modal-goal')">+</button>
+      <button type="button" class="add-btn" onclick="openModal('modal-goal')" aria-label="Dodaj cel">+</button>
     </header>
 
     <div class="summary-card peach">
@@ -298,13 +298,13 @@
       </div>
     </div>
 
-    <button class="fab" onclick="openModal('modal-goal')">+</button>
+    <button type="button" class="fab" onclick="openModal('modal-goal')" aria-label="Dodaj cel">+</button>
   </div>
 
   <!-- ========== Achievements Screen ========== -->
   <div id="screen-achievements" class="screen list-screen">
-    <header class="header">
-      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+    <header class="header" aria-label="Nagłówek osiągnięć">
+      <button type="button" class="back-btn" onclick="showScreen('screen-dashboard')" aria-label="Wróć">←</button>
       <h1 class="header-title">🏆 Osiągnięcia</h1>
     </header>
 
@@ -379,8 +379,8 @@
 
   <!-- ========== Settings Screen ========== -->
   <div id="screen-settings" class="screen list-screen">
-    <header class="header">
-      <button class="back-btn" onclick="showScreen('screen-dashboard')">←</button>
+    <header class="header" aria-label="Nagłówek ustawień">
+      <button type="button" class="back-btn" onclick="showScreen('screen-dashboard')" aria-label="Wróć">←</button>
       <h1 class="header-title">⚙️ Ustawienia</h1>
     </header>
 
@@ -431,29 +431,29 @@
   <!-- ========== MODALS ========== -->
 
   <!-- Add Menu Modal -->
-  <div id="modal-add" class="modal" onclick="closeModal(event)">
-    <div class="modal-menu">
-      <button class="modal-menu-item" onclick="openModal('modal-income')">
-        <span class="modal-menu-icon">💵</span>
+  <div id="modal-add" class="modal" role="dialog" aria-label="Menu dodawania" onclick="closeModal(event)">
+    <div class="modal-menu" role="menu">
+      <button type="button" class="modal-menu-item" onclick="openModal('modal-income')" role="menuitem">
+        <span class="modal-menu-icon" aria-hidden="true">💵</span>
         <span>Dodaj przychód</span>
       </button>
-      <button class="modal-menu-item" onclick="openModal('modal-expense')">
-        <span class="modal-menu-icon">💸</span>
+      <button type="button" class="modal-menu-item" onclick="openModal('modal-expense')" role="menuitem">
+        <span class="modal-menu-icon" aria-hidden="true">💸</span>
         <span>Dodaj wydatek</span>
       </button>
-      <button class="modal-menu-item" onclick="openModal('modal-goal')">
-        <span class="modal-menu-icon">🎯</span>
+      <button type="button" class="modal-menu-item" onclick="openModal('modal-goal')" role="menuitem">
+        <span class="modal-menu-icon" aria-hidden="true">🎯</span>
         <span>Dodaj cel</span>
       </button>
     </div>
   </div>
 
   <!-- Income Modal -->
-  <div id="modal-income" class="modal" onclick="closeModal(event)">
+  <div id="modal-income" class="modal" role="dialog" aria-label="Formularz przychodu" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h2>💵 Dodaj przychód</h2>
-        <button class="modal-close" onclick="closeAllModals()">✕</button>
+        <button type="button" class="modal-close" onclick="closeAllModals()" aria-label="Zamknij">✕</button>
       </div>
       <form class="form">
         <div class="form-group">
@@ -490,11 +490,11 @@
   </div>
 
   <!-- Expense Modal -->
-  <div id="modal-expense" class="modal" onclick="closeModal(event)">
+  <div id="modal-expense" class="modal" role="dialog" aria-label="Formularz wydatku" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h2>💸 Dodaj wydatek</h2>
-        <button class="modal-close" onclick="closeAllModals()">✕</button>
+        <button type="button" class="modal-close" onclick="closeAllModals()" aria-label="Zamknij">✕</button>
       </div>
       <form class="form">
         <div class="form-group">
@@ -532,11 +532,11 @@
   </div>
 
   <!-- Goal Modal -->
-  <div id="modal-goal" class="modal" onclick="closeModal(event)">
+  <div id="modal-goal" class="modal" role="dialog" aria-label="Formularz celu" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h2>🎯 Nowy cel</h2>
-        <button class="modal-close" onclick="closeAllModals()">✕</button>
+        <button type="button" class="modal-close" onclick="closeAllModals()" aria-label="Zamknij">✕</button>
       </div>
       <form class="form">
         <div class="form-group">
@@ -603,25 +603,25 @@
   </div>
 
   <!-- ========== Bottom Navigation ========== -->
-  <nav class="bottom-nav" id="bottom-nav">
-    <button class="nav-item active" onclick="showScreen('screen-dashboard')">
-      <span class="nav-icon">🏠</span>
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Nawigacja główna">
+    <button type="button" class="nav-item active" onclick="showScreen('screen-dashboard')" aria-label="Strona główna">
+      <span class="nav-icon" aria-hidden="true">🏠</span>
       <span>Start</span>
     </button>
-    <button class="nav-item" onclick="showScreen('screen-income')">
-      <span class="nav-icon">💰</span>
+    <button type="button" class="nav-item" onclick="showScreen('screen-income')" aria-label="Przychody">
+      <span class="nav-icon" aria-hidden="true">💰</span>
       <span>Przychody</span>
     </button>
-    <button class="nav-item" onclick="showScreen('screen-goals')">
-      <span class="nav-icon">🎯</span>
+    <button type="button" class="nav-item" onclick="showScreen('screen-goals')" aria-label="Cele">
+      <span class="nav-icon" aria-hidden="true">🎯</span>
       <span>Cele</span>
     </button>
-    <button class="nav-item" onclick="showScreen('screen-achievements')">
-      <span class="nav-icon">🏆</span>
+    <button type="button" class="nav-item" onclick="showScreen('screen-achievements')" aria-label="Osiągnięcia">
+      <span class="nav-icon" aria-hidden="true">🏆</span>
       <span>Punkty</span>
     </button>
-    <button class="nav-item" onclick="showScreen('screen-settings')">
-      <span class="nav-icon">⚙️</span>
+    <button type="button" class="nav-item" onclick="showScreen('screen-settings')" aria-label="Ustawienia">
+      <span class="nav-icon" aria-hidden="true">⚙️</span>
       <span>Więcej</span>
     </button>
   </nav>

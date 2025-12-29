@@ -644,57 +644,67 @@
     form.onsubmit = e => {
       e.preventDefault();
 
-      const amount = parseFloat(form.querySelector('input[type="number"]').value) || 0;
-      const sourceChip = form.querySelector('.chips .chip.active');
-      const sourceName = sourceChip?.textContent.trim().split(' ').pop() || 'Inne';
-      const personChip = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active');
-      const owner = personChip?.textContent.includes('Żona') ? 'wife' : 'husband';
-      const date = form.querySelector('input[type="date"]').value;
-      const note = form.querySelector('input[type="text"]')?.value || '';
-
-      let source;
-
-      if (editingSourceId) {
-        // Update existing source
-        source = dataManager.getIncomeSources().find(s => s.id === editingSourceId);
-        if (source) {
-          dataManager.updateIncomeSource(editingSourceId, {
-            name: sourceName,
-            expectedAmount: amount,
-            owner,
-            icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
-          });
-        }
-        editingSourceId = null;
-      } else {
-        // Check if source exists
-        const sources = dataManager.getIncomeSources();
-        source = sources.find(s => s.name === sourceName && s.owner === owner);
-
-        if (!source) {
-          // Create new source
-          source = dataManager.addIncomeSource({
-            name: sourceName,
-            expectedAmount: amount,
-            owner,
-            icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
-          });
+      try {
+        const amount = parseFloat(form.querySelector('input[type="number"]').value) || 0;
+        if (amount <= 0) {
+          alert('Wprowadź poprawną kwotę');
+          return;
         }
 
-        // Record payment
-        dataManager.recordPayment(source.id, { amount, date, note });
+        const sourceChip = form.querySelector('.chips .chip.active');
+        const sourceName = sourceChip?.textContent.trim().split(' ').pop() || 'Inne';
+        const personChip = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active');
+        const owner = personChip?.textContent.includes('Żona') ? 'wife' : 'husband';
+        const date = form.querySelector('input[type="date"]').value;
+        const note = form.querySelector('input[type="text"]')?.value || '';
+
+        let source;
+
+        if (editingSourceId) {
+          // Update existing source
+          source = dataManager.getIncomeSources().find(s => s.id === editingSourceId);
+          if (source) {
+            dataManager.updateIncomeSource(editingSourceId, {
+              name: sourceName,
+              expectedAmount: amount,
+              owner,
+              icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
+            });
+          }
+          editingSourceId = null;
+        } else {
+          // Check if source exists
+          const sources = dataManager.getIncomeSources();
+          source = sources.find(s => s.name === sourceName && s.owner === owner);
+
+          if (!source) {
+            // Create new source
+            source = dataManager.addIncomeSource({
+              name: sourceName,
+              expectedAmount: amount,
+              owner,
+              icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
+            });
+          }
+
+          // Record payment
+          dataManager.recordPayment(source.id, { amount, date, note });
+        }
+
+        // Check achievements
+        if (gamificationManager) {
+          const newAchievements = gamificationManager.checkAchievements(owner);
+          if (newAchievements.length > 0) {
+            console.log('New achievements:', newAchievements);
+          }
+        }
+
+        closeAllModals();
+        renderAll();
+      } catch (err) {
+        console.error('Income form error:', err);
+        alert('Wystąpił błąd przy zapisywaniu przychodu');
       }
-
-      // Check achievements
-      if (gamificationManager) {
-        const newAchievements = gamificationManager.checkAchievements(owner);
-        if (newAchievements.length > 0) {
-          console.log('New achievements:', newAchievements);
-        }
-      }
-
-      closeAllModals();
-      renderAll();
     };
   }
 
@@ -762,58 +772,76 @@
     form.onsubmit = e => {
       e.preventDefault();
 
-      const name = form.querySelector('input[type="text"]').value;
-      const typeChip = form.querySelector('#goal-type-chips .chip.active');
-      const type = typeChip?.dataset.type || 'oneoff';
-      const icon = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active')?.textContent || '🎯';
+      try {
+        const name = form.querySelector('input[type="text"]').value;
+        if (!name || name.trim() === '') {
+          alert('Wprowadź nazwę celu');
+          return;
+        }
 
-      let goalData;
+        const typeChip = form.querySelector('#goal-type-chips .chip.active');
+        const type = typeChip?.dataset.type || 'oneoff';
+        const icon = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active')?.textContent || '🎯';
 
-      if (type === 'recurring') {
-        // Stały wydatek - z zakresem dat
-        const monthly = parseFloat($('goal-monthly')?.value) || 0;
-        const startDate = $('goal-start-date')?.value;
-        const endDate = $('goal-end-date')?.value;
+        let goalData;
 
-        goalData = {
-          name,
-          type: 'recurring',
-          monthlyContribution: monthly,
-          targetAmount: monthly, // dla wyświetlania
-          startDate: startDate ? startDate + '-01' : null,
-          endDate: endDate ? endDate + '-01' : null,
-          icon
-        };
-      } else {
-        // Jednorazowy cel
-        const target = parseFloat($('goal-target')?.value) || 0;
-        const saved = parseFloat($('goal-saved')?.value) || 0;
-        const deadline = $('goal-deadline')?.value;
+        if (type === 'recurring') {
+          // Stały wydatek - z zakresem dat
+          const monthly = parseFloat($('goal-monthly')?.value) || 0;
+          if (monthly <= 0) {
+            alert('Wprowadź poprawną kwotę miesięczną');
+            return;
+          }
+          const startDate = $('goal-start-date')?.value;
+          const endDate = $('goal-end-date')?.value;
 
-        goalData = {
-          name,
-          type: 'oneoff',
-          targetAmount: target,
-          currentAmount: saved,
-          targetDate: deadline ? deadline + '-01' : null,
-          icon
-        };
+          goalData = {
+            name,
+            type: 'recurring',
+            monthlyContribution: monthly,
+            targetAmount: monthly, // dla wyświetlania
+            startDate: startDate ? startDate + '-01' : null,
+            endDate: endDate ? endDate + '-01' : null,
+            icon
+          };
+        } else {
+          // Jednorazowy cel
+          const target = parseFloat($('goal-target')?.value) || 0;
+          if (target <= 0) {
+            alert('Wprowadź poprawną kwotę docelową');
+            return;
+          }
+          const saved = parseFloat($('goal-saved')?.value) || 0;
+          const deadline = $('goal-deadline')?.value;
+
+          goalData = {
+            name,
+            type: 'oneoff',
+            targetAmount: target,
+            currentAmount: saved,
+            targetDate: deadline ? deadline + '-01' : null,
+            icon
+          };
+        }
+
+        if (editingGoalId) {
+          dataManager.updatePlannedGoal(editingGoalId, goalData);
+          editingGoalId = null;
+        } else {
+          dataManager.addPlannedGoal(goalData);
+        }
+
+        // Check achievements
+        if (gamificationManager) {
+          gamificationManager.checkAchievements(currentPerson);
+        }
+
+        closeAllModals();
+        renderAll();
+      } catch (err) {
+        console.error('Goal form error:', err);
+        alert('Wystąpił błąd przy zapisywaniu celu');
       }
-
-      if (editingGoalId) {
-        dataManager.updatePlannedGoal(editingGoalId, goalData);
-        editingGoalId = null;
-      } else {
-        dataManager.addPlannedGoal(goalData);
-      }
-
-      // Check achievements
-      if (gamificationManager) {
-        gamificationManager.checkAchievements(currentPerson);
-      }
-
-      closeAllModals();
-      renderAll();
     };
   }
 
@@ -933,28 +961,38 @@
     form.onsubmit = e => {
       e.preventDefault();
 
-      const amount = parseFloat(form.querySelector('input[type="number"]').value) || 0;
-      const catChip = form.querySelector('.chips .chip.active');
-      const categoryId = catChip?.dataset.categoryId || 'other';
-      const desc = form.querySelector('input[type="text"]').value;
-      const date = form.querySelector('input[type="date"]').value;
-
-      dataManager.addExpense({
-        amount,
-        categoryId,
-        description: desc,
-        date
-      });
-
-      if (gamificationManager) {
-        const newAchievements = gamificationManager.checkAchievements(currentPerson);
-        if (newAchievements.length > 0) {
-          console.log('New achievements:', newAchievements);
+      try {
+        const amount = parseFloat(form.querySelector('input[type="number"]').value) || 0;
+        if (amount <= 0) {
+          alert('Wprowadź poprawną kwotę');
+          return;
         }
-      }
 
-      closeAllModals();
-      renderAll();
+        const catChip = form.querySelector('.chips .chip.active');
+        const categoryId = catChip?.dataset.categoryId || 'other';
+        const desc = form.querySelector('input[type="text"]').value;
+        const date = form.querySelector('input[type="date"]').value;
+
+        dataManager.addExpense({
+          amount,
+          categoryId,
+          description: desc,
+          date
+        });
+
+        if (gamificationManager) {
+          const newAchievements = gamificationManager.checkAchievements(currentPerson);
+          if (newAchievements.length > 0) {
+            console.log('New achievements:', newAchievements);
+          }
+        }
+
+        closeAllModals();
+        renderAll();
+      } catch (err) {
+        console.error('Expense form error:', err);
+        alert('Wystąpił błąd przy zapisywaniu wydatku');
+      }
     };
   }
 
