@@ -119,8 +119,8 @@
 - [x] Badge miesiąca "Grudzień 2025" - widoczny
 - [x] "Porada dnia" card - widoczna
 - [x] Hero "Do odłożenia w tym miesiącu" - widoczny
-- [x] Kwoty (2000 zł / 9003 zł) - czytelne
-- [x] Progress bar - widoczny
+- [x] Kwoty (2000 zł / 9477 zł) - czytelne
+- [x] Progress bar (31%) - widoczny
 - [x] "Skąd ta kwota?" sekcja - widoczna
 - [x] Goal card "Edukacja dziecka" - widoczna
 - [x] Bottom nav (5 przycisków) - widoczna
@@ -129,18 +129,40 @@
 ### Add Modal
 - [x] Overlay tła (przyciemniony) - widoczny
 - [x] 3 opcje menu - widoczne
-- [x] "Dodaj przychód" z ikoną - OK
-- [x] "Dodaj wydatek" z ikoną - OK
-- [x] "Dodaj cel" z ikoną - OK
+- [x] "Dodaj przychód" z ikoną 💵 - OK
+- [x] "Dodaj wydatek" z ikoną 💸 - OK
+- [x] "Dodaj cel" z ikoną 🎯 - OK
 - [x] FAB (+) widoczny w tle
 
 ### Expense Form Modal
-- [x] Header "Dodaj wydatek" z emoji - widoczny
+- [x] Header "💸 Dodaj wydatek" - widoczny
 - [x] Close button (×) - widoczny
 - [x] Input "Kwota (zł)" - widoczny
-- [x] Chips kategorii - widoczne (8+)
+- [x] Wszystkie 12 kategorii WIDOCZNE (po naprawie!)
 - [x] Active chip "Jedzenie" (zielony) - OK
-- [x] Sticky "Zapisz" button - widoczny na dole
+- [x] "Zapisz" button na końcu formularza - OK
+
+### Goals Screen
+- [x] Sekcja "Jednorazowe" - widoczna
+- [x] Cel "Edukacja dziecka" (500/m, 0/50000, 0%)
+- [x] Cel "Remont mieszkania" (1500/m, 0/80000, 0%)
+- [x] Progress bars - widoczne
+- [x] Przyciski delete (×) - widoczne
+- [x] Sekcja "Przyszłe zobowiązania"
+- [x] Alert "Podnieście zarobki..." - widoczny
+- [x] FAB (+) - widoczny
+- [x] Nav aktywny "Cele" (zielony) - OK
+
+### Settings Screen
+- [x] Header "⚙️ Ustawienia" z back arrow
+- [x] "Zmień PIN" 🔐 - widoczny
+- [x] "Kategorie" 📁 - widoczny
+- [x] "Eksport danych" 💾 - widoczny
+- [x] "Import danych" 📥 - widoczny
+- [x] "Wyczyść dane" 🗑️ (czerwony) - widoczny
+- [x] Wersja "FamilyGoals v2.1" - widoczna
+- [x] "Ostatnia aktualizacja" - widoczna
+- [x] Nav aktywny "Więcej" (zielony) - OK
 
 ### Ogólne
 - [x] Fonty ładują się (DM Sans, Fraunces)
@@ -148,10 +170,22 @@
 - [x] Brak horizontal scroll
 - [x] Layout nie rozjechany
 - [x] Tekst czytelny (min 16px)
+- [x] Emoji ikony renderują się poprawnie
 
-### Wykryte drobne problemy
-- ⚠️ PIN screen pominięty (sesja aktywna) - nie jest blokerem
-- ⚠️ Settings screenshot = duplikat expense (bug w skrypcie)
+---
+
+## Naprawione w tej sesji (2025-12-29)
+
+### 🛑 BLOCKER NAPRAWIONY
+**Problem:** Przycisk "Zapisz" (sticky) przysłaniał środkowe
+kategorie wydatków (❤️ Zdrowie, 🎬 Rozrywka).
+
+**Rozwiązanie:** Usunięto `position: sticky` z przycisku.
+Button teraz jest na końcu formularza (wymaga scroll).
+
+**Commity:**
+- `ad08843` - Zwiększenie padding (próba 1)
+- `d4db6de` - Usunięcie sticky (finalne rozwiązanie)
 
 ---
 
@@ -159,4 +193,4 @@
 
 Wszystkie checklisty ukończone.
 Visual validation wykonana automatycznie (Puppeteer + Chromium).
-**BRAK BLOKERÓW WIZUALNYCH.**
+**WSZYSTKIE BLOKERY NAPRAWIONE.**

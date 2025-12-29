@@ -89,9 +89,9 @@ async function capture() {
     fullPage: false
   });
 
-  // Close modal (click outside)
-  await page.click('.modal.active');
-  await new Promise(r => setTimeout(r, 300));
+  // Close modal (press Escape)
+  await page.keyboard.press('Escape');
+  await new Promise(r => setTimeout(r, 500));
 
   // Navigate to Goals screen
   console.log('Navigating to Goals...');
@@ -102,7 +102,7 @@ async function capture() {
   console.log('Screenshot 6: Goals Screen');
   await page.screenshot({
     path: path.join(OUTPUT_DIR, '06-goals-screen.png'),
-    fullPage: true
+    fullPage: false
   });
 
   // Navigate to Settings
