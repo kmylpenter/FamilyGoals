@@ -412,7 +412,7 @@
         </div>
         <div class="list-arrow">→</div>
       </div>
-      <div class="list-item" tabindex="0" role="button" aria-label="Kategorie">
+      <div class="list-item" id="btn-categories" tabindex="0" role="button" aria-label="Kategorie">
         <div class="list-icon">📁</div>
         <div class="list-content">
           <div class="list-title">Kategorie</div>
@@ -494,6 +494,13 @@
           <div class="chips">
             <button type="button" class="chip active">👩 Żona</button>
             <button type="button" class="chip">👨 Mąż</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Typ</label>
+          <div class="chips" id="income-type-chips">
+            <button type="button" class="chip active" data-value="recurring">🔄 Cykliczny</button>
+            <button type="button" class="chip" data-value="oneoff">1️⃣ Jednorazowy</button>
           </div>
         </div>
         <div class="form-group">
@@ -619,6 +626,26 @@
         </div>
         <button type="submit" class="btn-primary sticky">💾 Zapisz</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Categories -->
+  <div id="modal-categories" class="modal" role="dialog" aria-label="Zarządzanie kategoriami" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
+        <h2>📁 Kategorie</h2>
+      </div>
+      <div class="modal-body">
+        <div id="categories-list" class="list categories-list">
+          <!-- Categories rendered by JS -->
+        </div>
+        <div class="add-category-form">
+          <input type="text" id="new-category-name" placeholder="Nazwa kategorii" maxlength="30">
+          <input type="text" id="new-category-icon" placeholder="Emoji" maxlength="2" style="width: 60px">
+          <button type="button" class="btn-primary" onclick="addNewCategory()">+</button>
+        </div>
+      </div>
     </div>
   </div>
 

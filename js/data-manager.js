@@ -270,10 +270,36 @@ class DataManager {
   }
 
   /**
+   * Usuń płatności ze źródła w danym miesiącu
+   */
+  clearPaymentsForMonth(sourceId, year, month) {
+    const sources = this.getIncomeSources();
+    const source = sources.find(s => s.id === sourceId);
+    if (!source || !source.payments) return;
+
+    source.payments = source.payments.filter(p => {
+      const d = new Date(p.date);
+      return !(d.getFullYear() === year && d.getMonth() === month);
+    });
+
+    this.saveIncomeSources(sources);
+    this.emit('income-updated');
+  }
+
+  /**
    * Status źródeł w danym miesiącu
    */
   getIncomeSourcesStatus(year, month) {
-    const sources = this.getIncomeSources().filter(s => s.isActive);
+    const currentForMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+    const sources = this.getIncomeSources().filter(s => {
+      if (!s.isActive) return false;
+      // Jednorazowe źródła pokazuj tylko w ich miesiącu
+      if (s.incomeType === 'oneoff' && s.forMonth && s.forMonth !== currentForMonth) {
+        return false;
+      }
+      return true;
+    });
 
     return sources.map(source => {
       const payments = this.getPaymentsByMonth(source.id, year, month);

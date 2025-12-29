@@ -181,6 +181,13 @@
       return;
     }
 
+    // Toggle income status (Otrzymane/Oczekiwane)
+    if (e.target.dataset.toggleId) {
+      e.stopPropagation();
+      toggleIncomeReceived(e.target.dataset.toggleId);
+      return;
+    }
+
     // Edit item
     const item = e.target.closest('[data-edit-id]');
     if (item) {
@@ -542,7 +549,7 @@
               <div class="list-subtitle">${src.status === 'complete' ? 'Otrzymane' : 'Oczekiwane'}</div>
             </div>
             <div class="list-amount ${src.totalReceived > 0 ? 'positive' : ''}">${formatMoney(src.totalReceived || src.expected)}</div>
-            <div class="list-status ${src.status === 'complete' ? 'done' : 'pending'}">${src.status === 'complete' ? '✓' : '⏳'}</div>
+            <button class="list-status ${src.status === 'complete' ? 'done' : 'pending'}" data-toggle-id="${src.id}" title="Kliknij aby zmienić status">${src.status === 'complete' ? '✓' : '⏳'}</button>
             <button class="delete-btn" data-id="${src.id}" data-type="source">✕</button>
           </div>
         `;
@@ -763,8 +770,12 @@
         const sourceName = sourceChip?.textContent.trim().split(' ').pop() || 'Inne';
         const personChip = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active');
         const owner = personChip?.textContent.includes('Żona') ? 'wife' : 'husband';
+        const typeChip = document.querySelector('#income-type-chips .chip.active');
+        const incomeType = typeChip?.dataset.value || 'recurring';
         const date = form.querySelector('input[type="date"]').value;
         const note = form.querySelector('input[type="text"]')?.value || '';
+        const { year, month } = getYearMonth();
+        const forMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
 
         let source;
 
@@ -776,14 +787,18 @@
               name: sourceName,
               expectedAmount: amount,
               owner,
+              incomeType,
+              forMonth: incomeType === 'oneoff' ? forMonth : null,
               icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
             });
           }
           editingSourceId = null;
         } else {
-          // Check if source exists
+          // For oneoff, always create new. For recurring, check if exists
           const sources = dataManager.getIncomeSources();
-          source = sources.find(s => s.name === sourceName && s.owner === owner);
+          source = incomeType === 'recurring'
+            ? sources.find(s => s.name === sourceName && s.owner === owner && s.incomeType !== 'oneoff')
+            : null;
 
           if (!source) {
             // Create new source
@@ -791,6 +806,8 @@
               name: sourceName,
               expectedAmount: amount,
               owner,
+              incomeType,
+              forMonth: incomeType === 'oneoff' ? forMonth : null,
               icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
             });
           }
@@ -829,6 +846,34 @@
         }
       }
     };
+  }
+
+  function toggleIncomeReceived(sourceId) {
+    const { year, month } = getYearMonth();
+    const summary = dataManager.getMonthlyIncomeSummary(year, month);
+    const source = summary.sources.find(s => s.id === sourceId);
+
+    if (!source) return;
+
+    if (source.status === 'complete') {
+      // Remove payments for this month
+      dataManager.clearPaymentsForMonth(sourceId, year, month);
+      if (typeof Toast !== 'undefined') {
+        Toast.info('Cofnięto', `${source.name} oznaczone jako oczekiwane`);
+      }
+    } else {
+      // Add payment for expected amount
+      dataManager.recordPayment(sourceId, {
+        amount: source.expected,
+        date: new Date().toISOString(),
+        note: `Otrzymano ${formatMonth(currentMonth)}`
+      });
+      if (typeof Toast !== 'undefined') {
+        Toast.success('Otrzymano!', `${source.name}: ${formatMoney(source.expected)}`);
+      }
+    }
+
+    renderAll();
   }
 
   function deleteIncomeSource(id) {
@@ -872,6 +917,15 @@
         personChips[1].classList.add('active');
       }
     }
+
+    // Set type chip
+    const typeChips = document.querySelectorAll('#income-type-chips .chip');
+    typeChips.forEach(c => {
+      c.classList.remove('active');
+      if (c.dataset.value === (source.incomeType || 'recurring')) {
+        c.classList.add('active');
+      }
+    });
 
     // Update modal title
     modal.querySelector('.modal-header h2').textContent = '💵 Edytuj źródło';
@@ -1139,12 +1193,72 @@
     const items = $$('#screen-settings .list-item');
     if (items.length >= 5) {
       items[0].onclick = changePin;
-      items[1].onclick = () => alert('Kategorie - wkrótce');
+      items[1].onclick = openCategoriesModal;
       items[2].onclick = exportData;
       items[3].onclick = importData;
       items[4].onclick = clearData;
     }
   }
+
+  // ============ CATEGORIES ============
+  function openCategoriesModal() {
+    renderCategories();
+    openModal('modal-categories');
+  }
+
+  function renderCategories() {
+    const list = $('categories-list');
+    if (!list) return;
+
+    const defaultCategories = [
+      { id: 'housing', name: 'Mieszkanie', icon: '🏠' },
+      { id: 'food', name: 'Jedzenie', icon: '🍕' },
+      { id: 'transport', name: 'Transport', icon: '🚗' },
+      { id: 'children', name: 'Dzieci', icon: '👶' },
+      { id: 'health', name: 'Zdrowie', icon: '💊' },
+      { id: 'entertainment', name: 'Rozrywka', icon: '🎬' }
+    ];
+
+    const custom = dataManager.getCustomCategories();
+    const all = [...defaultCategories, ...custom];
+
+    list.innerHTML = all.map(cat => `
+      <div class="list-item category-item">
+        <div class="list-icon">${cat.icon || '📁'}</div>
+        <div class="list-content">
+          <div class="list-title">${cat.name}</div>
+        </div>
+        ${cat.id.startsWith('custom-') ? `<button class="delete-btn" onclick="deleteCategory('${cat.id}')">✕</button>` : ''}
+      </div>
+    `).join('');
+  }
+
+  window.addNewCategory = function() {
+    const nameInput = $('new-category-name');
+    const iconInput = $('new-category-icon');
+
+    const name = nameInput.value.trim();
+    const icon = iconInput.value.trim() || '📁';
+
+    if (!name) {
+      Toast.warning('Błąd', 'Podaj nazwę kategorii');
+      return;
+    }
+
+    dataManager.addCategory({ name, icon });
+    renderCategories();
+
+    nameInput.value = '';
+    iconInput.value = '';
+    Toast.success('Dodano', `Kategoria "${name}" utworzona`);
+  };
+
+  window.deleteCategory = function(id) {
+    if (!confirm('Usunąć tę kategorię?')) return;
+    dataManager.deleteCategory(id);
+    renderCategories();
+    Toast.info('Usunięto', 'Kategoria usunięta');
+  };
 
   function changePin() {
     const newPin = prompt('Nowy PIN (4 cyfry):');

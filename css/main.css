@@ -263,9 +263,24 @@ body {
 .list-amount { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
 .list-amount.positive { color: var(--success); }
 .list-amount.muted { color: var(--text-muted); }
-.list-status { font-size: 1.2rem; } /* Larger icons */
+.list-status {
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.2s, transform 0.1s;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.list-status:hover { background: var(--bg-secondary); }
+.list-status:active { transform: scale(0.9); }
 .list-status.done { color: var(--success); }
-.list-status.pending { color: var(--warning); font-size: 1.3rem; } /* Larger hourglass */
+.list-status.pending { color: var(--warning); font-size: 1.3rem; }
 .list-arrow { color: var(--text-muted); }
 
 /* Achievements */
@@ -357,6 +372,21 @@ body {
 }
 .modal-menu-icon { font-size: 2rem; }
 
+/* Categories Modal */
+.categories-list { max-height: 50vh; overflow-y: auto; margin-bottom: var(--s3); }
+.category-item { padding: var(--s2) var(--s3); }
+.add-category-form {
+  display: flex; gap: var(--s2); align-items: center;
+  padding: var(--s2); background: var(--bg-subtle);
+  border-radius: var(--r2);
+}
+.add-category-form input {
+  flex: 1; padding: var(--s2); border: 2px solid transparent;
+  border-radius: var(--r1); font-size: 1rem; background: var(--bg-card);
+}
+.add-category-form input:focus { border-color: var(--mint); outline: none; }
+.add-category-form button { min-width: 44px; min-height: 44px; }
+
 /* Forms */
 .form { display: flex; flex-direction: column; gap: var(--s3); }
 .form-group { display: flex; flex-direction: column; gap: 8px; }
@@ -389,18 +419,23 @@ body {
 .date-hint { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; font-style: italic; }
 .date-range-group { background: var(--lavender-light); padding: var(--s3); border-radius: var(--r2); margin: var(--s1) 0; }
 
-/* Delete Button - Fixed on right side */
+/* Delete Button - Subtle, shows on interaction */
 .delete-btn {
-  width: 32px; height: 32px; border: none; background: var(--peach);
-  color: white; border-radius: 50%; font-size: 1rem;
+  width: 28px; height: 28px; border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 50%; font-size: 0.85rem;
   cursor: pointer; transition: all 0.15s;
-  flex-shrink: 0; margin-left: auto;
+  flex-shrink: 0; margin-left: 0.25rem;
   display: flex; align-items: center; justify-content: center;
+  opacity: 0.5;
 }
-.delete-btn:active { background: var(--danger); transform: scale(0.9); }
+.delete-btn:hover, .delete-btn:focus { opacity: 1; color: var(--danger); background: rgba(231, 76, 60, 0.1); }
+.delete-btn:active { transform: scale(0.9); background: rgba(231, 76, 60, 0.2); }
 .delete-btn:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
 @media (hover: hover) {
-  .delete-btn:hover { background: var(--danger); }
+  .list-item:hover .delete-btn,
+  .goal-item:hover .delete-btn { opacity: 1; }
 }
 
 /* Goal item - delete button in header flow, not absolute */

@@ -2,10 +2,17 @@
 
 ## Aktywna Sesja
 
-**Start:** 2025-12-29 ~21:00
-**Cel:** Visual validation + AreaChart + UI fixes
-**Status:** HANDOFF_NEEDED
-**Kontekst:** ~80%
+**Start:** 2025-12-29 ~22:15
+**Cel:** UI improvements batch
+**Status:** IN_PROGRESS
+**Kontekst:** ~30%
+
+### Zadania
+- [ ] Toggle status Otrzymane/Oczekiwane
+- [ ] Zarobki cykliczne
+- [ ] Redesign delete button
+- [ ] Kategorie onclick
+- [ ] Test edycji
 
 ---
 

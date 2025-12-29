@@ -32,6 +32,10 @@ Brak - sesja zamknięta
 
 ## Recently Completed
 
+- ✅ handoff: CONTINUITY z blocker info (22:07)
+
+- ✅ fix: Zwiększ padding-bottom dla FAB visibility (22:07)
+
 - ✅ EOS: 2025-12-29 - Visual validation + data consistency fixes (21:53)
 
 - ✅ fix: Data consistency - Dashboard vs Income screen (21:46)
