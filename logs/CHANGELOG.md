@@ -13,6 +13,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Changed
+- Redesign pie chart → horizontal bar chart z progress bars. Files: `js/ui-features.js`, `index.html`, `css/main.css`
+
+### Fixed
+- fix: Przycisk "+" w modal kategorii był ucięty (flex-shrink fix). Files: `css/main.css`, `index.html`
+
+---
+
+## [2025-12-29] Sesja 4-5
+
 ### Added
 - feat: Toggle status Otrzymane/Oczekiwane (klik na ✓/⏳). Files: `js/app.js`, `js/data-manager.js`, `css/main.css`. Commit: `b352825`
 - feat: Modal Kategorie w Settings. Files: `index.html`, `js/app.js`, `css/main.css`. Commit: `b352825`

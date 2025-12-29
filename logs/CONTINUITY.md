@@ -2,17 +2,21 @@
 
 ## Aktywna Sesja
 
-**Start:** 2025-12-29 ~22:15
-**Cel:** UI improvements batch
+**Start:** 2025-12-29 ~23:30
+**Cel:** Walidacja UI + Pie chart redesign
 **Status:** COMPLETED
-**Kontekst:** EOS
+**Kontekst:** ~40%
 
-### Zadania
-- [x] Toggle status Otrzymane/Oczekiwane
-- [x] Zarobki cykliczne
-- [x] Redesign delete button
-- [x] Kategorie onclick
-- [x] Test edycji
+### Zadania (ta sesja)
+- [x] Baseline screenshoty wszystkich ekranów
+- [x] Bug fix: przycisk "+" w modal kategorii (był ucięty)
+- [x] Redesign pie chart → horizontal bar chart
+- [x] Visual validation wszystkich ekranów
+
+### Pliki zmienione
+- css/main.css (add-category-form, expense-bars)
+- js/ui-features.js (ExpenseChart)
+- index.html (expense-chart-container)
 
 ---
 

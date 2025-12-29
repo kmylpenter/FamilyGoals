@@ -376,16 +376,18 @@ body {
 .categories-list { max-height: 50vh; overflow-y: auto; margin-bottom: var(--s3); }
 .category-item { padding: var(--s2) var(--s3); }
 .add-category-form {
-  display: flex; gap: var(--s2); align-items: center;
-  padding: var(--s2); background: var(--bg-subtle);
-  border-radius: var(--r2);
+  display: flex; gap: var(--s1); align-items: center;
+  padding: var(--s1); background: var(--bg-subtle);
+  border-radius: var(--r1);
 }
 .add-category-form input {
-  flex: 1; padding: var(--s2); border: 2px solid transparent;
-  border-radius: var(--r1); font-size: 1rem; background: var(--bg-card);
+  padding: 10px; border: 2px solid transparent;
+  border-radius: var(--r1); font-size: 0.9rem; background: var(--bg-card);
 }
+.add-category-form input:first-child { flex: 1; min-width: 0; }
+.add-category-form input:nth-child(2) { width: 44px; flex-shrink: 0; text-align: center; }
 .add-category-form input:focus { border-color: var(--mint); outline: none; }
-.add-category-form button { min-width: 44px; min-height: 44px; }
+.add-category-form button { width: 44px; height: 44px; flex-shrink: 0; border-radius: var(--r1); }
 
 /* Forms */
 .form { display: flex; flex-direction: column; gap: var(--s3); }
@@ -662,6 +664,81 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   width: 12px; height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* Expense Bars - Horizontal Bar Chart */
+.expense-bars-container {
+  background: var(--bg-card);
+  border-radius: var(--r2);
+  padding: var(--s2);
+}
+.expense-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--s2);
+  margin-bottom: var(--s2);
+  border-bottom: 1px solid var(--bg-subtle);
+}
+.expense-total-label {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+.expense-total-value {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.expense-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.expense-bar-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px;
+  align-items: center;
+}
+.expense-bar-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.expense-bar-icon {
+  font-size: 1.1rem;
+}
+.expense-bar-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.expense-bar-amount {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.expense-bar-track {
+  height: 8px;
+  background: var(--bg-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.expense-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease-out;
+}
+.expense-bar-percent {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  min-width: 32px;
 }
 
 /* Notifications / Toast */

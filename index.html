@@ -139,21 +139,10 @@
       </div>
     </div>
 
-    <!-- Expense Pie Chart -->
+    <!-- Expense Bar Chart -->
     <h2 class="section-title">📊 Wydatki tego miesiąca</h2>
-    <div class="chart-container" id="expense-chart-container">
-      <div class="pie-chart" id="pie-chart">
-        <svg viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="34" stroke="#e8e1f5" stroke-dasharray="213.6 213.6" stroke-dashoffset="0"></circle>
-        </svg>
-        <div class="pie-center">
-          <div class="pie-center-value" id="total-expenses">0 zł</div>
-          <div class="pie-center-label">wydatki</div>
-        </div>
-      </div>
-      <div class="chart-legend" id="chart-legend">
-        <!-- Dynamic legend will be rendered here -->
-      </div>
+    <div id="expense-chart-container">
+      <!-- Rendered by ExpenseChart.render() -->
     </div>
 
     <!-- Quick Stats -->
@@ -642,7 +631,7 @@
         </div>
         <div class="add-category-form">
           <input type="text" id="new-category-name" placeholder="Nazwa kategorii" maxlength="30">
-          <input type="text" id="new-category-icon" placeholder="Emoji" maxlength="2" style="width: 60px">
+          <input type="text" id="new-category-icon" placeholder="🎯" maxlength="2">
           <button type="button" class="btn-primary" onclick="addNewCategory()">+</button>
         </div>
       </div>

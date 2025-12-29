@@ -209,7 +209,7 @@ const Skeleton = {
 };
 
 // ============================================
-// PIE CHART FOR EXPENSES
+// EXPENSE CHART - Horizontal Bar Chart
 // ============================================
 const ExpenseChart = {
     colors: {
@@ -225,6 +225,21 @@ const ExpenseChart = {
         gifts: '#ffb5a7',      // peach
         savings: '#5cb585',    // success
         other: '#9a8c7f'       // muted
+    },
+
+    icons: {
+        housing: '🏠',
+        food: '🍕',
+        transport: '🚗',
+        children: '👶',
+        health: '💊',
+        entertainment: '🎬',
+        education: '📚',
+        clothing: '👕',
+        hygiene: '🧴',
+        gifts: '🎁',
+        savings: '💰',
+        other: '📦'
     },
 
     categoryNames: {
@@ -244,9 +259,6 @@ const ExpenseChart = {
 
     render(expenses) {
         const container = document.getElementById('expense-chart-container');
-        const pieChart = document.getElementById('pie-chart');
-        const legend = document.getElementById('chart-legend');
-        const totalEl = document.getElementById('total-expenses');
 
         if (!container || !expenses || expenses.length === 0) {
             if (container) {
@@ -267,46 +279,41 @@ const ExpenseChart = {
             total += exp.amount;
         });
 
-        // Sort by amount
+        // Sort by amount (descending)
         const sorted = Object.entries(byCategory)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 6); // Top 6 categories
 
-        // Update total
-        totalEl.textContent = this.formatMoney(total);
-
-        // Build SVG pie chart
-        const svg = pieChart.querySelector('svg');
-        svg.innerHTML = '';
-
-        const circumference = 2 * Math.PI * 34; // radius = 34
-        let offset = 0;
-
-        sorted.forEach(([cat, amount]) => {
-            const percent = amount / total;
-            const dashLength = circumference * percent;
-
-            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('cx', '50');
-            circle.setAttribute('cy', '50');
-            circle.setAttribute('r', '34');
-            circle.setAttribute('stroke', this.colors[cat] || '#9a8c7f');
-            circle.setAttribute('stroke-dasharray', `${dashLength} ${circumference}`);
-            circle.setAttribute('stroke-dashoffset', -offset);
-            circle.style.transition = 'all 0.5s ease-out';
-
-            svg.appendChild(circle);
-            offset += dashLength;
-        });
-
-        // Build legend
-        legend.innerHTML = sorted.map(([cat, amount]) => `
-            <div class="legend-item">
-                <span class="legend-dot" style="background: ${this.colors[cat] || '#9a8c7f'}"></span>
-                <span>${this.categoryNames[cat] || cat}</span>
-                <span style="margin-left: auto; font-weight: 600;">${this.formatMoney(amount)}</span>
+        // Build horizontal bar chart
+        container.innerHTML = `
+            <div class="expense-bars-container">
+                <div class="expense-total">
+                    <span class="expense-total-label">Suma wydatków</span>
+                    <span class="expense-total-value">${this.formatMoney(total)}</span>
+                </div>
+                <div class="expense-bars">
+                    ${sorted.map(([cat, amount]) => {
+                        const percent = Math.round((amount / total) * 100);
+                        const icon = this.icons[cat] || '📦';
+                        const name = this.categoryNames[cat] || cat;
+                        const color = this.colors[cat] || '#9a8c7f';
+                        return `
+                            <div class="expense-bar-item">
+                                <div class="expense-bar-header">
+                                    <span class="expense-bar-icon">${icon}</span>
+                                    <span class="expense-bar-name">${name}</span>
+                                    <span class="expense-bar-amount">${this.formatMoney(amount)}</span>
+                                </div>
+                                <div class="expense-bar-track">
+                                    <div class="expense-bar-fill" style="width: ${percent}%; background: ${color}"></div>
+                                </div>
+                                <div class="expense-bar-percent">${percent}%</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
             </div>
-        `).join('');
+        `;
     },
 
     formatMoney(amount) {

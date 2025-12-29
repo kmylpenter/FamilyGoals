@@ -1,6 +1,6 @@
 # Current State
 
-**Last Updated:** 2025-12-29 22:40 (EOS sesja 4)
+**Last Updated:** 2025-12-29 23:15 (EOS sesja 5)
 **Updated By:** Developer (main)
 
 ---
@@ -17,20 +17,21 @@
 
 Brak - sesja zamknięta
 
-### Sesja 4 - UI Improvements Batch (2025-12-29)
+### Sesja 5 - UI Validation + Pie Chart Redesign (2025-12-29)
 
 **Wykonano:**
-- ✅ Toggle status Otrzymane/Oczekiwane (klik na ✓/⏳)
-- ✅ Redesign delete button (subtelny szary)
-- ✅ Modal Kategorie w Settings
-- ✅ Typ przychodu: Cykliczny/Jednorazowy
-- ✅ Filtrowanie jednorazowych po miesiącu
-
-**Commit:** `b352825`
+- ✅ Bug fix: przycisk "+" w modal kategorii (był ucięty)
+- ✅ Redesign pie chart → horizontal bar chart
+- ✅ Visual validation wszystkich ekranów
+- ✅ Screenshoty walidacyjne
 
 ---
 
 ## Recently Completed
+
+- ✅ EOS: 2025-12-29 - UI validation + bar chart (sesja 5) (23:15)
+
+- ✅ EOS: 2025-12-29 - UI improvements batch (sesja 4) (22:58)
 
 - ✅ feat: UI improvements batch - toggle status, categories, recurring income (22:31)
 
