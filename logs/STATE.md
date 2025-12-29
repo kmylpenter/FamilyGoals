@@ -21,6 +21,10 @@ Brak - sesja zamknięta
 
 ## Recently Completed
 
+- ✅ Update visual-validation + autonomous rules (19:54)
+
+- ✅ fix: Delete button overlapping amount in goals (19:39)
+
 - ✅ feat: UX improvements + new features (18:51)
 
 - ✅ fix: Accessibility + error handling improvements (18:04) (2025-12-28)

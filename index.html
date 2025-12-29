@@ -82,7 +82,7 @@
     <!-- Goals breakdown -->
     <h2 class="section-title">📋 Skąd ta kwota?</h2>
     <div id="goals-list">
-      <div class="goal-card" onclick="showScreen('screen-goals')">
+      <div class="goal-card" onclick="showScreen('screen-goals')" tabindex="0" role="button" aria-label="Cel: Studia Kasi">
         <div class="goal-header">
           <span class="goal-name">🎓 Studia Kasi</span>
           <span class="goal-amount monthly">1 500 zł/m</span>
@@ -92,7 +92,7 @@
           <span>32 000 / 50 000 zł</span>
         </div>
       </div>
-      <div class="goal-card" onclick="showScreen('screen-goals')">
+      <div class="goal-card" onclick="showScreen('screen-goals')" tabindex="0" role="button" aria-label="Cel: Remont kuchni">
         <div class="goal-header">
           <span class="goal-name">🏠 Remont kuchni</span>
           <span class="goal-amount monthly">1 667 zł/m</span>
@@ -102,7 +102,7 @@
           <span>5 000 / 25 000 zł</span>
         </div>
       </div>
-      <div class="goal-card future" onclick="showScreen('screen-goals')">
+      <div class="goal-card future" onclick="showScreen('screen-goals')" tabindex="0" role="button" aria-label="Cel: Rata kredytu">
         <div class="goal-header">
           <span class="goal-name">🏦 Rata kredytu</span>
           <span class="goal-amount monthly warning">+5 000 zł/m</span>
@@ -116,7 +116,7 @@
 
     <!-- Income Status -->
     <h2 class="section-title">💰 Wasze przychody</h2>
-    <div class="income-status-card" onclick="showScreen('screen-income')">
+    <div class="income-status-card" onclick="showScreen('screen-income')" tabindex="0" role="button" aria-label="Przejdź do przychodów">
       <div class="income-status-row">
         <span>Wymagane</span>
         <span class="income-value">12 000 zł</span>
@@ -201,7 +201,7 @@
 
     <h2 class="section-title">Źródła przychodów</h2>
     <div class="list">
-      <div class="list-item" onclick="openModal('modal-income')">
+      <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Żona">
         <div class="list-icon">💼</div>
         <div class="list-content">
           <div class="list-title">Pensja (Żona)</div>
@@ -210,7 +210,7 @@
         <div class="list-amount positive">6 000 zł</div>
         <div class="list-status done">✓</div>
       </div>
-      <div class="list-item" onclick="openModal('modal-income')">
+      <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Mąż">
         <div class="list-icon">💼</div>
         <div class="list-content">
           <div class="list-title">Pensja (Mąż)</div>
@@ -219,7 +219,7 @@
         <div class="list-amount">2 500 zł</div>
         <div class="list-status pending">⏳</div>
       </div>
-      <div class="list-item" onclick="openModal('modal-income')">
+      <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Freelance">
         <div class="list-icon">💻</div>
         <div class="list-content">
           <div class="list-title">Freelance</div>
@@ -254,7 +254,7 @@
 
     <h2 class="section-title">Jednorazowe</h2>
     <div class="list">
-      <div class="goal-item" onclick="openModal('modal-goal')">
+      <div class="goal-item" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Studia Kasi">
         <div class="goal-item-header">
           <span class="goal-item-icon">🎓</span>
           <div class="goal-item-info">
@@ -269,7 +269,7 @@
           <span>64%</span>
         </div>
       </div>
-      <div class="goal-item" onclick="openModal('modal-goal')">
+      <div class="goal-item" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Remont kuchni">
         <div class="goal-item-header">
           <span class="goal-item-icon">🏠</span>
           <div class="goal-item-info">
@@ -284,7 +284,7 @@
           <span>20%</span>
         </div>
       </div>
-      <div class="goal-item" onclick="openModal('modal-goal')">
+      <div class="goal-item" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Wakacje">
         <div class="goal-item-header">
           <span class="goal-item-icon">🏖️</span>
           <div class="goal-item-info">
@@ -303,7 +303,7 @@
 
     <h2 class="section-title">Przyszłe zobowiązania</h2>
     <div class="list">
-      <div class="goal-item future" onclick="openModal('modal-goal')">
+      <div class="goal-item future" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Rata kredytu">
         <div class="goal-item-header">
           <span class="goal-item-icon">🏦</span>
           <div class="goal-item-info">
@@ -405,35 +405,35 @@
     </header>
 
     <div class="list">
-      <div class="list-item">
+      <div class="list-item" tabindex="0" role="button" aria-label="Zmień PIN">
         <div class="list-icon">🔐</div>
         <div class="list-content">
           <div class="list-title">Zmień PIN</div>
         </div>
         <div class="list-arrow">→</div>
       </div>
-      <div class="list-item">
+      <div class="list-item" tabindex="0" role="button" aria-label="Kategorie">
         <div class="list-icon">📁</div>
         <div class="list-content">
           <div class="list-title">Kategorie</div>
         </div>
         <div class="list-arrow">→</div>
       </div>
-      <div class="list-item">
+      <div class="list-item" tabindex="0" role="button" aria-label="Eksport danych">
         <div class="list-icon">💾</div>
         <div class="list-content">
           <div class="list-title">Eksport danych</div>
         </div>
         <div class="list-arrow">→</div>
       </div>
-      <div class="list-item">
+      <div class="list-item" tabindex="0" role="button" aria-label="Import danych">
         <div class="list-icon">📥</div>
         <div class="list-content">
           <div class="list-title">Import danych</div>
         </div>
         <div class="list-arrow">→</div>
       </div>
-      <div class="list-item danger">
+      <div class="list-item danger" tabindex="0" role="button" aria-label="Wyczyść dane">
         <div class="list-icon">🗑️</div>
         <div class="list-content">
           <div class="list-title">Wyczyść dane</div>
@@ -772,6 +772,21 @@
         .then(function(reg) { console.log('SW registered'); })
         .catch(function(err) { console.log('SW error:', err); });
     }
+
+    // Keyboard accessibility for role="button" elements
+    document.addEventListener('keydown', function(e) {
+      if (e.target.getAttribute('role') === 'button' && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        e.target.click();
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeAllModals();
+      }
+    });
   </script>
 
 </body>
