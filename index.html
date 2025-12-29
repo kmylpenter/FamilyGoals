@@ -11,6 +11,14 @@
 </head>
 <body>
 
+  <!-- Pull-to-Refresh Indicator -->
+  <div id="pull-indicator" class="pull-indicator">
+    <span class="pull-spinner">🔄</span>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container" class="toast-container"></div>
+
   <!-- ========== PIN Screen ========== -->
   <div id="pin-screen" class="screen pin-screen active">
     <div class="pin-logo">👨‍👩‍👧‍👦</div>
@@ -125,14 +133,26 @@
 
     <!-- Timeline -->
     <h2 class="section-title">📈 Historia zarobków</h2>
-    <div class="timeline-card">
-      <div class="timeline-chart">
-        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 60%"></div><span class="timeline-bar-label">Lip</span></div>
-        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 75%"></div><span class="timeline-bar-label">Sie</span></div>
-        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 68%"></div><span class="timeline-bar-label">Wrz</span></div>
-        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 82%"></div><span class="timeline-bar-label">Paź</span></div>
-        <div class="timeline-bar"><div class="timeline-bar-fill" style="height: 90%"></div><span class="timeline-bar-label">Lis</span></div>
-        <div class="timeline-bar"><div class="timeline-bar-fill current" style="height: 71%"></div><span class="timeline-bar-label">Gru</span></div>
+    <div class="timeline-card" id="timeline-chart-container">
+      <div class="timeline-chart" id="timeline-chart">
+        <!-- Dynamic timeline will be rendered here -->
+      </div>
+    </div>
+
+    <!-- Expense Pie Chart -->
+    <h2 class="section-title">📊 Wydatki tego miesiąca</h2>
+    <div class="chart-container" id="expense-chart-container">
+      <div class="pie-chart" id="pie-chart">
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="34" stroke="#e8e1f5" stroke-dasharray="213.6 213.6" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="pie-center">
+          <div class="pie-center-value" id="total-expenses">0 zł</div>
+          <div class="pie-center-label">wydatki</div>
+        </div>
+      </div>
+      <div class="chart-legend" id="chart-legend">
+        <!-- Dynamic legend will be rendered here -->
       </div>
     </div>
 
@@ -423,8 +443,8 @@
     </div>
 
     <div class="app-info">
-      <div>FamilyGoals v2.0</div>
-      <div class="muted">Ostatnia sync: dziś, 10:30</div>
+      <div>FamilyGoals v2.1</div>
+      <div class="muted" id="last-sync-time">Ostatnia aktualizacja: teraz</div>
     </div>
   </div>
 
@@ -484,7 +504,7 @@
           <label>Notatka (opcjonalnie)</label>
           <input type="text" placeholder="np. Premia świąteczna">
         </div>
-        <button type="submit" class="btn-primary">Zapisz</button>
+        <button type="submit" class="btn-primary sticky">💾 Zapisz</button>
       </form>
     </div>
   </div>
@@ -526,7 +546,7 @@
           <label>Data</label>
           <input type="date" value="2025-12-28">
         </div>
-        <button type="submit" class="btn-primary">Zapisz</button>
+        <button type="submit" class="btn-primary sticky">💾 Zapisz</button>
       </form>
     </div>
   </div>
@@ -597,7 +617,7 @@
           <span>💡 Potrzeba:</span>
           <span class="calculated-value">1 250 zł/mies.</span>
         </div>
-        <button type="submit" class="btn-primary">Zapisz</button>
+        <button type="submit" class="btn-primary sticky">💾 Zapisz</button>
       </form>
     </div>
   </div>
@@ -637,6 +657,7 @@
   <script src="js/ai-advisor.js"></script>
   <script src="js/family-unity.js"></script>
   <script src="js/family-balance.js"></script>
+  <script src="js/ui-features.js"></script>
   <script src="js/app.js"></script>
   <script>
     // PIN - using PinManager

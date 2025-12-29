@@ -1,0 +1,428 @@
+{
+  "screenshots": [
+    {
+      "name": "01-pin-screen",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/01-pin-screen.png"
+    },
+    {
+      "name": "02-dashboard",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/02-dashboard.png"
+    },
+    {
+      "name": "03-modal-add-menu",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/03-modal-add-menu.png"
+    },
+    {
+      "name": "04-modal-income",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/04-modal-income.png"
+    },
+    {
+      "name": "05-modal-expense",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/05-modal-expense.png"
+    },
+    {
+      "name": "06-modal-goal",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/06-modal-goal.png"
+    },
+    {
+      "name": "07-modal-goal-recurring",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/07-modal-goal-recurring.png"
+    },
+    {
+      "name": "08-screen-income",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/08-screen-income.png"
+    },
+    {
+      "name": "09-screen-goals",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/09-screen-goals.png"
+    },
+    {
+      "name": "10-screen-achievements",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/10-screen-achievements.png"
+    },
+    {
+      "name": "11-screen-settings",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/11-screen-settings.png"
+    },
+    {
+      "name": "12-dashboard-final",
+      "filepath": "/data/data/com.termux/files/home/projekty/FamilyGoals/screenshots/12-dashboard-final.png"
+    }
+  ],
+  "buttons": [
+    {
+      "selector": ".pin-key[onclick*=\"'0'\"]",
+      "description": "PIN key 0",
+      "found": true,
+      "visible": false,
+      "text": "0"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'1'\"]",
+      "description": "PIN key 1",
+      "found": true,
+      "visible": false,
+      "text": "1"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'2'\"]",
+      "description": "PIN key 2",
+      "found": true,
+      "visible": false,
+      "text": "2"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'3'\"]",
+      "description": "PIN key 3",
+      "found": true,
+      "visible": false,
+      "text": "3"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'4'\"]",
+      "description": "PIN key 4",
+      "found": true,
+      "visible": false,
+      "text": "4"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'5'\"]",
+      "description": "PIN key 5",
+      "found": true,
+      "visible": false,
+      "text": "5"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'6'\"]",
+      "description": "PIN key 6",
+      "found": true,
+      "visible": false,
+      "text": "6"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'7'\"]",
+      "description": "PIN key 7",
+      "found": true,
+      "visible": false,
+      "text": "7"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'8'\"]",
+      "description": "PIN key 8",
+      "found": true,
+      "visible": false,
+      "text": "8"
+    },
+    {
+      "selector": ".pin-key[onclick*=\"'9'\"]",
+      "description": "PIN key 9",
+      "found": true,
+      "visible": false,
+      "text": "9"
+    },
+    {
+      "selector": ".pin-key.delete",
+      "description": "Delete key",
+      "found": true,
+      "visible": false,
+      "text": "⌫"
+    },
+    {
+      "selector": ".fab",
+      "description": "FAB (Add) button",
+      "found": true,
+      "visible": false,
+      "text": "+"
+    },
+    {
+      "selector": "#alerts-container",
+      "description": "Alerts container",
+      "found": true,
+      "visible": true
+    },
+    {
+      "selector": ".income-hero",
+      "description": "Savings hero section",
+      "found": true,
+      "visible": true,
+      "text": "🎯 Do odłożenia w tym miesiącu\n      \n        2000 zł\n        \n          odłożone\n          10 540 zł\n        \n      \n      \n        \n      \n      \n        Zostało: 2 655 zł\n        31%"
+    },
+    {
+      "selector": "#goals-list .goal-card",
+      "description": "Goals cards",
+      "found": true,
+      "visible": true,
+      "text": "🎓 Edukacja dziecka\n              500/m\n            \n            \n              Jednorazowy\n              0 zł / 50 000 zł"
+    },
+    {
+      "selector": ".income-status-card",
+      "description": "Income status card",
+      "found": true,
+      "visible": true,
+      "text": "Wymagane\n          2000 zł\n        \n        \n          Przychody\n          6000 zł\n        \n        \n          Nadwyżka\n          +4000 zł"
+    },
+    {
+      "selector": ".timeline-card",
+      "description": "Timeline card",
+      "found": true,
+      "visible": false,
+      "text": "10k\n          \n          lip\n        \n      \n        \n          \n          \n            8k\n          \n          sie\n        \n      \n        \n          \n          \n            9k\n          \n          wrz\n        \n      \n        \n          \n          \n            11k\n          \n          paź\n        \n      \n        \n          \n          \n            9k\n          \n          lis\n        \n      \n        \n          \n          \n            11k\n          \n          gru"
+    },
+    {
+      "selector": ".stats-row",
+      "description": "Stats row",
+      "found": true,
+      "visible": false,
+      "text": "👩\n        6 000 zł\n        Żona\n      \n      \n        👨\n        2 500 zł\n        Mąż"
+    },
+    {
+      "selector": ".nav-item",
+      "description": "Bottom nav items",
+      "count": 5
+    },
+    {
+      "selector": ".modal-menu-item:nth-child(1)",
+      "description": "Add income menu item",
+      "found": true,
+      "visible": true,
+      "text": "💵\n        Dodaj przychód"
+    },
+    {
+      "selector": ".modal-menu-item:nth-child(2)",
+      "description": "Add expense menu item",
+      "found": true,
+      "visible": true,
+      "text": "💸\n        Dodaj wydatek"
+    },
+    {
+      "selector": ".modal-menu-item:nth-child(3)",
+      "description": "Add goal menu item",
+      "found": true,
+      "visible": true,
+      "text": "🎯\n        Dodaj cel"
+    },
+    {
+      "selector": "#modal-income input[type=\"number\"]",
+      "description": "Amount input",
+      "found": true,
+      "visible": true
+    },
+    {
+      "selector": "#modal-income .chips",
+      "description": "Category chips",
+      "found": true,
+      "visible": true,
+      "text": "💼 Pensja\n            💻 Freelance\n            🎁 Bonus\n            📈 Inne"
+    },
+    {
+      "selector": "#modal-income input[type=\"date\"]",
+      "description": "Date input",
+      "found": true,
+      "visible": true
+    },
+    {
+      "selector": "#modal-income .btn-primary",
+      "description": "Save button",
+      "found": true,
+      "visible": false,
+      "text": "Zapisz"
+    },
+    {
+      "selector": "#modal-income .modal-close",
+      "description": "Close button",
+      "found": true,
+      "visible": true,
+      "text": "✕"
+    },
+    {
+      "selector": "#modal-expense input[type=\"number\"]",
+      "description": "Amount input",
+      "found": true,
+      "visible": true
+    },
+    {
+      "selector": "#modal-expense .chips",
+      "description": "Category chips",
+      "found": true,
+      "visible": true,
+      "text": "🏠 Mieszkanie\n            🍽️ Jedzenie\n            🚗 Transport\n            👶 Dzieci\n            ❤️ Zdrowie\n            🎬 Rozrywka\n            📚 Edukacja\n            👕 Ubrania\n            🧴 Higiena\n            🎁 Prezenty\n            💰 Oszczędności\n            📦 Inne"
+    },
+    {
+      "selector": "#modal-expense .btn-primary",
+      "description": "Save button",
+      "found": true,
+      "visible": false,
+      "text": "Zapisz"
+    },
+    {
+      "selector": "#modal-expense .chip",
+      "description": "Expense category chips",
+      "count": 12
+    },
+    {
+      "selector": "#modal-goal input[type=\"text\"]",
+      "description": "Goal name input",
+      "found": true,
+      "visible": true
+    },
+    {
+      "selector": "#goal-type-chips",
+      "description": "Goal type chips",
+      "found": true,
+      "visible": true,
+      "text": "💰 Jednorazowy\n            🔄 Stały wydatek"
+    },
+    {
+      "selector": "#goal-target",
+      "description": "Target amount input",
+      "found": true,
+      "visible": true
+    },
+    {
+      "selector": "#goal-deadline",
+      "description": "Deadline input",
+      "found": true,
+      "visible": true
+    },
+    {
+      "selector": "#modal-goal .btn-primary",
+      "description": "Save button",
+      "found": true,
+      "visible": false,
+      "text": "Zapisz"
+    },
+    {
+      "selector": "#goal-daterange-group",
+      "description": "Date range for recurring",
+      "visible": true
+    },
+    {
+      "selector": "#screen-income .back-btn",
+      "description": "Back button",
+      "found": true,
+      "visible": true,
+      "text": "←"
+    },
+    {
+      "selector": "#screen-income .add-btn",
+      "description": "Add button",
+      "found": true,
+      "visible": true,
+      "text": "+"
+    },
+    {
+      "selector": ".month-selector",
+      "description": "Month selector",
+      "found": true,
+      "visible": true,
+      "text": "←\n      Grudzień 2025\n      →"
+    },
+    {
+      "selector": ".month-arrow",
+      "description": "Month arrows",
+      "found": true,
+      "visible": true,
+      "text": "←"
+    },
+    {
+      "selector": "#screen-income .summary-card",
+      "description": "Summary card",
+      "found": true,
+      "visible": true,
+      "text": "Otrzymane\n          6000 zł\n        \n        \n          Oczekiwane\n          12 000 zł"
+    },
+    {
+      "selector": "#screen-income .list-item",
+      "description": "Income list items",
+      "found": true,
+      "visible": true,
+      "text": "💼\n            \n              Pensja (Żona)\n              Otrzymane\n            \n            6000 zł\n            ✓\n            ✕"
+    },
+    {
+      "selector": "#screen-goals .back-btn",
+      "description": "Back button",
+      "found": true,
+      "visible": true,
+      "text": "←"
+    },
+    {
+      "selector": "#screen-goals .add-btn",
+      "description": "Add button",
+      "found": true,
+      "visible": true,
+      "text": "+"
+    },
+    {
+      "selector": "#screen-goals .summary-card",
+      "description": "Summary card",
+      "found": true,
+      "visible": true,
+      "text": "Miesięczne oszczędności\n          2000 zł\n        \n        \n          Aktywne cele\n          2"
+    },
+    {
+      "selector": ".goal-item",
+      "description": "Goal items",
+      "found": true,
+      "visible": true,
+      "text": "🎓\n              \n                Edukacja dziecka\n                Wrzesień 2030\n              \n              500/m\n            \n            \n            \n              0 zł / 50 000 zł\n              0%\n            \n            ✕"
+    },
+    {
+      "selector": ".goal-item.future",
+      "description": "Future goal item",
+      "found": true,
+      "visible": true,
+      "text": "🏦\n          \n            Rata kredytu\n            Od stycznia 2027\n          \n          +5 000 zł/m\n        \n        \n          ⚠️ Podnieście zarobki o 5 000 zł do tego czasu!"
+    },
+    {
+      "selector": "#screen-achievements .stats-row",
+      "description": "Stats row",
+      "found": true,
+      "visible": true,
+      "text": "👩\n        5 pkt\n        Żona • 0/110\n      \n      \n        👨\n        0 pkt\n        Mąż • 0/110"
+    },
+    {
+      "selector": ".streak-card",
+      "description": "Streak card",
+      "found": true,
+      "visible": true,
+      "text": "1 dni\n            z rzędu\n          \n          Mnożnik: 1x\n          \n          Do 30 dni: jeszcze 29"
+    },
+    {
+      "selector": ".achievement-item",
+      "description": "Achievement items",
+      "found": true,
+      "visible": true,
+      "text": "💰\n        \n          Tysiącznik\n          Zaoszczędź 1000 zł\n        \n        +50 pkt"
+    },
+    {
+      "selector": ".category-progress",
+      "description": "Category progress",
+      "found": true,
+      "visible": false,
+      "text": "🌟 Pierwsze kroki\n            \n            0/10"
+    },
+    {
+      "selector": "#screen-settings .list-item",
+      "description": "Settings list items",
+      "found": true,
+      "visible": true,
+      "text": "🔐\n        \n          Zmień PIN\n        \n        →"
+    },
+    {
+      "selector": ".list-item.danger",
+      "description": "Danger item (clear data)",
+      "found": true,
+      "visible": true,
+      "text": "🗑️\n        \n          Wyczyść dane\n        \n        →"
+    },
+    {
+      "selector": ".app-info",
+      "description": "App info",
+      "found": true,
+      "visible": true,
+      "text": "FamilyGoals v2.0\n      Ostatnia sync: dziś, 10:30"
+    }
+  ],
+  "issues": [],
+  "improvements": []
+}

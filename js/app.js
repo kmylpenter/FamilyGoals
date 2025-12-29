@@ -205,6 +205,30 @@
     renderIncome();
     renderGoals();
     renderAchievements();
+    renderExpenseChart();
+  }
+
+  function renderExpenseChart() {
+    // Render expense pie chart if available
+    if (typeof ExpenseChart !== 'undefined') {
+      const { year, month } = getYearMonth();
+      const expenses = dataManager.getExpenses ? dataManager.getExpenses(year, month) : [];
+
+      // Generate sample expenses if none exist
+      if (!expenses || expenses.length === 0) {
+        const sampleExpenses = [
+          { category: 'housing', amount: 2500 },
+          { category: 'food', amount: 1800 },
+          { category: 'transport', amount: 600 },
+          { category: 'children', amount: 400 },
+          { category: 'health', amount: 200 },
+          { category: 'entertainment', amount: 300 }
+        ];
+        ExpenseChart.render(sampleExpenses);
+      } else {
+        ExpenseChart.render(expenses);
+      }
+    }
   }
 
   function renderAlerts() {
@@ -696,14 +720,29 @@
           const newAchievements = gamificationManager.checkAchievements(owner);
           if (newAchievements.length > 0) {
             console.log('New achievements:', newAchievements);
+            // Show achievement toast
+            if (typeof Toast !== 'undefined') {
+              newAchievements.forEach(a => {
+                Toast.success('🏆 Osiągnięcie!', a.name || 'Nowe osiągnięcie odblokowane!');
+              });
+            }
           }
         }
 
         closeAllModals();
         renderAll();
+
+        // Show success toast
+        if (typeof Toast !== 'undefined') {
+          Toast.success('Zapisano!', `Przychód ${formatMoney(amount)} dodany`);
+        }
       } catch (err) {
         console.error('Income form error:', err);
-        alert('Wystąpił błąd przy zapisywaniu przychodu');
+        if (typeof Toast !== 'undefined') {
+          Toast.error('Błąd', 'Nie udało się zapisać przychodu');
+        } else {
+          alert('Wystąpił błąd przy zapisywaniu przychodu');
+        }
       }
     };
   }
@@ -712,6 +751,9 @@
     if (!confirm('Usunąć to źródło przychodu?')) return;
     dataManager.deleteIncomeSource(id);
     renderAll();
+    if (typeof Toast !== 'undefined') {
+      Toast.info('Usunięto', 'Źródło przychodu zostało usunięte');
+    }
   }
 
   function editIncomeSource(id) {
@@ -838,9 +880,18 @@
 
         closeAllModals();
         renderAll();
+
+        // Show success toast
+        if (typeof Toast !== 'undefined') {
+          Toast.success('Zapisano!', `Cel "${goalData.name}" ${editingGoalId ? 'zaktualizowany' : 'utworzony'}`);
+        }
       } catch (err) {
         console.error('Goal form error:', err);
-        alert('Wystąpił błąd przy zapisywaniu celu');
+        if (typeof Toast !== 'undefined') {
+          Toast.error('Błąd', 'Nie udało się zapisać celu');
+        } else {
+          alert('Wystąpił błąd przy zapisywaniu celu');
+        }
       }
     };
   }
@@ -887,6 +938,9 @@
     if (!confirm('Usunąć ten cel?')) return;
     dataManager.deletePlannedGoal(id);
     renderAll();
+    if (typeof Toast !== 'undefined') {
+      Toast.info('Usunięto', 'Cel został usunięty');
+    }
   }
 
   function editGoal(id) {

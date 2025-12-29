@@ -19,7 +19,9 @@ Brak - sesja zamknięta
 
 ---
 
-## Recently Completed (2025-12-28)
+## Recently Completed
+
+- ✅ fix: Accessibility + error handling improvements (18:04) (2025-12-28)
 
 ### Sesja 2 - UI/UX + Nowe funkcje
 
