@@ -4,15 +4,15 @@
 
 **Start:** 2025-12-29 ~22:15
 **Cel:** UI improvements batch
-**Status:** IN_PROGRESS
-**Kontekst:** ~30%
+**Status:** COMPLETED
+**Kontekst:** EOS
 
 ### Zadania
-- [ ] Toggle status Otrzymane/Oczekiwane
-- [ ] Zarobki cykliczne
-- [ ] Redesign delete button
-- [ ] Kategorie onclick
-- [ ] Test edycji
+- [x] Toggle status Otrzymane/Oczekiwane
+- [x] Zarobki cykliczne
+- [x] Redesign delete button
+- [x] Kategorie onclick
+- [x] Test edycji
 
 ---
 

@@ -1,6 +1,6 @@
 # Current State
 
-**Last Updated:** 2025-12-29 22:05 (EOS sesja 3)
+**Last Updated:** 2025-12-29 22:40 (EOS sesja 4)
 **Updated By:** Developer (main)
 
 ---
@@ -17,20 +17,22 @@
 
 Brak - sesja zamknięta
 
-### Sesja 3 - Visual Validation (2025-12-29)
+### Sesja 4 - UI Improvements Batch (2025-12-29)
 
 **Wykonano:**
-- ✅ Kompleksowa walidacja wizualna (Puppeteer)
-- ✅ BLOCKER: Sticky button przysłaniał kategorie
-- ✅ BLOCKER: Niespójność danych Dashboard vs Income
+- ✅ Toggle status Otrzymane/Oczekiwane (klik na ✓/⏳)
+- ✅ Redesign delete button (subtelny szary)
+- ✅ Modal Kategorie w Settings
+- ✅ Typ przychodu: Cykliczny/Jednorazowy
+- ✅ Filtrowanie jednorazowych po miesiącu
 
-**Lessons learned:**
-- Walidacja DATA CONSISTENCY wymaga explicit
-  porównania ekranów side-by-side
+**Commit:** `b352825`
 
 ---
 
 ## Recently Completed
+
+- ✅ feat: UI improvements batch - toggle status, categories, recurring income (22:31)
 
 - ✅ handoff: CONTINUITY z blocker info (22:07)
 

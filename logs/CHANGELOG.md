@@ -13,6 +13,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Added
+- feat: Toggle status Otrzymane/Oczekiwane (klik na ✓/⏳). Files: `js/app.js`, `js/data-manager.js`, `css/main.css`. Commit: `b352825`
+- feat: Modal Kategorie w Settings. Files: `index.html`, `js/app.js`, `css/main.css`. Commit: `b352825`
+- feat: Typ przychodu Cykliczny/Jednorazowy. Files: `index.html`, `js/app.js`, `js/data-manager.js`. Commit: `b352825`
+
+### Changed
+- Redesign delete button (subtelny szary zamiast różowego). Files: `css/main.css`. Commit: `b352825`
+
 ### Fixed
 - fix: Data consistency - Dashboard vs Income screen (Mąż 2500→6000). Files: `index.html`. Commit: `df83f91`
 - fix: Remove sticky button overlapping expense categories. Files: `css/main.css`. Commit: `d4db6de`
