@@ -373,9 +373,26 @@ find logs/screenshots -name "*.png" -mtime +7 -delete
 |---------|--------|
 | Manual screenshot | ✅ Power+Vol Down |
 | Claude multimodal | ✅ Read tool |
-| Puppeteer (web) | ✅ npm install |
+| Puppeteer (web) | ✅ Zainstalowany globalnie |
 | Native app auto | ❌ Wymaga PC+adb |
 | Image compare | ✅ Python PIL |
+
+### WAŻNE: NIE instaluj ponownie!
+
+Chromium i puppeteer-core są już zainstalowane globalnie:
+- `chromium-browser` → `/data/data/com.termux/files/usr/bin/`
+- `puppeteer-core` → globalny npm package
+
+**NIE RÓB:**
+```bash
+pkg install chromium   # ❌ już jest
+npm install puppeteer  # ❌ już jest
+```
+
+**PO PROSTU UŻYJ:**
+```bash
+node scripts/capture-web.js <url>
+```
 
 ---
 
