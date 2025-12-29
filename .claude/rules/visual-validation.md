@@ -58,6 +58,30 @@ SPÓJNOŚĆ Z DESIGNEM:
 [ ] Spójna typografia (font, size, weight)?
 [ ] Spójna kolorystyka?
 [ ] Spójne zaokrąglenia (border-radius)?
+
+DATA CONSISTENCY (spójność danych):
+[ ] Te same dane wyświetlane tak samo na różnych ekranach?
+[ ] Wartości liczbowe spójne (np. zarobki, sumy)?
+[ ] Daty/terminy spójne między widokami?
+[ ] Nazwy/tytuły identyczne wszędzie?
+
+TEXT HANDLING (obsługa tekstu):
+[ ] Tekst NIE ucięty bez ellipsis (...)?
+[ ] Jeśli truncated → ma tooltip lub expand?
+[ ] Daty/liczby mieszczą się w kontenerze?
+[ ] Tekst nie wychodzi poza granice elementu?
+
+LAYOUT GROUPING (grupowanie elementów):
+[ ] Przyciski które powinny być obok siebie - SĄ obok?
+[ ] Elementy nie łamią się niepotrzebnie na nową linię?
+[ ] Jeśli brak miejsca → zmniejszenie zamiast łamania?
+[ ] Flex/grid wrap działa sensownie?
+
+FLOATING ELEMENTS (elementy pływające):
+[ ] FAB nie przysłania ważnej treści?
+[ ] Sticky header/footer nie zasłania contentu?
+[ ] Modal/popup nie ucina własnej treści?
+[ ] Snackbar/toast nie zasłania akcji?
 ```
 
 **UWAGA:** Nie wszystkie punkty dotyczą każdego zadania.
@@ -77,10 +101,15 @@ Sprawdź te, które SĄ RELEVANTNE dla konkretnego zadania.
 | Overflow tekstu bez obsługi | 🛑 BLOCKER |
 | Mobile view zepsute (jeśli wymagane) | 🛑 BLOCKER |
 | Niezgodność z mockupem (jeśli dostarczony) | 🛑 BLOCKER |
+| **Dane niespójne między ekranami** | 🛑 BLOCKER |
+| **Tekst ucięty bez ellipsis** | 🛑 BLOCKER |
+| **FAB/floating przysłania treść** | 🛑 BLOCKER |
+| **Przyciski złamane zamiast zmniejszone** | 🛑 BLOCKER |
 | Focus niewidoczny (accessibility) | ⚠️ PROBLEM |
 | Kontrast za niski | ⚠️ PROBLEM |
 | Touch target za mały (<48px) | ⚠️ PROBLEM |
 | Niespójne marginesy/style | ⚠️ PROBLEM |
+| Elementy łamią się na nową linię | ⚠️ PROBLEM |
 
 ### NIE MÓW "gotowe" jeśli:
 
