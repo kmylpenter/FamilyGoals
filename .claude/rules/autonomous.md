@@ -144,25 +144,30 @@ Task(subagent_type="Explore"):
 
 ### CONTINUITY.md - co 15-30 min
 
+**Użyj znaczników CC:**
 ```markdown
-## Postęp
+## State (Postęp)
 
 - [x] Krok 1 - ukończony
 - [x] Krok 2 - ukończony
-- [ ] Krok 3 - W TRAKCIE (70%)
+- [→] Krok 3 - CURRENT (70%)    ← marker "w trakcie"
 - [ ] Krok 4 - oczekuje
 
-## Następne Kroki
-
-1. Dokończyć krok 3
-2. Zacząć krok 4
+## Open Questions (UNCONFIRMED)
+- [ ] Pytanie wymagające odpowiedzi?
 ```
+
+**WAŻNE:** Checkboxy w pliku przeżywają /clear!
+- `[x]` = ukończone
+- `[→]` = CURRENT (w trakcie) - łatwo znaleźć gdzie skończyłeś
+- `[ ]` = oczekujące
 
 ### VALIDATION.md - po każdym kroku
 
 Oznaczaj ukończone punkty:
 ```markdown
 - [x] Punkt ukończony
+- [→] Punkt w trakcie
 - [ ] Punkt do zrobienia
 ```
 
@@ -228,16 +233,28 @@ Wznów komendą: resume
 
 ### "resume"
 
-1. Przeczytaj CONTINUITY.md
-2. Znajdź ostatni punkt IN_PROGRESS
-3. Zmień status na IN_PROGRESS
-4. Kontynuuj od tego miejsca:
+**Protokół CC (4 kroki):**
+
+1. **READ** - Przeczytaj CONTINUITY.md + ostatni handoff
+2. **VERIFY** - Sprawdź czy stan odpowiada rzeczywistości
+   - Czy pliki z Working Set istnieją?
+   - Czy branch jest aktualny?
+   - Czy Open Questions są nadal aktualne?
+3. **PRESENT** - Pokaż co znalazłeś PRZED kontynuacją:
 ```
 ▶️ Wznawiam sesję
 
-Cel: [zadanie]
+Cel: [z CONTINUITY]
+Ostatni krok: [→] [nazwa]
+Weryfikacja:
+  ✅ Pliki OK
+  ⚠️ Branch zmieniony (był X, jest Y)
+  ❓ Open Question: [pytanie]
+
 Kontynuuję od: [punkt]
+Potwierdź lub skoryguj.
 ```
+4. **CONTINUE** - Po potwierdzeniu kontynuuj od `[→]`
 
 ### "stop"
 
@@ -264,28 +281,48 @@ Zapisz do `logs/handoffs/YYYY-MM-DD-HHMM.md`:
 
 **Data:** [timestamp]
 **Czas pracy:** [czas od startu]
-**Outcome:** SUCCEEDED | PARTIAL | FAILED
+**Outcome:** SUCCEEDED | PARTIAL_PLUS | PARTIAL_MINUS | FAILED
 
 ## Podsumowanie
 [1-2 zdania co osiągnięto]
 
-## Zrobione
+## Tasks Status
+### Ukończone
 - [x] punkt 1
 - [x] punkt 2
 
-## Nie ukończone
-- [ ] punkt 3
+### W trakcie
+- [→] punkt 3 (70%)
 
-## Kluczowe decyzje
-- Decyzja X - powód
+### Nierozpoczęte
+- [ ] punkt 4
 
-## Dla następnej sesji
-1. Kontynuować od punktu 3
-2. ...
+## Post-Mortem
+### What Worked
+- Podejście X zadziałało
 
-## Pliki zmienione
-- path/to/file1
-- path/to/file2
+### What Failed
+- Próba Y nie powiodła się bo...
+
+### Key Decisions
+| Decyzja | Powód | Alternatywy |
+|---------|-------|-------------|
+| X | Y | Z |
+
+## Action Items (dla następnej sesji)
+1. [MUST] Kontynuować od punktu 3
+2. [SHOULD] ...
+
+## Recent Changes
+```
+file1.js:45-67  - nowy komponent
+file2.py:12     - fix
+```
+
+## Working Set
+- Files: file1.js, file2.py
+- Branch: feature/xyz
+- Test: npm test
 ```
 
 ### Krok 2: Aktualizuj CONTINUITY.md
@@ -393,7 +430,76 @@ Task(subagent_type="Explore"):
 
 ---
 
-## 9. CHECKLISTA PRZED STARTEM
+## 9. ZARZĄDZANIE KONTEKSTEM (CRITICAL)
+
+### Filozofia: "Clear > Compact"
+
+```
+Kompakcja = stratna kompresja
+Po kilku kompakcjach = zdegradowany kontekst
+Clear + świeży kontekst z CONTINUITY = pełny sygnał
+```
+
+### Thresholds i akcje
+
+| Kontekst | Status | Akcja |
+|----------|--------|-------|
+| **<60%** | 🟢 OK | Normalnie pracuj |
+| **60-69%** | 🟡 Warning | Zwiększ delegowanie |
+| **70-79%** | 🟠 High | Zapisz stan, rozważ /clear |
+| **80-89%** | 🔴 Critical | MUSISZ zapisać i /clear |
+| **≥90%** | ⚠️ Emergency | NATYCHMIAST /clear |
+
+### Monitoring kontekstu
+
+Co 15-30 min (lub po dużej operacji):
+1. Oszacuj % kontekstu
+2. Zaktualizuj `**Kontekst:** X%` w CONTINUITY.md
+3. Jeśli >70% → podejmij akcję
+
+### Protokół przed /clear (OBOWIĄZKOWE)
+
+**NIE RÓB /clear bez tych kroków:**
+
+1. **Zaktualizuj CONTINUITY.md:**
+   - Oznacz current task jako `[→]`
+   - Zapisz Open Questions
+   - Zaktualizuj Working Set
+   - Zapisz Key Decisions
+
+2. **Powiedz użytkownikowi:**
+```
+⚠️ Kontekst: ~X%
+
+Zapisuję stan przed /clear:
+- Current: [→] [task name]
+- Open Questions: N
+- Working Set: X plików
+
+Po /clear powiedz "resume" aby kontynuować.
+```
+
+3. **Dopiero teraz:** `/clear`
+
+### Po /clear
+
+1. Użytkownik mówi: **"resume"**
+2. Claude wykonuje protokół resume (sekcja 5)
+3. Weryfikuje stan vs rzeczywistość
+4. Kontynuuje od `[→]`
+
+### Delegowanie dla oszczędności
+
+Przy >60% kontekstu ZAWSZE deleguj:
+- Czytanie wielu plików → Task(Explore)
+- Review kodu → Task(Explore)
+- Szukanie w codebase → Task(Explore)
+
+Każda delegacja = osobny kontekst agenta = oszczędność głównego kontekstu.
+
+---
+
+## 10. CHECKLISTA PRZED STARTEM
 
 Przed rozpoczęciem pracy autonomicznej sprawdź:
 
@@ -402,3 +508,4 @@ Przed rozpoczęciem pracy autonomicznej sprawdź:
 - [ ] CONTINUITY.md zainicjalizowany
 - [ ] Testy/walidacja skonfigurowane (hooks)
 - [ ] **Zidentyfikowane zadania do delegacji**
+- [ ] **Oszacowany rozmiar zadania vs kontekst**
