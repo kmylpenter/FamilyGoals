@@ -521,7 +521,7 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   display: flex; flex-direction: column;
 }
 .form {
-  flex: 1; overflow-y: auto; padding-bottom: 80px;
+  flex: 1; overflow-y: auto; padding-bottom: 100px;
 }
 .btn-primary.sticky {
   position: sticky; bottom: 0;
