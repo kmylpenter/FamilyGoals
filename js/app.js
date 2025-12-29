@@ -377,44 +377,128 @@
   }
 
   function renderChart(neededIncome) {
-    const chart = document.querySelector('.timeline-chart');
-    if (!chart) return;
+    const container = document.querySelector('#timeline-chart-container');
+    if (!container) return;
 
-    const trend = dataManager.getTrend(6);
+    const trend = dataManager.getTrendByOwner(6);
     const hasData = trend.some(t => t.totalIncome > 0);
 
-    // If no data, show placeholder
-    if (!hasData) {
-      chart.innerHTML = trend.map((t, i, arr) => {
-        const isCurrent = i === arr.length - 1;
-        return `
-          <div class="timeline-bar">
-            <div class="timeline-bar-fill ${isCurrent ? 'current' : ''}" style="height: 20%"></div>
-            <span class="timeline-bar-label">${t.monthName}</span>
-          </div>
-        `;
-      }).join('');
-      return;
-    }
+    // Chart dimensions
+    const width = 320;
+    const height = 140;
+    const padding = { top: 20, right: 10, bottom: 30, left: 10 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
 
-    const maxIncome = Math.max(neededIncome, ...trend.map(t => t.totalIncome));
+    // Calculate max for scaling
+    const maxIncome = Math.max(
+      neededIncome,
+      ...trend.map(t => t.totalIncome)
+    );
 
-    chart.innerHTML = trend.map((t, i, arr) => {
-      const incomePercent = maxIncome > 0 ? (t.totalIncome / maxIncome) * 100 : 0;
-      const neededPercent = maxIncome > 0 ? (neededIncome / maxIncome) * 100 : 0;
-      const isCurrent = i === arr.length - 1;
-      const valueText = t.totalIncome > 0 ? Math.round(t.totalIncome / 1000) + 'k' : '';
+    // Helper to calculate Y position (inverted because SVG y=0 is top)
+    const getY = (value) => {
+      const percent = maxIncome > 0 ? value / maxIncome : 0;
+      return padding.top + chartHeight * (1 - percent);
+    };
 
-      return `
-        <div class="timeline-bar">
-          <div class="timeline-bar-needed" style="height: ${neededPercent}%"></div>
-          <div class="timeline-bar-fill ${isCurrent ? 'current' : ''}" style="height: ${Math.max(5, incomePercent)}%">
-            ${valueText ? `<span class="bar-value">${valueText}</span>` : ''}
-          </div>
-          <span class="timeline-bar-label">${t.monthName}</span>
+    // Helper to calculate X position
+    const getX = (index) => {
+      return padding.left + (index / (trend.length - 1)) * chartWidth;
+    };
+
+    // Build area paths
+    const wifePoints = trend.map((t, i) => `${getX(i)},${getY(t.wifeIncome)}`);
+    const husbandPoints = trend.map((t, i) => `${getX(i)},${getY(t.wifeIncome + t.husbandIncome)}`);
+
+    // Area path for wife (bottom area - from baseline to wife income)
+    const wifeAreaPath = `
+      M ${getX(0)},${getY(0)}
+      ${trend.map((t, i) => `L ${getX(i)},${getY(t.wifeIncome)}`).join(' ')}
+      L ${getX(trend.length - 1)},${getY(0)}
+      Z
+    `;
+
+    // Area path for husband (stacked on top of wife)
+    const husbandAreaPath = `
+      M ${getX(0)},${getY(trend[0].wifeIncome)}
+      ${trend.map((t, i) => `L ${getX(i)},${getY(t.wifeIncome + t.husbandIncome)}`).join(' ')}
+      L ${getX(trend.length - 1)},${getY(trend[trend.length - 1].wifeIncome)}
+      ${trend.slice().reverse().map((t, i) => `L ${getX(trend.length - 1 - i)},${getY(t.wifeIncome)}`).join(' ')}
+      Z
+    `;
+
+    // Line for wife
+    const wifeLine = `M ${wifePoints.join(' L ')}`;
+
+    // Line for total (husband top)
+    const totalLine = `M ${husbandPoints.join(' L ')}`;
+
+    // Needed income line (dashed)
+    const neededY = getY(neededIncome);
+
+    // Month labels
+    const labels = trend.map((t, i) => ({
+      x: getX(i),
+      text: t.monthName
+    }));
+
+    // Build SVG
+    container.innerHTML = `
+      <div class="area-chart-container">
+        <svg viewBox="0 0 ${width} ${height}" class="area-chart">
+          <defs>
+            <linearGradient id="wifeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:var(--peach);stop-opacity:0.8"/>
+              <stop offset="100%" style="stop-color:var(--peach);stop-opacity:0.2"/>
+            </linearGradient>
+            <linearGradient id="husbandGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:var(--mint);stop-opacity:0.8"/>
+              <stop offset="100%" style="stop-color:var(--mint);stop-opacity:0.2"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Needed income line (dashed) -->
+          <line x1="${padding.left}" y1="${neededY}" x2="${width - padding.right}" y2="${neededY}"
+                stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.7"/>
+
+          <!-- Wife area (bottom) -->
+          <path d="${wifeAreaPath}" fill="url(#wifeGradient)" class="area-wife"/>
+
+          <!-- Husband area (stacked) -->
+          <path d="${husbandAreaPath}" fill="url(#husbandGradient)" class="area-husband"/>
+
+          <!-- Wife line -->
+          <path d="${wifeLine}" fill="none" stroke="var(--peach)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Total line -->
+          <path d="${totalLine}" fill="none" stroke="var(--mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Data points -->
+          ${trend.map((t, i) => `
+            <circle cx="${getX(i)}" cy="${getY(t.wifeIncome)}" r="4" fill="var(--peach)" stroke="white" stroke-width="1.5"/>
+            <circle cx="${getX(i)}" cy="${getY(t.wifeIncome + t.husbandIncome)}" r="4" fill="var(--mint)" stroke="white" stroke-width="1.5"/>
+          `).join('')}
+
+          <!-- Month labels -->
+          ${labels.map(l => `
+            <text x="${l.x}" y="${height - 8}" text-anchor="middle" class="chart-label">${l.text}</text>
+          `).join('')}
+
+          <!-- Value for current month -->
+          <text x="${getX(trend.length - 1)}" y="${getY(trend[trend.length - 1].totalIncome) - 8}"
+                text-anchor="middle" class="chart-value">
+            ${Math.round(trend[trend.length - 1].totalIncome / 1000)}k
+          </text>
+        </svg>
+
+        <div class="chart-legend-inline">
+          <span class="legend-item-inline"><span class="legend-dot" style="background:var(--peach)"></span>👩 Żona</span>
+          <span class="legend-item-inline"><span class="legend-dot" style="background:var(--mint)"></span>👨 Mąż</span>
+          <span class="legend-item-inline"><span class="legend-dot" style="background:var(--warning);opacity:0.7"></span>Cel</span>
         </div>
-      `;
-    }).join('');
+      </div>
+    `;
   }
 
   function renderIncome() {

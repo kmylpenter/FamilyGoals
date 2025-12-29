@@ -118,8 +118,10 @@ Task(subagent_type="Explore"):
 ### PRZED ogłoszeniem DONE musisz:
 
 1. Zrobić screenshot KAŻDEJ funkcji z zadania
-2. Przeanalizować KRYTYCZNIE (szukaj błędów!)
-3. Sprawdzić checklistę z sekcji 0 w `visual-validation.md`
+2. Zrobić screenshot KAŻDEGO ekranu pokazującego te same dane
+3. Przeanalizować KRYTYCZNIE (szukaj błędów!)
+4. Sprawdzić checklistę z sekcji 0 w `visual-validation.md`
+5. **CROSS-SCREEN VALIDATION** - tabela porównawcza wartości!
 
 ### Co jest BLOCKER (nie footnote):
 
@@ -128,15 +130,19 @@ Task(subagent_type="Explore"):
 - Tekst ucięty lub nieczytelny
 - Funkcja z zadania nie pokazana na screenshot
 - "Nie widziałem X na screenshot"
+- **Dane niespójne między ekranami** (np. zarobki różne)
+- **Brak tabeli porównawczej cross-screen**
 
 ### NIE MÓW "DONE" jeśli:
 
 - Nie zrobiłeś screenshot każdej funkcji
+- Nie zrobiłeś screenshot KAŻDEGO ekranu z danymi
+- Nie zrobiłeś tabeli porównawczej cross-screen
 - Nie przeanalizowałeś krytycznie każdego screenshot
 - Masz jakiekolwiek wątpliwości wizualne
 - Coś "prawdopodobnie działa" ale nie sprawdziłeś
 
-**Szczegóły:** Zobacz `.claude/rules/visual-validation.md` sekcja 0
+**Szczegóły:** Zobacz `.claude/rules/visual-validation.md` sekcja 0 + CROSS-SCREEN VALIDATION
 
 ---
 

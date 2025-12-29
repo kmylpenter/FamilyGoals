@@ -468,6 +468,59 @@ class DataManager {
     return trend;
   }
 
+  /**
+   * Pobierz trend zarobków z podziałem na osoby (żona/mąż)
+   */
+  getTrendByOwner(months = 6) {
+    const now = new Date();
+    const trend = [];
+    const sources = this.getIncomeSources();
+
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+
+      let wifeIncome = 0;
+      let husbandIncome = 0;
+
+      // Zbierz zarobki per owner z sources
+      sources.forEach(source => {
+        const payments = this.getPaymentsByMonth(source.id, year, month);
+        const total = payments.reduce((sum, p) => sum + p.amount, 0);
+        if (source.owner === 'wife') {
+          wifeIncome += total;
+        } else if (source.owner === 'husband') {
+          husbandIncome += total;
+        }
+      });
+
+      // Jeśli brak płatności, użyj expected amounts
+      if (wifeIncome === 0 && husbandIncome === 0) {
+        sources.forEach(source => {
+          if (source.isActive) {
+            if (source.owner === 'wife') {
+              wifeIncome += source.expectedAmount || 0;
+            } else if (source.owner === 'husband') {
+              husbandIncome += source.expectedAmount || 0;
+            }
+          }
+        });
+      }
+
+      trend.push({
+        year,
+        month,
+        monthName: d.toLocaleDateString('pl-PL', { month: 'short' }),
+        wifeIncome,
+        husbandIncome,
+        totalIncome: wifeIncome + husbandIncome
+      });
+    }
+
+    return trend;
+  }
+
   // === RECURRING ===
 
   getRecurringExpenses() {

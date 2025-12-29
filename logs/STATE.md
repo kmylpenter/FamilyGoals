@@ -32,6 +32,8 @@ Brak - sesja zamknięta
 
 ## Recently Completed
 
+- ✅ EOS: 2025-12-29 - Visual validation + data consistency fixes (21:53)
+
 - ✅ fix: Data consistency - Dashboard vs Income screen (21:46)
 
 - ✅ docs: Complete visual validation + BLOCKER fix (21:38)
