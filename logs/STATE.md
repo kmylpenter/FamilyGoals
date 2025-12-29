@@ -29,6 +29,8 @@ Brak - sesja zamknięta
 
 ## Recently Completed
 
+- ✅ feat: Complete FamilyGoals refactor - remove expenses, add achievements (00:01)
+
 - ✅ EOS: 2025-12-29 - UI validation + bar chart (sesja 5) (23:15)
 
 - ✅ EOS: 2025-12-29 - UI validation + bar chart (sesja 5) (23:15)

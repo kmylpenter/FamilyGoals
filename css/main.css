@@ -80,14 +80,14 @@ body {
 }
 
 /* Dashboard & List Screens */
-.dashboard, .list-screen { padding: var(--s2); padding-bottom: 140px; gap: var(--s1); }
+.dashboard, .list-screen { padding: var(--s1) var(--s2); padding-bottom: 100px; gap: var(--s1); }
 .header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: var(--s2) 0; min-height: 56px;
+  padding: var(--s1) 0; min-height: 48px;
 }
-.brand { display: flex; align-items: center; gap: var(--s1); font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; }
-.header-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; }
-.month-badge { font-size: 0.9rem; color: var(--text-soft); background: var(--bg-subtle); padding: 8px 16px; border-radius: var(--r3); }
+.brand { display: flex; align-items: center; gap: var(--s1); font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
+.header-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
+.month-badge { font-size: 0.85rem; color: var(--text-soft); background: var(--bg-subtle); padding: 6px 12px; border-radius: var(--r3); }
 .back-btn, .add-btn {
   width: 48px; height: 48px; border: none; background: var(--bg-subtle);
   border-radius: var(--r1); font-size: 1.5rem; cursor: pointer; color: var(--text);
@@ -104,27 +104,27 @@ body {
 /* Income Hero */
 .income-hero {
   background: linear-gradient(135deg, var(--mint-light) 0%, var(--bg-card) 100%);
-  border-radius: var(--r2); padding: var(--s2);
+  border-radius: var(--r2); padding: 12px;
   box-shadow: 0 4px 20px rgba(126,205,176,0.15);
 }
-.income-hero-title { font-size: 0.85rem; color: var(--text-soft); margin-bottom: var(--s1); }
-.income-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--s2); }
-.income-actual { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--mint); line-height: 1; }
+.income-hero-title { font-size: 0.8rem; color: var(--text-soft); margin-bottom: 4px; }
+.income-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--s1); }
+.income-actual { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--mint); line-height: 1; }
 .income-required { text-align: right; }
-.income-required-label { font-size: 0.75rem; color: var(--text-muted); }
-.income-required-value { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
-.income-bar { height: 10px; background: rgba(126,205,176,0.2); border-radius: 5px; overflow: hidden; }
+.income-required-label { font-size: 0.7rem; color: var(--text-muted); }
+.income-required-value { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; }
+.income-bar { height: 8px; background: rgba(126,205,176,0.2); border-radius: 4px; overflow: hidden; }
 .income-bar.small { height: 6px; flex: 1; margin: 0 var(--s1); }
-.income-bar-fill { height: 100%; background: var(--mint); border-radius: 5px; transition: width 0.4s; }
-.income-bar-text { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+.income-bar-fill { height: 100%; background: var(--mint); border-radius: 4px; transition: width 0.4s; }
+.income-bar-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
 /* Section Title */
 .section-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin: var(--s1) 0 4px; }
 
 /* Goal Cards */
 .goal-card {
-  background: var(--bg-card); border-radius: var(--r1); padding: 12px;
-  margin-bottom: 6px; box-shadow: 0 2px 10px rgba(61,50,41,0.05);
+  background: var(--bg-card); border-radius: var(--r1); padding: 10px 12px;
+  margin-bottom: 4px; box-shadow: 0 2px 10px rgba(61,50,41,0.05);
   cursor: pointer; transition: transform 0.1s, background 0.15s;
 }
 .goal-card:active { transform: scale(0.98); }
@@ -132,10 +132,10 @@ body {
 @media (hover: hover) {
   .goal-card:hover { background: var(--bg-subtle); }
 }
-.goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--s1); }
-.goal-name { font-weight: 600; font-size: 0.95rem; }
+.goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.goal-name { font-weight: 600; font-size: 0.9rem; }
 .goal-amount { font-family: var(--font-display); font-weight: 700; color: var(--text-soft); }
-.goal-amount.monthly { font-size: 1.1rem; color: var(--mint); }
+.goal-amount.monthly { font-size: 1rem; color: var(--mint); }
 .goal-amount.monthly.warning { color: var(--warning); }
 .goal-bar { height: 8px; background: var(--bg-subtle); border-radius: 4px; overflow: hidden; }
 .goal-bar-fill { height: 100%; border-radius: 4px; min-width: 8px; } /* min-width for 0% visibility */
@@ -172,7 +172,7 @@ body {
 
 /* Income Status Card */
 .income-status-card {
-  background: var(--bg-card); border-radius: var(--r1); padding: var(--s2);
+  background: var(--bg-card); border-radius: var(--r1); padding: 10px 12px;
   box-shadow: 0 2px 10px rgba(61,50,41,0.05); cursor: pointer;
   transition: background 0.15s, transform 0.1s;
 }
@@ -181,10 +181,10 @@ body {
 @media (hover: hover) {
   .income-status-card:hover { background: var(--bg-subtle); }
 }
-.income-status-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.9rem; border-bottom: 1px solid var(--bg-subtle); }
+.income-status-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.85rem; border-bottom: 1px solid var(--bg-subtle); }
 .income-status-row:last-child { border-bottom: none; }
-.income-status-row.total { font-weight: 600; padding-top: 10px; margin-top: 4px; border-top: 2px solid var(--bg-subtle); }
-.income-value { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
+.income-status-row.total { font-weight: 600; padding-top: 6px; margin-top: 2px; border-top: 2px solid var(--bg-subtle); }
+.income-value { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; }
 .income-value.positive { color: var(--success); }
 .income-value.negative { color: var(--danger); }
 
