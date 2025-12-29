@@ -524,10 +524,7 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   flex: 1; overflow-y: auto; padding-bottom: 100px;
 }
 .btn-primary.sticky {
-  position: sticky; bottom: 0;
-  margin: 0 calc(-1 * var(--s3)); padding: var(--s3);
-  border-radius: 0; width: calc(100% + var(--s3) * 2);
-  box-shadow: 0 -4px 20px rgba(61,50,41,0.15);
+  margin-top: var(--s3);
 }
 
 /* Pull-to-Refresh */
