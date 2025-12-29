@@ -59,11 +59,13 @@ SPÓJNOŚĆ Z DESIGNEM:
 [ ] Spójna kolorystyka?
 [ ] Spójne zaokrąglenia (border-radius)?
 
-DATA CONSISTENCY (spójność danych):
-[ ] Te same dane wyświetlane tak samo na różnych ekranach?
-[ ] Wartości liczbowe spójne (np. zarobki, sumy)?
-[ ] Daty/terminy spójne między widokami?
-[ ] Nazwy/tytuły identyczne wszędzie?
+DATA CONSISTENCY (spójność danych) - WYMAGA PORÓWNANIA:
+[ ] LISTA: Wypisałem WSZYSTKIE ekrany pokazujące te same dane?
+[ ] SCREENSHOTY: Mam screenshot KAŻDEGO z tych ekranów?
+[ ] SIDE-BY-SIDE: Porównałem wartości między ekranami?
+[ ] Wartości liczbowe IDENTYCZNE (np. zarobki na liście = szczegóły)?
+[ ] Daty/terminy IDENTYCZNE między widokami?
+[ ] Nazwy/tytuły IDENTYCZNE wszędzie?
 
 TEXT HANDLING (obsługa tekstu):
 [ ] Tekst NIE ucięty bez ellipsis (...)?
@@ -134,6 +136,55 @@ Sprawdź te, które SĄ RELEVANTNE dla konkretnego zadania.
    - Czy coś go nie przysłania?
    - Czy wygląda poprawnie?
 3. Dopiero potem ogłoś sukces lub zgłoś problem
+
+### CROSS-SCREEN VALIDATION (OBOWIĄZKOWE dla danych)
+
+**Jeśli te same dane pojawiają się na >1 ekranie:**
+
+#### Krok 1: WYMIEŃ wszystkie ekrany z danymi
+```
+EKRANY Z DANYMI [nazwa_encji]:
+1. Lista [encji] - pokazuje: X, Y, Z
+2. Szczegóły [encji] - pokazuje: X, Y, Z, W
+3. Edycja [encji] - pokazuje: X, Y
+4. Dashboard - pokazuje: suma X
+```
+
+#### Krok 2: ZRÓB screenshot KAŻDEGO ekranu
+```
+# MUSISZ mieć screenshot każdego!
+logs/screenshots/lista-[encji].png
+logs/screenshots/szczegoly-[encji].png
+logs/screenshots/edycja-[encji].png
+logs/screenshots/dashboard.png
+```
+
+#### Krok 3: PORÓWNAJ side-by-side
+```
+PORÓWNANIE WARTOŚCI:
+
+| Pole     | Lista | Szczegóły | Edycja | Dashboard |
+|----------|-------|-----------|--------|-----------|
+| nazwa    | "X"   | "X"       | "X"    | -         |
+| kwota    | 1000  | 1000      | 1000   | suma:1000 |
+| data     | 01-15 | 01-15     | 01-15  | -         |
+
+✅ SPÓJNE / 🛑 NIESPÓJNE: [pole] różni się!
+```
+
+#### Przykład BŁĘDU do wykrycia:
+```
+| Pole     | Lista | Szczegóły |
+|----------|-------|-----------|
+| zarobki  | 5500  | 4500      |  ← 🛑 NIESPÓJNE!
+
+BLOCKER: Zarobki na liście (5500) ≠ szczegóły (4500)
+```
+
+**NIE MÓW DONE jeśli:**
+- Nie wypisałeś wszystkich ekranów z danymi
+- Brakuje screenshot któregoś ekranu
+- Nie zrobiłeś tabeli porównawczej
 
 ### Porównanie z mockupem/design system
 
@@ -299,14 +350,19 @@ VISUAL:
 1. [opcjonalnie] Zrób screenshot BEFORE (baseline)
 2. Implementuj zmiany
 3. OBOWIĄZKOWO: Screenshot KAŻDEJ funkcji z zadania
-4. OBOWIĄZKOWO: Analiza krytyczna (sekcja 0)
-5. Jeśli BLOCKER → napraw → goto 3
-6. Jeśli wszystko OK → dopiero teraz DONE
+4. OBOWIĄZKOWO: Screenshot KAŻDEGO ekranu z danymi
+   (lista, szczegóły, edycja, dashboard - WSZYSTKIE!)
+5. OBOWIĄZKOWO: Analiza krytyczna (sekcja 0)
+6. OBOWIĄZKOWO: Cross-screen validation (tabela porównawcza)
+7. Jeśli BLOCKER → napraw → goto 3
+8. Jeśli wszystko OK → dopiero teraz DONE
 ```
 
 ### NIGDY nie mów DONE bez:
 
 - Screenshot każdej funkcji
+- Screenshot KAŻDEGO ekranu pokazującego dane
+- Tabeli porównawczej wartości cross-screen
 - Krytycznej analizy każdego screenshot
 - Potwierdzenia że WSZYSTKO widoczne i poprawne
 
@@ -396,10 +452,10 @@ node scripts/capture-web.js <url>
 
 ---
 
-## 8. PRZYKŁAD SESJI
+## 8. PRZYKŁAD SESJI (prosty - bez danych cross-screen)
 
 ```
-Użytkownik: auto formularz kontaktowy z visual test
+Użytkownik: auto formularz kontaktowy
 
 KRYTERIA Z ZADANIA:
 - Pola: name, email, message
@@ -413,34 +469,72 @@ Claude:
 2. Screenshot PRZED ogłoszeniem DONE:
    node scripts/capture-web.js http://localhost:3000/contact form-v1
 
-3. KRYTYCZNA ANALIZA (szukam problemów):
-
-   Checklist z zadania:
-   [ ] name field - WIDOCZNY? tak, w całości
-   [ ] email field - WIDOCZNY? tak, w całości
+3. KRYTYCZNA ANALIZA:
+   [ ] name field - WIDOCZNY? tak
+   [ ] email field - WIDOCZNY? tak
    [ ] message field - WIDOCZNY? tak, ale...
-       ⚠️ PROBLEM: textarea ucięta na dole!
-   [ ] submit button - WIDOCZNY? tak
-       ⚠️ PROBLEM: za mały, trudno kliknąć
-   [ ] error states - WIDOCZNE? NIE WIDZĘ
-       🛑 BLOCKER: nie pokazano walidacji błędów
-   [ ] confirmation - WIDOCZNE? NIE TESTOWANE
-       🛑 BLOCKER: brak screenshot po submit
+       ⚠️ PROBLEM: textarea ucięta!
+   [ ] error states - NIE WIDZĘ
+       🛑 BLOCKER: brak screenshot walidacji
 
-   WYNIK: 2x BLOCKER, 2x PROBLEM
+   WYNIK: BLOCKER → naprawiam
+
+4. Nowy screenshot form-v2 + form-error + form-success
+   [x] wszystko widoczne
+   WYNIK: 0 BLOCKER
+
+5. DONE
+```
+
+---
+
+## 9. PRZYKŁAD SESJI (z danymi cross-screen - OBOWIĄZKOWE!)
+
+```
+Użytkownik: auto zarządzanie pracownikami
+
+KRYTERIA Z ZADANIA:
+- Lista pracowników
+- Szczegóły pracownika
+- Edycja pracownika
+- Dashboard z podsumowaniem
+
+Claude:
+1. Implementuję...
+
+2. IDENTYFIKACJA EKRANÓW Z DANYMI:
+   Dane pracownika pojawiają się na:
+   - Lista pracowników (imię, zarobki, stanowisko)
+   - Szczegóły pracownika (wszystkie dane)
+   - Edycja pracownika (wszystkie dane)
+   - Dashboard (suma zarobków)
+
+3. SCREENSHOTY - WSZYSTKIE ekrany:
+   ✅ lista-pracownikow.png
+   ✅ szczegoly-jan-kowalski.png
+   ✅ edycja-jan-kowalski.png
+   ✅ dashboard.png
+
+4. CROSS-SCREEN VALIDATION (OBOWIĄZKOWE):
+
+   PORÓWNANIE - Jan Kowalski:
+   | Pole      | Lista | Szczegóły | Edycja |
+   |-----------|-------|-----------|--------|
+   | imię      | Jan K.| Jan Kowalski | Jan Kowalski |
+   | zarobki   | 5500  | 4500      | 4500   |  ← 🛑
+   | stanowisko| Dev   | Developer | Developer |
+
+   🛑 BLOCKER: Zarobki na liście (5500) ≠ szczegóły (4500)
    NIE MOGĘ POWIEDZIEĆ "DONE"
 
-4. Naprawiam błędy...
+5. Naprawiam źródło danych...
 
-5. Nowy screenshot form-v2 + form-v2-error + form-v2-success
+6. PONOWNE SCREENSHOTY + PORÓWNANIE:
+   | Pole      | Lista | Szczegóły | Edycja |
+   |-----------|-------|-----------|--------|
+   | zarobki   | 4500  | 4500      | 4500   | ✅
 
-6. PONOWNA ANALIZA:
-   [x] wszystkie pola widoczne w całości
-   [x] button odpowiedni rozmiar
-   [x] error state widoczny (czerwony tekst)
-   [x] success state widoczny (zielone potwierdzenie)
+   WYNIK: 0 BLOCKER
 
-   WYNIK: 0 BLOCKER, 0 PROBLEM
-
-7. DONE - wszystkie funkcje zweryfikowane wizualnie
+7. DONE - wszystkie wartości SPÓJNE cross-screen
 ```

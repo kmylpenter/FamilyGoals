@@ -66,6 +66,33 @@ async function capture() {
     fullPage: false
   });
 
+  // Scroll to bottom of dashboard to see income section
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await new Promise(r => setTimeout(r, 300));
+
+  // Screenshot 3b: Dashboard bottom (Żona/Mąż section)
+  console.log('Screenshot 3b: Dashboard bottom');
+  await page.screenshot({
+    path: path.join(OUTPUT_DIR, '03b-dashboard-bottom.png'),
+    fullPage: false
+  });
+
+  // Navigate to Income screen
+  console.log('Navigating to Income...');
+  await page.click('.nav-item:nth-child(2)');
+  await new Promise(r => setTimeout(r, 300));
+
+  // Screenshot 3c: Income Screen
+  console.log('Screenshot 3c: Income Screen');
+  await page.screenshot({
+    path: path.join(OUTPUT_DIR, '03c-income-screen.png'),
+    fullPage: false
+  });
+
+  // Go back to Start
+  await page.click('.nav-item:nth-child(1)');
+  await new Promise(r => setTimeout(r, 300));
+
   // Click FAB to open modal
   console.log('Opening add modal...');
   await page.click('.fab');

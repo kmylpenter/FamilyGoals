@@ -14,6 +14,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 ### Fixed
+- fix: Data consistency - Dashboard vs Income screen (Mąż 2500→6000). Files: `index.html`. Commit: `df83f91`
+- fix: Remove sticky button overlapping expense categories. Files: `css/main.css`. Commit: `d4db6de`
 - fix: Compact UI - smaller padding, gaps, fonts for mobile fit. Files: `css/main.css`. Commit: `ef29a2c`
 - fix: Base font size 18px → 16px. Files: `css/main.css`. Commit: `f2c555f`
 - fix: Emoji icons in JSON (graduation-cap → 🎓). Files: `data/config.json`, `data/planned.json`. Commit: `afef4af`
@@ -31,7 +33,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
-### Fixed (previous session)
+### Fixed
+- fix: Data consistency - Dashboard vs Income screen. Files: `index.html`. Commit: `df83f91` (previous session)
 - fix: Deep frontend-backend integration (10 issues). Files: `js/app.js`, `index.html`. Commit: `1cb28ea`
 - fix: checkAndUnlock() → checkAchievements() crash. Files: `js/app.js`. Commit: `1cb28ea`
 - fix: Expense category chips missing data-category-id. Files: `index.html`. Commit: `1cb28ea`
