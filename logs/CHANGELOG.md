@@ -13,11 +13,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+---
+
+## [2025-12-30] Sesja 6 - Major Refactor
+
+### Removed
+- Usunięto funkcjonalność wydatków (zaarchiwizowano w komentarzach). Files: `index.html`, `js/app.js`
+- Usunięto osiągnięcia "Kontrola wydatków" (15 achievementów). Files: `js/gamification-manager.js`
+
+### Added
+- Nowe osiągnięcia "Systematyczność" (15 achievementów). Files: `js/gamification-manager.js`. Commit: `6e62604`
+- Filtr osiągnięć po osobie (klik na mąż/żona). Files: `js/app.js`. Commit: `6e62604`
+- Popup z kwotą przy oznaczaniu pensji jako otrzymane. Files: `js/app.js`. Commit: `6e62604`
+- Confirm dialog przy odznaczaniu pensji. Files: `js/app.js`. Commit: `6e62604`
+
 ### Changed
-- Redesign pie chart → horizontal bar chart z progress bars. Files: `js/ui-features.js`, `index.html`, `css/main.css`
+- Compact dashboard design (mniejsze paddingi, fonty). Files: `css/main.css`. Commit: `1f90963`
+- Usunięto wykres historii z dashboard (przeniesiony do Przychody). Files: `index.html`. Commit: `1f90963`
+- "Wasze przychody" pokazuje breakdown mąż/żona. Files: `js/app.js`. Commit: `6e62604`
+- Historia zarobków 12 miesięcy (było 6). Files: `js/app.js`. Commit: `6e62604`
 
 ### Fixed
-- fix: Przycisk "+" w modal kategorii był ucięty (flex-shrink fix). Files: `css/main.css`, `index.html`
+- Krzyżyk usuwania kategorii nie działał (brak window. prefix). Files: `js/app.js`. Commit: `6e62604`
+- Zakres dat w celach nie mieścił się. Files: `css/main.css`. Commit: `6e62604`
+- Jednorazowy/Stały chipy łamały się na nową linię. Files: `css/main.css`. Commit: `6e62604`
 
 ---
 

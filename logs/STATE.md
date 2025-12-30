@@ -1,6 +1,6 @@
 # Current State
 
-**Last Updated:** 2025-12-29 23:15 (EOS sesja 5)
+**Last Updated:** 2025-12-30 00:10 (EOS sesja 6)
 **Updated By:** Developer (main)
 
 ---
@@ -17,17 +17,25 @@
 
 Brak - sesja zamknięta
 
-### Sesja 5 - UI Validation + Pie Chart Redesign (2025-12-29)
+### Sesja 6 - Major Refactor (2025-12-30)
 
 **Wykonano:**
-- ✅ Bug fix: przycisk "+" w modal kategorii (był ucięty)
-- ✅ Redesign pie chart → horizontal bar chart
+- ✅ Usunięto wydatki z aplikacji (zaarchiwizowano)
+- ✅ Nowe osiągnięcia "Systematyczność" zamiast "Wydatki"
+- ✅ Fix: Wasze przychody pokazuje dane mąż/żona
+- ✅ Fix: Historia zarobków 12 miesięcy
+- ✅ Fix: Pensje toggle + popup ile otrzymano
+- ✅ Fix: Cele zakres dat, jednorazowy/stały obok siebie
+- ✅ Fix: Krzyżyk usuwania kategorii
+- ✅ Filtr osiągnięć po kliknięciu mąż/żona
+- ✅ Compact dashboard (bez scrollowania)
 - ✅ Visual validation wszystkich ekranów
-- ✅ Screenshoty walidacyjne
 
 ---
 
 ## Recently Completed
+
+- ✅ fix: Compact dashboard for no-scroll design (00:04)
 
 - ✅ feat: Complete FamilyGoals refactor - remove expenses, add achievements (00:01)
 
