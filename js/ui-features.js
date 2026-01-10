@@ -445,34 +445,38 @@ const Notifications = {
 
     // Check for notifications to send
     checkScheduled() {
-        // Check for upcoming goals
-        if (typeof DataManager !== 'undefined') {
-            const goals = DataManager.getGoals();
-            const now = new Date();
+        // Check for upcoming goals - use dataManager instance if available
+        if (typeof dataManager !== 'undefined' && dataManager.getGoals) {
+            try {
+                const goals = dataManager.getGoals();
+                const now = new Date();
 
-            goals.forEach(goal => {
-                if (goal.deadline) {
-                    const deadline = new Date(goal.deadline);
-                    const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+                goals.forEach(goal => {
+                    if (goal.deadline) {
+                        const deadline = new Date(goal.deadline);
+                        const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
 
-                    if (daysLeft === 30 || daysLeft === 7 || daysLeft === 1) {
-                        const existing = this.items.find(n =>
-                            n.goalId === goal.id && n.daysLeft === daysLeft
-                        );
+                        if (daysLeft === 30 || daysLeft === 7 || daysLeft === 1) {
+                            const existing = this.items.find(n =>
+                                n.goalId === goal.id && n.daysLeft === daysLeft
+                            );
 
-                        if (!existing) {
-                            this.add({
-                                type: 'goal_reminder',
-                                goalId: goal.id,
-                                daysLeft,
-                                icon: '🎯',
-                                title: `Cel: ${goal.name}`,
-                                message: `Zostało ${daysLeft} dni do terminu!`
-                            });
+                            if (!existing) {
+                                this.add({
+                                    type: 'goal_reminder',
+                                    goalId: goal.id,
+                                    daysLeft,
+                                    icon: '🎯',
+                                    title: `Cel: ${goal.name}`,
+                                    message: `Zostało ${daysLeft} dni do terminu!`
+                                });
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (e) {
+                console.warn('Could not check goal notifications:', e);
+            }
         }
     }
 };

@@ -166,34 +166,8 @@
       </div>
 
       <h2 class="section-title">Źródła przychodów</h2>
-      <div class="list">
-        <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Żona">
-          <div class="list-icon">💼</div>
-          <div class="list-content">
-            <div class="list-title">Pensja (Żona)</div>
-            <div class="list-subtitle">Wpłynęło 10 gru</div>
-          </div>
-          <div class="list-amount positive">6 000 zł</div>
-          <div class="list-status done">✓</div>
-        </div>
-        <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Mąż">
-          <div class="list-icon">💼</div>
-          <div class="list-content">
-            <div class="list-title">Pensja (Mąż)</div>
-            <div class="list-subtitle">Oczekiwane 25 gru</div>
-          </div>
-          <div class="list-amount">4 500 zł</div>
-          <div class="list-status pending">⏳</div>
-        </div>
-        <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Freelance Mąż">
-          <div class="list-icon">💻</div>
-          <div class="list-content">
-            <div class="list-title">Freelance (Mąż)</div>
-            <div class="list-subtitle">Oczekiwane</div>
-          </div>
-          <div class="list-amount">1 500 zł</div>
-          <div class="list-status pending">⏳</div>
-        </div>
+      <div class="list" id="income-sources-list">
+        <!-- Renderowane dynamicznie przez JS -->
       </div>
     </div>
 
@@ -244,69 +218,13 @@
     </div>
 
     <h2 class="section-title">Jednorazowe</h2>
-    <div class="list">
-      <div class="goal-item" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Studia Kasi">
-        <div class="goal-item-header">
-          <span class="goal-item-icon">🎓</span>
-          <div class="goal-item-info">
-            <div class="goal-item-name">Studia Kasi</div>
-            <div class="goal-item-date">Wrzesień 2026</div>
-          </div>
-          <div class="goal-item-monthly">1 500 zł/m</div>
-        </div>
-        <div class="goal-bar"><div class="goal-bar-fill mint" style="width: 64%"></div></div>
-        <div class="goal-item-footer">
-          <span>32 000 / 50 000 zł</span>
-          <span>64%</span>
-        </div>
-      </div>
-      <div class="goal-item" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Remont kuchni">
-        <div class="goal-item-header">
-          <span class="goal-item-icon">🏠</span>
-          <div class="goal-item-info">
-            <div class="goal-item-name">Remont kuchni</div>
-            <div class="goal-item-date">Grudzień 2026</div>
-          </div>
-          <div class="goal-item-monthly">1 667 zł/m</div>
-        </div>
-        <div class="goal-bar"><div class="goal-bar-fill peach" style="width: 20%"></div></div>
-        <div class="goal-item-footer">
-          <span>5 000 / 25 000 zł</span>
-          <span>20%</span>
-        </div>
-      </div>
-      <div class="goal-item" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Wakacje">
-        <div class="goal-item-header">
-          <span class="goal-item-icon">🏖️</span>
-          <div class="goal-item-info">
-            <div class="goal-item-name">Wakacje</div>
-            <div class="goal-item-date">Sierpień 2025</div>
-          </div>
-          <div class="goal-item-monthly">688 zł/m</div>
-        </div>
-        <div class="goal-bar"><div class="goal-bar-fill lavender" style="width: 45%"></div></div>
-        <div class="goal-item-footer">
-          <span>4 500 / 10 000 zł</span>
-          <span>45%</span>
-        </div>
-      </div>
+    <div class="list" id="goals-oneoff-list">
+      <!-- Renderowane dynamicznie przez JS -->
     </div>
 
     <h2 class="section-title">Zobowiązania</h2>
-    <div class="list">
-      <div class="goal-item future" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Rata kredytu">
-        <div class="goal-item-header">
-          <span class="goal-item-icon">🏦</span>
-          <div class="goal-item-info">
-            <div class="goal-item-name">Rata kredytu</div>
-            <div class="goal-item-date">Od stycznia 2027</div>
-          </div>
-          <div class="goal-item-monthly warning">+5 000 zł/m</div>
-        </div>
-        <div class="goal-item-warning">
-          ⚠️ Podnieście zarobki o 5 000 zł do tego czasu!
-        </div>
-      </div>
+    <div class="list" id="goals-recurring-list">
+      <!-- Renderowane dynamicznie przez JS -->
     </div>
 
     <button type="button" class="fab" onclick="openModal('modal-goal')" aria-label="Dodaj cel">+</button>

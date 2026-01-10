@@ -2,104 +2,56 @@
 
 ## Aktywna Sesja
 
-**Start:** 2026-01-10 (sesja 9)
-**Cel:** Optymalizacja + Todo Lista
-**Status:** COMPLETED
+**Start:** 2026-01-10 (sesja 10)
+**Cel:** Naprawienie 10 bugów UI
+**Status:** PAUSED
 **Urządzenie:** PC
-**Kontekst:** -
+**Kontekst:** 58%
 
 ### Zadania (ta sesja)
-- [x] Faza 1: Data Manager - CRUD businessCosts + todos
-- [x] Faza 2: Optymalizacja - tabs na Income, modal, logika
-- [x] Faza 3: Todo Lista - ekran, modal, 6-ta nawigacja
-- [x] Faza 4: Testy i weryfikacja (częściowo - do kontynuacji)
+- [x] Fix 2: dismissAlert + getGoals errors
+- [x] Fix 4: Paski przewijania poziome (CSS)
+- [x] Fix 8: Scroll pionowy w modal przychodu
+- [→] Fix 1: Wykres nie generuje się (CSS dodane, do weryfikacji)
+- [ ] Fix 3: Edycja celów - tytuł modalu "Nowy cel" → "Edytuj cel"
+- [ ] Fix 5: Optymalizacja tabs nie działają
+- [ ] Fix 6: Strzałki miesięcy nie działają
+- [ ] Fix 7: Źródło przychodu - brak toggle otrzymano
+- [ ] Fix 9: Kategorie celów nie klikalne
+- [ ] Fix 10: Zadanie przeładowuje stronę
 
 ---
 
 ## Zmiany wprowadzone (ta sesja)
 
-### package.json
-- Dodano skrypty: `start`, `dev`, `mobile`, `pixel7`, `screenshot`
-- Dodano live-server jako devDependency
-
 ### js/app.js
-- Nowa funkcja `handleUrlParams()` - deep linking (`?screen=income`, `?action=goal`)
-- Wywołanie handleUrlParams() w init()
+- Usunięto `dismissAlert` z window.app exports (linia ~2051)
+- renderGoals() używa `$('goals-oneoff-list')` i `$('goals-recurring-list')` zamiast querySelector
+- renderIncome() używa `$('income-sources-list')`
+- Dodano empty state dla recurring goals list
 
-### js/data-manager.js
-- **FIX:** `getPlannedExpenses()` teraz sprawdza `familygoals_planned_override` z localStorage
-- To naprawia progress bary celów które pokazywały 0%
+### js/ui-features.js
+- Notifications.checkScheduled() używa `dataManager` (instancja) zamiast `DataManager` (klasa)
+- Dodano try/catch wrapper
 
-### sw.js
-- Zaktualizowana lista plików do cache (usunięto nieistniejący ui-controller.js)
-- Wersja cache: v3
+### css/main.css
+- Dodano style `.line-chart-container` i `.line-chart`
+- `.modal-content { max-width: 100vw; overflow-x: hidden; }`
+- `.form-group input { min-height: 44px; padding: 8px 12px; }`
 
-### scripts/
-- `dev-browser.js` - otwiera Chrome z wymiarami Pixel 7 (412x915) + DevTools
-- `test-screens.js` - automatyczne screenshoty wszystkich ekranów przez URL params
-
----
-
-## Środowisko dev (gotowe)
-
-| Komenda | Co robi |
-|---------|---------|
-| `npm start` | Live-server + otwiera przeglądarkę |
-| `npm run dev` | Live-server bez auto-open |
-| `npm run pixel7` | Okno Pixel 7 z DevTools |
-| `node scripts/test-screens.js` | Screenshoty wszystkich ekranów (headless) |
-
-**Deep linking:**
-- `?screen=income` / `goals` / `achievements` / `settings`
-- `?action=income` / `goal` → otwiera modal
-
----
-
-## Analiza UI - Podsumowanie
-
-### Ekrany (5 głównych + PIN)
-1. **Dashboard** - porada, savings hero, breakdown celów, przychody
-2. **Income** - lista źródeł z toggle status (otrzymane/oczekiwane)
-3. **Goals** - jednorazowe + stałe zobowiązania z progress
-4. **Achievements** - punkty, streak, kategorie
-5. **Settings** - PIN, kategorie, eksport/import, wyczyść
-
-### Modale (4)
-- `modal-add` - quick menu (przychód/cel)
-- `modal-income` - formularz przychodu
-- `modal-goal` - formularz celu (jednorazowy/stały)
-- `modal-categories` - zarządzanie kategoriami
-
-### Nawigacja
-- Bottom nav: 5 itemów
-- FAB na Dashboard/Income/Goals
-- Back buttons na wszystkich sub-screens
-
----
-
-## Do zrobienia (następna sesja)
-
-### Priorytet WYSOKI
-1. **Test progress barów** - czy teraz pokazują prawidłowe % po naprawie
-2. **Test month selector** - czy strzałki ← → działają na Income
-
-### Priorytet ŚREDNI
-3. **Lista wszystkich achievementów** - użytkownik nie widzi co może odblokować
-4. **Weryfikacja spójności danych** - dashboard vs inne ekrany
-
-### Priorytet NISKI
-5. **Data otrzymania w income list** - brak widocznej daty
-6. **Service Worker offline test** - czy cache działa
+### index.html
+- Usunięto statyczne `goal-item` elementy - zastąpiono kontenerami z ID
+- Usunięto statyczne `list-item` elementy dla income sources
+- Dodano `id="goals-oneoff-list"`, `id="goals-recurring-list"`, `id="income-sources-list"`
 
 ---
 
 ## Working Set
 
-- `js/app.js` - główna logika, URL params
-- `js/data-manager.js` - naprawiony getPlannedExpenses
-- `package.json` - nowe skrypty npm
-- `scripts/dev-browser.js` - Pixel 7 window
-- `scripts/test-screens.js` - automatyczne testy
+- `js/app.js` - główna logika, edycje list
+- `js/ui-features.js` - naprawiony checkScheduled
+- `css/main.css` - style wykresu, modali
+- `index.html` - kontenery list
 
 ---
 
@@ -107,9 +59,26 @@
 
 ```
 1. Uruchom: npm run dev
-2. Uruchom: npm run pixel7
-3. Przetestuj:
-   - Przejdź do Cele → czy progress bary pokazują prawidłowe %?
-   - Na Income → kliknij strzałki ← → czy miesiąc się zmienia?
-4. Zgłoś wyniki
+2. Sprawdź konsolę - czy błędy zniknęły?
+3. Kontynuuj od Fix 1 (wykres) - sprawdź czy się renderuje
+4. Pozostałe bugi: 3, 5, 6, 7, 9, 10
 ```
+
+### Lista bugów do naprawienia:
+1. Wykres nie generuje się - CSS dodane, sprawdź czy działa
+3. Edycja celów - tytuł "Nowy cel" zamiast "Edytuj cel"
+5. Optymalizacja tabs - nie przełączają się
+6. Strzałki miesięcy - nie zmieniają miesiąca
+7. Źródło przychodu - klik otwiera zły modal
+9. Kategorie celów - nie klikalne
+10. Formularz todo - przeładowuje stronę
+
+---
+
+## Poprzednia sesja (sesja 9)
+
+**Cel:** Optymalizacja + Todo Lista
+**Status:** COMPLETED
+- Dodano zakładkę Optymalizacja na Income
+- Dodano 6-tą zakładkę Todo Lista
+- CRUD dla businessCosts i todos

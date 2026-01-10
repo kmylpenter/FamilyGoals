@@ -206,6 +206,12 @@ body {
   font-size: 0.75rem; color: var(--text-soft);
 }
 
+/* Line Chart */
+.line-chart-container { width: 100%; }
+.line-chart { width: 100%; height: auto; display: block; }
+.line-chart text { font-size: 10px; fill: var(--text-muted); font-family: var(--font); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
 /* Legacy bar chart (keeping for fallback) */
 .timeline-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 120px; gap: 6px; padding-top: 20px; }
 .timeline-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
@@ -887,10 +893,19 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
 }
 
 /* Form improvements - compact spacing */
-.form { gap: var(--s2); }
+.form { gap: var(--s2); padding-bottom: 20px; }
 .form-group { gap: 6px; }
 .form-group label { font-size: 0.9rem; }
-.form-group input { min-height: 48px; padding: var(--s1) var(--s2); }
+.form-group input { min-height: 44px; padding: 8px 12px; font-size: 1rem; }
+.input-large { font-size: 2rem !important; min-height: 60px !important; }
+
+/* Modal content - prevent horizontal scroll */
+.modal-content {
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+.modal-content .form-group input { max-width: 100%; box-sizing: border-box; }
 
 /* Two fields side by side */
 .form-row {

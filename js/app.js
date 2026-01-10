@@ -477,7 +477,7 @@
     }
 
     // Update sources list
-    const list = document.querySelector('#screen-income .list');
+    const list = $('income-sources-list');
     if (list) {
       list.innerHTML = summary.sources.map(src => {
         const icon = src.icon || (src.name?.includes('Pensja') ? '💼' : '💵');
@@ -532,7 +532,7 @@
     }
 
     // One-off goals list
-    const oneoffList = document.querySelector('#screen-goals .list');
+    const oneoffList = $('goals-oneoff-list');
     if (oneoffList) {
       oneoffList.innerHTML = oneoff.map(g => {
         const percent = g.targetAmount > 0
@@ -568,8 +568,8 @@
     }
 
     // Recurring goals
-    const recurringList = document.querySelectorAll('#screen-goals .list')[1];
-    if (recurringList && recurring.length > 0) {
+    const recurringList = $('goals-recurring-list');
+    if (recurringList) {
       recurringList.innerHTML = recurring.map(g => {
         // Format date range
         let dateText = '';
@@ -603,6 +603,10 @@
         </div>
       `;
       }).join('');
+
+      if (recurring.length === 0) {
+        recurringList.innerHTML = '<div class="empty-state">Brak stałych zobowiązań</div>';
+      }
     }
   }
 
@@ -2048,7 +2052,6 @@
     clearData,
     renderAll,
     resetEditState,
-    dismissAlert,
     renderOptimization,
     renderTodos,
     switchIncomeTab

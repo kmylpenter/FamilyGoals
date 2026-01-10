@@ -13,6 +13,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Fixed (sesja 10 - w trakcie)
+- Console error: `dismissAlert is not defined` - usunięto z window.app. Files: `js/app.js`
+- Console error: `DataManager.getGoals not a function` - użyto instancji dataManager zamiast klasy. Files: `js/ui-features.js`
+- Horizontal scroll w modalach - dodano max-width i overflow-x:hidden. Files: `css/main.css`
+- Static goal-item i list-item w HTML blokowały dynamiczne renderowanie. Files: `index.html`
+
+### Changed (sesja 10 - w trakcie)
+- Mniejsze pola formularzy (min-height: 44px). Files: `css/main.css`
+- Goals/Income lists używają ID zamiast querySelector. Files: `js/app.js`
+
+### Added (sesja 10 - w trakcie)
+- CSS dla `.line-chart-container` i `.line-chart`. Files: `css/main.css`
+
 ---
 
 ## [2026-01-10] Sesja 9 - Optymalizacja + Todo Lista
