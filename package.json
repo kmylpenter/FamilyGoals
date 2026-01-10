@@ -1,5 +1,16 @@
 {
+  "name": "familygoals",
+  "version": "1.0.0",
+  "description": "Rodzinna aplikacja do śledzenia celów finansowych",
+  "scripts": {
+    "start": "live-server --port=3000 --open=/index.html",
+    "dev": "live-server --port=3000 --no-browser",
+    "mobile": "live-server --port=3000 --host=0.0.0.0 --open=/index.html",
+    "pixel7": "node scripts/dev-browser.js http://localhost:3000",
+    "screenshot": "node scripts/dev-browser.js http://localhost:3000 --screenshot"
+  },
   "devDependencies": {
+    "live-server": "^1.2.2",
     "puppeteer-core": "^24.34.0"
   }
 }

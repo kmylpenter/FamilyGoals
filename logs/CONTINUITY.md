@@ -2,104 +2,114 @@
 
 ## Aktywna Sesja
 
-**Start:** 2025-12-29 ~23:30
-**Cel:** Walidacja UI + Pie chart redesign
+**Start:** 2026-01-10
+**Cel:** Konfiguracja środowiska dev PC + analiza UI
 **Status:** COMPLETED
-**Kontekst:** ~40%
+**Urządzenie:** PC
+**Kontekst:** ~75%
 
 ### Zadania (ta sesja)
-- [x] Baseline screenshoty wszystkich ekranów
-- [x] Bug fix: przycisk "+" w modal kategorii (był ucięty)
-- [x] Redesign pie chart → horizontal bar chart
-- [x] Visual validation wszystkich ekranów
-
-### Pliki zmienione
-- css/main.css (add-category-form, expense-bars)
-- js/ui-features.js (ExpenseChart)
-- index.html (expense-chart-container)
+- [x] Konfiguracja środowiska dev (live-server, Puppeteer Pixel 7)
+- [x] Naprawa headless navigation (URL params deep linking)
+- [x] Kompletna analiza UI wszystkich ekranów
+- [x] Fix: Progress bary celów (getPlannedExpenses nie używał override)
 
 ---
 
-## Postęp
+## Zmiany wprowadzone (ta sesja)
 
-- [x] Screenshot baseline
-- [x] Analiza danych (getTrendByOwner)
-- [x] AreaChart SVG (peach=żona, mint=mąż)
-- [x] Push + GitHub Pages refresh
-- [x] Visual validation (8 ekranów)
-- [x] Fix: FAB padding-bottom (100→140px)
-- [→] BLOCKER: Niespójność danych Dashboard vs Income
-- [ ] Weryfikacja końcowa AreaChart
-
----
-
-## BLOCKER - Niespójność danych
-
-**Problem wykryty przez użytkownika:**
-- Dashboard stat cards: pokazują inne kwoty
-- Income screen: pokazuje inne kwoty
-
-**Do sprawdzenia:**
-1. Jak są renderowane stat cards w app.js?
-2. Czy używają tych samych danych co Income?
-3. Dashboard pokazuje "Żona: 6000, Mąż: 6000"
-4. Income pokazuje: Żona: 6000 (otrzymane), Mąż: 4500+1500=6000 (oczekiwane)
-
-**Lokalizacja kodu:**
-- `js/app.js` → funkcja która renderuje stat cards na Dashboard
-- HTML linie 159-171 → `.stats-row` z stat-card
-
----
-
-## Zmiany wprowadzone
-
-### js/data-manager.js
-- Nowa metoda `getTrendByOwner(months)` - dane per owner
+### package.json
+- Dodano skrypty: `start`, `dev`, `mobile`, `pixel7`, `screenshot`
+- Dodano live-server jako devDependency
 
 ### js/app.js
-- Nowy `renderChart()` → SVG AreaChart
-- Dwa obszary: peach (żona), mint (mąż)
-- Linia przerywana dla celu
-- Legenda inline
+- Nowa funkcja `handleUrlParams()` - deep linking (`?screen=income`, `?action=goal`)
+- Wywołanie handleUrlParams() w init()
 
-### css/main.css
-- Style `.area-chart-container`, `.chart-legend-inline`
-- Fix: `padding-bottom: 140px` dla `.list-screen`
+### js/data-manager.js
+- **FIX:** `getPlannedExpenses()` teraz sprawdza `familygoals_planned_override` z localStorage
+- To naprawia progress bary celów które pokazywały 0%
+
+### sw.js
+- Zaktualizowana lista plików do cache (usunięto nieistniejący ui-controller.js)
+- Wersja cache: v3
 
 ### scripts/
-- `screenshot.js` - pojedynczy screenshot
-- `screenshot-screens.js` - wszystkie ekrany
-- `screenshot-scroll.js` - scroll + specific views
+- `dev-browser.js` - otwiera Chrome z wymiarami Pixel 7 (412x915) + DevTools
+- `test-screens.js` - automatyczne screenshoty wszystkich ekranów przez URL params
+
+---
+
+## Środowisko dev (gotowe)
+
+| Komenda | Co robi |
+|---------|---------|
+| `npm start` | Live-server + otwiera przeglądarkę |
+| `npm run dev` | Live-server bez auto-open |
+| `npm run pixel7` | Okno Pixel 7 z DevTools |
+| `node scripts/test-screens.js` | Screenshoty wszystkich ekranów (headless) |
+
+**Deep linking:**
+- `?screen=income` / `goals` / `achievements` / `settings`
+- `?action=income` / `goal` → otwiera modal
+
+---
+
+## Analiza UI - Podsumowanie
+
+### Ekrany (5 głównych + PIN)
+1. **Dashboard** - porada, savings hero, breakdown celów, przychody
+2. **Income** - lista źródeł z toggle status (otrzymane/oczekiwane)
+3. **Goals** - jednorazowe + stałe zobowiązania z progress
+4. **Achievements** - punkty, streak, kategorie
+5. **Settings** - PIN, kategorie, eksport/import, wyczyść
+
+### Modale (4)
+- `modal-add` - quick menu (przychód/cel)
+- `modal-income` - formularz przychodu
+- `modal-goal` - formularz celu (jednorazowy/stały)
+- `modal-categories` - zarządzanie kategoriami
+
+### Nawigacja
+- Bottom nav: 5 itemów
+- FAB na Dashboard/Income/Goals
+- Back buttons na wszystkich sub-screens
+
+---
+
+## Do zrobienia (następna sesja)
+
+### Priorytet WYSOKI
+1. **Test progress barów** - czy teraz pokazują prawidłowe % po naprawie
+2. **Test month selector** - czy strzałki ← → działają na Income
+
+### Priorytet ŚREDNI
+3. **Lista wszystkich achievementów** - użytkownik nie widzi co może odblokować
+4. **Weryfikacja spójności danych** - dashboard vs inne ekrany
+
+### Priorytet NISKI
+5. **Data otrzymania w income list** - brak widocznej daty
+6. **Service Worker offline test** - czy cache działa
 
 ---
 
 ## Working Set
 
-- `js/app.js` - główna logika
-- `js/data-manager.js` - dane
-- `css/main.css` - style
-- `index.html` - HTML (stat cards linie 159-171)
-
----
-
-## Commity sesji
-
-1. `bfce7de` - feat: AreaChart dla historii zarobków
-2. `22a7080` - fix: Zwiększ padding-bottom dla FAB
+- `js/app.js` - główna logika, URL params
+- `js/data-manager.js` - naprawiony getPlannedExpenses
+- `package.json` - nowe skrypty npm
+- `scripts/dev-browser.js` - Pixel 7 window
+- `scripts/test-screens.js` - automatyczne testy
 
 ---
 
 ## Na następną sesję (resume)
 
-1. **NAJPIERW** sprawdź niespójność danych:
-   - Znajdź kod stat cards w app.js
-   - Porównaj z danymi w Income
-   - Napraw źródło danych
-
-2. Weryfikacja AreaChart:
-   - Zrób screenshot dashboardu po scroll
-   - Potwierdź że wykres działa
-
-3. Weryfikacja FAB fix:
-   - Screenshot goals-bottom
-   - Potwierdź że FAB nie jest przysłonięty
+```
+1. Uruchom: npm run dev
+2. Uruchom: npm run pixel7
+3. Przetestuj:
+   - Przejdź do Cele → czy progress bary pokazują prawidłowe %?
+   - Na Income → kliknij strzałki ← → czy miesiąc się zmienia?
+4. Zgłoś wyniki
+```

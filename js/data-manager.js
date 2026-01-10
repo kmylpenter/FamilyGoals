@@ -609,6 +609,15 @@ class DataManager {
   // === PLANNED EXPENSES (GOALS) ===
 
   getPlannedExpenses() {
+    // Check override first (user data / demo data)
+    const override = localStorage.getItem('familygoals_planned_override');
+    if (override) {
+      try {
+        return JSON.parse(override);
+      } catch (e) {
+        console.warn('Invalid planned override data');
+      }
+    }
     return this.planned?.plannedExpenses || [];
   }
 

@@ -15,6 +15,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [2026-01-10] Sesja 7 - Dev Environment + Bug Fixes
+
+### Added
+- Środowisko dev: live-server + Puppeteer Pixel 7 (412x915). Files: `package.json`, `scripts/dev-browser.js`
+- Deep linking URL params (`?screen=X`, `?action=X`). Files: `js/app.js`
+- Automatyczne testy ekranów (headless screenshots). Files: `scripts/test-screens.js`
+
+### Fixed
+- Progress bary celów pokazywały 0% - `getPlannedExpenses()` nie używał override z localStorage. Files: `js/data-manager.js`
+- Service Worker cache lista - usunięto nieistniejący ui-controller.js. Files: `sw.js`
+
+### Changed
+- Service Worker cache version: v2 → v3. Files: `sw.js`
+
+---
+
 ## [2025-12-30] Sesja 6 - Major Refactor
 
 ### Removed

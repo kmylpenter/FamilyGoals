@@ -87,6 +87,28 @@
     console.log('Demo data initialized');
   }
 
+  // ============ URL PARAMS (Deep Linking) ============
+  function handleUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+
+    // ?screen=income|goals|achievements|settings
+    const screen = params.get('screen');
+    if (screen) {
+      const screenId = `screen-${screen}`;
+      if (document.getElementById(screenId)) {
+        setTimeout(() => showScreen(screenId), 100);
+      }
+    }
+
+    // ?action=income|expense|goal → open modal
+    const action = params.get('action');
+    if (action === 'income') {
+      setTimeout(() => openModal('modal-income'), 200);
+    } else if (action === 'goal') {
+      setTimeout(() => openModal('modal-goal'), 200);
+    }
+  }
+
   // ============ INIT ============
   async function init() {
     try {
@@ -143,6 +165,9 @@
 
       // Render UI
       renderAll();
+
+      // Handle URL params for deep linking
+      handleUrlParams();
 
       console.log('FamilyGoals App initialized with all managers');
     } catch (err) {

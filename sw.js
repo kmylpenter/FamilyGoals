@@ -1,9 +1,10 @@
-const CACHE_NAME = 'familygoals-v2';
+const CACHE_NAME = 'familygoals-v3';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/css/main.css',
+  '/js/app.js',
   '/js/event-bus.js',
   '/js/pin-manager.js',
   '/js/data-manager.js',
@@ -11,7 +12,10 @@ const ASSETS = [
   '/js/alert-manager.js',
   '/js/engagement-manager.js',
   '/js/gamification-manager.js',
-  '/js/ui-controller.js',
+  '/js/ui-features.js',
+  '/js/family-balance.js',
+  '/js/family-unity.js',
+  '/js/ai-advisor.js',
   '/data/config.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
