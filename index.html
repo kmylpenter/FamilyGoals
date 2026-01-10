@@ -136,59 +136,92 @@
     <header class="header" aria-label="Nagłówek przychodów">
       <button type="button" class="back-btn" onclick="showScreen('screen-dashboard')" aria-label="Wróć">←</button>
       <h1 class="header-title">💰 Przychody</h1>
-      <button type="button" class="add-btn" onclick="openModal('modal-income')" aria-label="Dodaj przychód">+</button>
+      <button type="button" class="add-btn" id="income-add-btn" onclick="openModal('modal-income')" aria-label="Dodaj przychód">+</button>
     </header>
 
-    <div class="month-selector" role="group" aria-label="Wybór miesiąca">
-      <button type="button" class="month-arrow" aria-label="Poprzedni miesiąc">←</button>
-      <span>Grudzień 2025</span>
-      <button type="button" class="month-arrow" aria-label="Następny miesiąc">→</button>
+    <!-- Tabs -->
+    <div class="tabs" id="income-tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="income" role="tab" aria-selected="true">💰 Przychody</button>
+      <button type="button" class="tab" data-tab="optimization" role="tab" aria-selected="false">⚡ Optymalizacja</button>
     </div>
 
-    <div class="summary-card mint">
-      <div class="summary-row">
-        <span>Otrzymane</span>
-        <span class="summary-value">8 500 zł</span>
+    <!-- Tab: Przychody -->
+    <div id="income-content" role="tabpanel">
+      <div class="month-selector" role="group" aria-label="Wybór miesiąca">
+        <button type="button" class="month-arrow" aria-label="Poprzedni miesiąc">←</button>
+        <span>Grudzień 2025</span>
+        <button type="button" class="month-arrow" aria-label="Następny miesiąc">→</button>
       </div>
-      <div class="summary-row">
-        <span>Oczekiwane</span>
-        <span class="summary-value muted">12 000 zł</span>
+
+      <div class="summary-card mint">
+        <div class="summary-row">
+          <span>Otrzymane</span>
+          <span class="summary-value">8 500 zł</span>
+        </div>
+        <div class="summary-row">
+          <span>Oczekiwane</span>
+          <span class="summary-value muted">12 000 zł</span>
+        </div>
+        <div class="income-bar"><div class="income-bar-fill" style="width: 71%"></div></div>
       </div>
-      <div class="income-bar"><div class="income-bar-fill" style="width: 71%"></div></div>
+
+      <h2 class="section-title">Źródła przychodów</h2>
+      <div class="list">
+        <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Żona">
+          <div class="list-icon">💼</div>
+          <div class="list-content">
+            <div class="list-title">Pensja (Żona)</div>
+            <div class="list-subtitle">Wpłynęło 10 gru</div>
+          </div>
+          <div class="list-amount positive">6 000 zł</div>
+          <div class="list-status done">✓</div>
+        </div>
+        <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Mąż">
+          <div class="list-icon">💼</div>
+          <div class="list-content">
+            <div class="list-title">Pensja (Mąż)</div>
+            <div class="list-subtitle">Oczekiwane 25 gru</div>
+          </div>
+          <div class="list-amount">4 500 zł</div>
+          <div class="list-status pending">⏳</div>
+        </div>
+        <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Freelance Mąż">
+          <div class="list-icon">💻</div>
+          <div class="list-content">
+            <div class="list-title">Freelance (Mąż)</div>
+            <div class="list-subtitle">Oczekiwane</div>
+          </div>
+          <div class="list-amount">1 500 zł</div>
+          <div class="list-status pending">⏳</div>
+        </div>
+      </div>
     </div>
 
-    <h2 class="section-title">Źródła przychodów</h2>
-    <div class="list">
-      <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Żona">
-        <div class="list-icon">💼</div>
-        <div class="list-content">
-          <div class="list-title">Pensja (Żona)</div>
-          <div class="list-subtitle">Wpłynęło 10 gru</div>
+    <!-- Tab: Optymalizacja -->
+    <div id="optimization-content" role="tabpanel" style="display: none;">
+      <div class="summary-card green">
+        <div class="summary-row">
+          <span>💼 Oszczędności z firmy</span>
+          <span class="summary-value" id="business-savings">0 zł/mies.</span>
         </div>
-        <div class="list-amount positive">6 000 zł</div>
-        <div class="list-status done">✓</div>
+        <div class="summary-row">
+          <span>Całkowite zakupy firmowe</span>
+          <span class="summary-value muted" id="business-total">0 zł</span>
+        </div>
       </div>
-      <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Pensja Mąż">
-        <div class="list-icon">💼</div>
-        <div class="list-content">
-          <div class="list-title">Pensja (Mąż)</div>
-          <div class="list-subtitle">Oczekiwane 25 gru</div>
-        </div>
-        <div class="list-amount">4 500 zł</div>
-        <div class="list-status pending">⏳</div>
+
+      <h2 class="section-title">🛒 Nadchodzące zakupy</h2>
+      <div class="list" id="upcoming-purchases">
+        <div class="empty-state">Brak nadchodzących zakupów</div>
       </div>
-      <div class="list-item" onclick="openModal('modal-income')" tabindex="0" role="button" aria-label="Edytuj: Freelance Mąż">
-        <div class="list-icon">💻</div>
-        <div class="list-content">
-          <div class="list-title">Freelance (Mąż)</div>
-          <div class="list-subtitle">Oczekiwane</div>
-        </div>
-        <div class="list-amount">1 500 zł</div>
-        <div class="list-status pending">⏳</div>
+
+      <h2 class="section-title">📋 Koszty firmowe</h2>
+      <div class="list" id="business-costs-list">
+        <div class="empty-state">Dodaj pierwszy koszt firmowy</div>
       </div>
     </div>
 
-    <button type="button" class="fab" onclick="openModal('modal-income')" aria-label="Dodaj przychód">+</button>
+    <button type="button" class="fab" id="income-fab" onclick="openModal('modal-income')" aria-label="Dodaj przychód">+</button>
   </div>
 
   <!-- ========== Goals Screen ========== -->
@@ -644,6 +677,142 @@
     </div>
   </div>
 
+  <!-- ========== Todos Screen ========== -->
+  <div id="screen-todos" class="screen list-screen">
+    <header class="header" aria-label="Nagłówek zadań">
+      <button type="button" class="back-btn" onclick="showScreen('screen-dashboard')" aria-label="Wróć">←</button>
+      <h1 class="header-title">📋 Zadania</h1>
+      <button type="button" class="add-btn" onclick="openModal('modal-todo')" aria-label="Dodaj zadanie">+</button>
+    </header>
+
+    <!-- Filter chips -->
+    <div class="chips filter-chips" id="todo-filter" role="group" aria-label="Filtr osoby">
+      <button type="button" class="chip active" data-filter="all">Wszystkie</button>
+      <button type="button" class="chip" data-filter="wife">👩 Żona</button>
+      <button type="button" class="chip" data-filter="husband">👨 Mąż</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="todo-stats" id="todo-stats">
+      <span class="stat pending">0 do zrobienia</span>
+      <span class="stat completed">0 ukończonych</span>
+    </div>
+
+    <h2 class="section-title">📌 Do zrobienia</h2>
+    <div class="list" id="todos-pending">
+      <div class="empty-state">Brak zadań do zrobienia</div>
+    </div>
+
+    <h2 class="section-title">✅ Ukończone</h2>
+    <div class="list" id="todos-completed">
+      <div class="empty-state">Brak ukończonych zadań</div>
+    </div>
+
+    <button type="button" class="fab" onclick="openModal('modal-todo')" aria-label="Dodaj zadanie">+</button>
+  </div>
+
+  <!-- Modal: Business Cost -->
+  <div id="modal-business-cost" class="modal" role="dialog" aria-label="Koszt firmowy" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
+        <h2>💼 Koszt firmowy</h2>
+      </div>
+      <form class="form" id="business-cost-form">
+        <div class="form-group">
+          <label>Nazwa</label>
+          <input type="text" id="cost-name" placeholder="np. Kawa biurowa" required>
+        </div>
+        <div class="form-group">
+          <label>Kwota (zł)</label>
+          <input type="number" id="cost-amount" placeholder="0" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Kategoria</label>
+          <div class="chips" id="cost-category-chips">
+            <button type="button" class="chip active" data-value="subscriptions">📱 Abonamenty</button>
+            <button type="button" class="chip" data-value="equipment">💻 Sprzęt</button>
+            <button type="button" class="chip" data-value="supplies">📦 Materiały</button>
+            <button type="button" class="chip" data-value="other">📋 Inne</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Typ</label>
+          <div class="chips" id="cost-type-chips">
+            <button type="button" class="chip active" data-value="oneoff">1️⃣ Jednorazowy</button>
+            <button type="button" class="chip" data-value="recurring">🔄 Cykliczny</button>
+          </div>
+        </div>
+        <div class="form-group recurring-options" id="cost-recurring-options" style="display: none;">
+          <label>Co ile miesięcy?</label>
+          <div class="chips" id="cost-months-chips">
+            <button type="button" class="chip active" data-value="1">1</button>
+            <button type="button" class="chip" data-value="2">2</button>
+            <button type="button" class="chip" data-value="3">3</button>
+            <button type="button" class="chip" data-value="6">6</button>
+            <button type="button" class="chip" data-value="12">12</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notatka (opcjonalnie)</label>
+          <input type="text" id="cost-note" placeholder="np. Play - telefon służbowy">
+        </div>
+        <button type="submit" class="btn-primary">💾 Zapisz</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Todo -->
+  <div id="modal-todo" class="modal" role="dialog" aria-label="Zadanie domowe" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
+        <h2>📋 Nowe zadanie</h2>
+      </div>
+      <form class="form" id="todo-form">
+        <div class="form-group">
+          <label>Nazwa zadania</label>
+          <input type="text" id="todo-title" placeholder="np. Odkurzyć salon" required>
+        </div>
+        <div class="form-group">
+          <label>Kto?</label>
+          <div class="chips" id="todo-owner-chips">
+            <button type="button" class="chip" data-value="wife">👩 Żona</button>
+            <button type="button" class="chip" data-value="husband">👨 Mąż</button>
+            <button type="button" class="chip active" data-value="both">👫 Oboje</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Typ</label>
+          <div class="chips" id="todo-type-chips">
+            <button type="button" class="chip active" data-value="oneoff">1️⃣ Jednorazowe</button>
+            <button type="button" class="chip" data-value="recurring">🔄 Cykliczne</button>
+          </div>
+        </div>
+        <div class="form-group recurring-options" id="todo-recurring-options" style="display: none;">
+          <label>Co ile dni?</label>
+          <div class="chips" id="todo-days-chips">
+            <button type="button" class="chip active" data-value="1">Codziennie</button>
+            <button type="button" class="chip" data-value="2">Co 2 dni</button>
+            <button type="button" class="chip" data-value="3">Co 3 dni</button>
+            <button type="button" class="chip" data-value="7">Tydzień</button>
+            <button type="button" class="chip" data-value="14">2 tyg.</button>
+            <button type="button" class="chip" data-value="30">Miesiąc</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Priorytet</label>
+          <div class="chips" id="todo-priority-chips">
+            <button type="button" class="chip" data-value="low">🟢 Niski</button>
+            <button type="button" class="chip active" data-value="normal">🟡 Normalny</button>
+            <button type="button" class="chip" data-value="high">🔴 Wysoki</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary">💾 Zapisz</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ========== Bottom Navigation ========== -->
   <nav class="bottom-nav" id="bottom-nav" aria-label="Nawigacja główna">
     <button type="button" class="nav-item active" onclick="showScreen('screen-dashboard')" aria-label="Strona główna">
@@ -661,6 +830,10 @@
     <button type="button" class="nav-item" onclick="showScreen('screen-achievements')" aria-label="Osiągnięcia">
       <span class="nav-icon" aria-hidden="true">🏆</span>
       <span>Punkty</span>
+    </button>
+    <button type="button" class="nav-item" onclick="showScreen('screen-todos')" aria-label="Zadania">
+      <span class="nav-icon" aria-hidden="true">📋</span>
+      <span>Zadania</span>
     </button>
     <button type="button" class="nav-item" onclick="showScreen('screen-settings')" aria-label="Ustawienia">
       <span class="nav-icon" aria-hidden="true">⚙️</span>
@@ -746,10 +919,14 @@
       document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
       document.getElementById(id).classList.add('active');
       document.querySelectorAll('.nav-item').forEach(function(n, i) {
-        var screens = ['screen-dashboard', 'screen-income', 'screen-goals', 'screen-achievements', 'screen-settings'];
+        var screens = ['screen-dashboard', 'screen-income', 'screen-goals', 'screen-achievements', 'screen-todos', 'screen-settings'];
         n.classList.toggle('active', screens[i] === id);
       });
       closeAllModals();
+      // Render todos when navigating to that screen
+      if (id === 'screen-todos' && window.app && window.app.renderTodos) {
+        window.app.renderTodos();
+      }
     }
 
     // Modals

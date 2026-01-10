@@ -15,6 +15,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [2026-01-10] Sesja 9 - Optymalizacja + Todo Lista
+
+### Added
+- **Optymalizacja** - zakładka na ekranie Przychody. Files: `index.html`, `js/app.js`, `css/main.css`
+- **Todo Lista Domowa** - 6-ta zakładka w nawigacji. Files: `index.html`, `js/app.js`, `css/main.css`
+- CRUD dla businessCosts (koszty firmowe). Files: `js/data-manager.js`
+- CRUD dla todos (zadania domowe). Files: `js/data-manager.js`
+- Modal dodawania/edycji kosztów firmowych. Files: `index.html`
+- Modal dodawania/edycji zadań. Files: `index.html`
+- Tabs UI component. Files: `css/main.css`
+
+### Changed
+- Bottom nav: 5 → 6 zakładek. Files: `index.html`, `css/main.css`
+- showScreen() obsługuje 6 ekranów. Files: `index.html`
+
+---
+
 ## [2026-01-10] Sesja 7 - Dev Environment + Bug Fixes
 
 ### Added

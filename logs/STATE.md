@@ -1,6 +1,6 @@
 # Current State
 
-**Last Updated:** 2026-01-10 (EOS sesja 7)
+**Last Updated:** 2026-01-10 (EOS sesja 9)
 **Updated By:** Developer (main)
 
 ---
@@ -16,6 +16,27 @@
 ## Active Work
 
 Brak - sesja zamknięta
+
+### Sesja 9 - Optymalizacja + Todo Lista (2026-01-10)
+
+**Wykonano:**
+- ✅ **Optymalizacja** - zakładka na ekranie Przychody z tabami
+- ✅ CRUD dla businessCosts (koszty firmowe) w data-manager.js
+- ✅ Modal dodawania/edycji kosztów firmowych
+- ✅ Kalkulacja oszczędności + nadchodzące zakupy
+- ✅ **Todo Lista Domowa** - 6-ta zakładka w nawigacji
+- ✅ CRUD dla todos w data-manager.js
+- ✅ Modal dodawania/edycji zadań
+- ✅ Filtr po właścicielu (mąż/żona/oboje)
+- ✅ Bottom nav: 5 → 6 zakładek
+
+**Pliki zmienione:**
+- `index.html` - tabs, screen-todos, 2 modale, 6-ta nav
+- `css/main.css` - style tabs, todo-item, cost-item
+- `js/app.js` - renderOptimization, renderTodos, formularze
+- `js/data-manager.js` - CRUD businessCosts + todos
+
+---
 
 ### Sesja 7 - Dev Environment + Bug Fixes (2026-01-10)
 

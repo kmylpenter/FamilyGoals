@@ -9,7 +9,9 @@ class DataManager {
     categories: 'familygoals_categories',
     settings: 'familygoals_settings',
     achievements: 'familygoals_achievements',
-    lastSync: 'familygoals_last_sync'
+    lastSync: 'familygoals_last_sync',
+    businessCosts: 'familygoals_business_costs',
+    todos: 'familygoals_todos'
   };
 
   constructor() {
@@ -958,6 +960,296 @@ class DataManager {
 
   getAllAlerts() {
     return [...this.getBudgetAlerts(), ...this.getGoalAlerts()];
+  }
+
+  // === BUSINESS COSTS (Optymalizacja) ===
+
+  getBusinessCosts() {
+    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.businessCosts);
+    return data ? JSON.parse(data) : [];
+  }
+
+  addBusinessCost(cost) {
+    const costs = this.getBusinessCosts();
+    const newCost = {
+      id: this._generateId(),
+      createdAt: new Date().toISOString(),
+      lastPurchaseDate: null,
+      ...cost
+    };
+
+    // Calculate next due date for recurring
+    if (newCost.isRecurring && newCost.recurringMonths) {
+      newCost.nextDueDate = this._calculateNextDueDate(new Date(), newCost.recurringMonths);
+    }
+
+    costs.push(newCost);
+    this._saveBusinessCosts(costs);
+    return newCost;
+  }
+
+  updateBusinessCost(id, updates) {
+    const costs = this.getBusinessCosts();
+    const index = costs.findIndex(c => c.id === id);
+    if (index === -1) return null;
+
+    costs[index] = { ...costs[index], ...updates };
+
+    // Recalculate next due if recurring changed
+    if (updates.isRecurring !== undefined || updates.recurringMonths) {
+      if (costs[index].isRecurring && costs[index].recurringMonths) {
+        const baseDate = costs[index].lastPurchaseDate ? new Date(costs[index].lastPurchaseDate) : new Date();
+        costs[index].nextDueDate = this._calculateNextDueDate(baseDate, costs[index].recurringMonths);
+      } else {
+        costs[index].nextDueDate = null;
+      }
+    }
+
+    this._saveBusinessCosts(costs);
+    return costs[index];
+  }
+
+  deleteBusinessCost(id) {
+    const costs = this.getBusinessCosts();
+    this._saveBusinessCosts(costs.filter(c => c.id !== id));
+  }
+
+  /**
+   * Mark business cost as purchased (updates lastPurchaseDate and nextDueDate)
+   */
+  markBusinessCostPurchased(id) {
+    const costs = this.getBusinessCosts();
+    const cost = costs.find(c => c.id === id);
+    if (!cost) return null;
+
+    cost.lastPurchaseDate = new Date().toISOString();
+
+    if (cost.isRecurring && cost.recurringMonths) {
+      cost.nextDueDate = this._calculateNextDueDate(new Date(), cost.recurringMonths);
+    }
+
+    this._saveBusinessCosts(costs);
+    return cost;
+  }
+
+  /**
+   * Get upcoming business costs (due within next month)
+   */
+  getUpcomingBusinessCosts() {
+    const costs = this.getBusinessCosts();
+    const now = new Date();
+    const nextMonth = new Date(now);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+    return costs.filter(c => {
+      if (!c.nextDueDate) return false;
+      const dueDate = new Date(c.nextDueDate);
+      return dueDate <= nextMonth;
+    }).sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
+  }
+
+  /**
+   * Calculate monthly savings from business costs
+   */
+  calculateBusinessSavings() {
+    const costs = this.getBusinessCosts();
+    let monthlySavings = 0;
+
+    costs.forEach(cost => {
+      if (cost.isRecurring && cost.recurringMonths) {
+        // Distribute cost over recurring period
+        monthlySavings += cost.amount / cost.recurringMonths;
+      } else {
+        // One-time costs count for this month only if purchased this month
+        if (cost.lastPurchaseDate) {
+          const purchaseDate = new Date(cost.lastPurchaseDate);
+          const now = new Date();
+          if (purchaseDate.getMonth() === now.getMonth() &&
+              purchaseDate.getFullYear() === now.getFullYear()) {
+            monthlySavings += cost.amount;
+          }
+        }
+      }
+    });
+
+    return Math.round(monthlySavings);
+  }
+
+  /**
+   * Get total business costs (lifetime)
+   */
+  getTotalBusinessCosts() {
+    const costs = this.getBusinessCosts();
+    return costs.reduce((sum, c) => {
+      // Count only purchased items
+      if (c.lastPurchaseDate) {
+        return sum + c.amount;
+      }
+      return sum;
+    }, 0);
+  }
+
+  _saveBusinessCosts(costs) {
+    localStorage.setItem(this.constructor.STORAGE_KEYS.businessCosts, JSON.stringify(costs));
+  }
+
+  _calculateNextDueDate(fromDate, months) {
+    const date = new Date(fromDate);
+    date.setMonth(date.getMonth() + months);
+    return date.toISOString();
+  }
+
+  // === TODOS (Zadania domowe) ===
+
+  getTodos() {
+    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.todos);
+    return data ? JSON.parse(data) : [];
+  }
+
+  addTodo(todo) {
+    const todos = this.getTodos();
+    const newTodo = {
+      id: this._generateId(),
+      createdAt: new Date().toISOString(),
+      isCompleted: false,
+      lastCompletedDate: null,
+      nextDueDate: new Date().toISOString(), // Due today by default
+      priority: 'normal',
+      ...todo
+    };
+
+    todos.push(newTodo);
+    this._saveTodos(todos);
+    return newTodo;
+  }
+
+  updateTodo(id, updates) {
+    const todos = this.getTodos();
+    const index = todos.findIndex(t => t.id === id);
+    if (index === -1) return null;
+
+    todos[index] = { ...todos[index], ...updates };
+    this._saveTodos(todos);
+    return todos[index];
+  }
+
+  deleteTodo(id) {
+    const todos = this.getTodos();
+    this._saveTodos(todos.filter(t => t.id !== id));
+  }
+
+  /**
+   * Complete a todo - handles both one-time and recurring
+   */
+  completeTodo(id) {
+    const todos = this.getTodos();
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return null;
+
+    const now = new Date();
+    todo.lastCompletedDate = now.toISOString();
+
+    if (todo.isRecurring && todo.recurringDays) {
+      // Reset for next occurrence
+      todo.isCompleted = false;
+      const nextDue = new Date(now);
+      nextDue.setDate(nextDue.getDate() + todo.recurringDays);
+      todo.nextDueDate = nextDue.toISOString();
+    } else {
+      // One-time task - mark as done
+      todo.isCompleted = true;
+    }
+
+    this._saveTodos(todos);
+    return todo;
+  }
+
+  /**
+   * Uncomplete a todo (undo)
+   */
+  uncompleteTodo(id) {
+    const todos = this.getTodos();
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return null;
+
+    todo.isCompleted = false;
+    todo.lastCompletedDate = null;
+    todo.nextDueDate = new Date().toISOString(); // Reset to today
+
+    this._saveTodos(todos);
+    return todo;
+  }
+
+  /**
+   * Get todos filtered by owner
+   */
+  getTodosByOwner(owner) {
+    if (!owner || owner === 'all') return this.getTodos();
+    return this.getTodos().filter(t => t.owner === owner || t.owner === 'both');
+  }
+
+  /**
+   * Get pending todos (not completed, due today or earlier)
+   */
+  getPendingTodos(owner = 'all') {
+    const todos = this.getTodosByOwner(owner);
+    const now = new Date();
+    now.setHours(23, 59, 59, 999); // End of today
+
+    return todos.filter(t => {
+      if (t.isCompleted) return false;
+      const dueDate = new Date(t.nextDueDate);
+      return dueDate <= now;
+    }).sort((a, b) => {
+      // Sort by priority (high first), then by due date
+      const priorityOrder = { high: 0, normal: 1, low: 2 };
+      const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (pDiff !== 0) return pDiff;
+      return new Date(a.nextDueDate) - new Date(b.nextDueDate);
+    });
+  }
+
+  /**
+   * Get completed todos (for display)
+   */
+  getCompletedTodos(owner = 'all') {
+    const todos = this.getTodosByOwner(owner);
+    return todos.filter(t => t.isCompleted);
+  }
+
+  /**
+   * Check if todo is due (today or overdue)
+   */
+  isTodoDue(todo) {
+    if (todo.isCompleted) return false;
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    return new Date(todo.nextDueDate) <= now;
+  }
+
+  /**
+   * Get todo stats
+   */
+  getTodoStats(owner = 'all') {
+    const todos = this.getTodosByOwner(owner);
+    const pending = this.getPendingTodos(owner);
+    const completed = this.getCompletedTodos(owner);
+
+    return {
+      total: todos.length,
+      pending: pending.length,
+      completed: completed.length,
+      overdue: pending.filter(t => {
+        const dueDate = new Date(t.nextDueDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return dueDate < today;
+      }).length
+    };
+  }
+
+  _saveTodos(todos) {
+    localStorage.setItem(this.constructor.STORAGE_KEYS.todos, JSON.stringify(todos));
   }
 
   // === EXPORT/IMPORT ===

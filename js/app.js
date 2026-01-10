@@ -187,6 +187,12 @@
     setupExpenseForm();
     setupGoalForm();
     setupPaymentForm();
+    setupBusinessCostForm();
+    setupTodoForm();
+
+    // Tabs
+    setupIncomeTabs();
+    setupTodoFilter();
 
     // Settings
     setupSettings();
@@ -1572,10 +1578,460 @@
     modal.classList.add('active');
   }
 
+  // ============ INCOME TABS ============
+  let currentIncomeTab = 'income';
+
+  function setupIncomeTabs() {
+    const tabsContainer = $('income-tabs');
+    if (!tabsContainer) return;
+
+    tabsContainer.addEventListener('click', (e) => {
+      const tab = e.target.closest('.tab');
+      if (!tab) return;
+
+      const tabName = tab.dataset.tab;
+      switchIncomeTab(tabName);
+    });
+  }
+
+  function switchIncomeTab(tabName) {
+    currentIncomeTab = tabName;
+
+    // Update tab buttons
+    $$('#income-tabs .tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === tabName);
+      t.setAttribute('aria-selected', t.dataset.tab === tabName);
+    });
+
+    // Show/hide content
+    const incomeContent = $('income-content');
+    const optimizationContent = $('optimization-content');
+
+    if (tabName === 'income') {
+      incomeContent.style.display = '';
+      optimizationContent.style.display = 'none';
+      // Update FAB and add button
+      $('income-fab').onclick = () => openModal('modal-income');
+      $('income-add-btn').onclick = () => openModal('modal-income');
+    } else {
+      incomeContent.style.display = 'none';
+      optimizationContent.style.display = '';
+      // Update FAB and add button for optimization
+      $('income-fab').onclick = () => openModal('modal-business-cost');
+      $('income-add-btn').onclick = () => openModal('modal-business-cost');
+      renderOptimization();
+    }
+  }
+
+  // ============ OPTIMIZATION (Business Costs) ============
+  let editingCostId = null;
+
+  function renderOptimization() {
+    const savings = dataManager.calculateBusinessSavings();
+    const total = dataManager.getTotalBusinessCosts();
+    const costs = dataManager.getBusinessCosts();
+    const upcoming = dataManager.getUpcomingBusinessCosts();
+
+    // Update summary
+    $('business-savings').textContent = formatMoney(savings) + '/mies.';
+    $('business-total').textContent = formatMoney(total);
+
+    // Render upcoming purchases
+    const upcomingList = $('upcoming-purchases');
+    if (upcoming.length === 0) {
+      upcomingList.innerHTML = '<div class="empty-state">Brak nadchodzących zakupów</div>';
+    } else {
+      upcomingList.innerHTML = upcoming.map(c => renderCostItem(c, true)).join('');
+    }
+
+    // Render all costs
+    const costsList = $('business-costs-list');
+    if (costs.length === 0) {
+      costsList.innerHTML = '<div class="empty-state">Dodaj pierwszy koszt firmowy</div>';
+    } else {
+      costsList.innerHTML = costs.map(c => renderCostItem(c, false)).join('');
+    }
+  }
+
+  function renderCostItem(cost, showDue) {
+    const categoryIcons = {
+      subscriptions: '📱',
+      equipment: '💻',
+      supplies: '📦',
+      other: '📋'
+    };
+    const icon = categoryIcons[cost.category] || '📋';
+    const recurring = cost.isRecurring ? `🔄 co ${cost.recurringMonths} mies.` : '1️⃣ jednorazowy';
+
+    let dueHtml = '';
+    if (showDue && cost.nextDueDate) {
+      const dueDate = new Date(cost.nextDueDate);
+      const now = new Date();
+      const diffDays = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+      const dueClass = diffDays <= 7 ? 'soon' : '';
+      dueHtml = `<span class="cost-due ${dueClass}">${diffDays <= 0 ? 'Teraz!' : `za ${diffDays} dni`}</span>`;
+    }
+
+    return `
+      <div class="cost-item" data-cost-id="${cost.id}">
+        <div class="cost-icon">${icon}</div>
+        <div class="cost-content">
+          <div class="cost-name">${cost.name}</div>
+          <div class="cost-meta">${recurring}${cost.note ? ' • ' + cost.note : ''}</div>
+        </div>
+        <div class="cost-amount">${formatMoney(cost.amount)}</div>
+        ${dueHtml}
+        <div class="cost-actions">
+          ${showDue ? `<button class="cost-buy-btn" data-buy-id="${cost.id}">✓ Kupione</button>` : ''}
+          <button class="delete-btn" data-id="${cost.id}" data-type="cost">✕</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function setupBusinessCostForm() {
+    const form = $('business-cost-form');
+    if (!form) return;
+
+    // Type chips toggle recurring options
+    const typeChips = $('cost-type-chips');
+    typeChips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+
+      typeChips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+
+      const isRecurring = chip.dataset.value === 'recurring';
+      $('cost-recurring-options').style.display = isRecurring ? '' : 'none';
+    });
+
+    // All chip groups
+    ['cost-category-chips', 'cost-months-chips'].forEach(id => {
+      const container = $(id);
+      if (!container) return;
+      container.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+
+    // Form submit
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const name = $('cost-name').value.trim();
+      const amount = parseFloat($('cost-amount').value) || 0;
+      const category = $('cost-category-chips').querySelector('.chip.active')?.dataset.value || 'other';
+      const isRecurring = $('cost-type-chips').querySelector('.chip.active')?.dataset.value === 'recurring';
+      const recurringMonths = isRecurring ? parseInt($('cost-months-chips').querySelector('.chip.active')?.dataset.value) || 1 : null;
+      const note = $('cost-note').value.trim();
+
+      if (!name || amount <= 0) return;
+
+      const costData = { name, amount, category, isRecurring, recurringMonths, note };
+
+      if (editingCostId) {
+        dataManager.updateBusinessCost(editingCostId, costData);
+        editingCostId = null;
+      } else {
+        dataManager.addBusinessCost(costData);
+      }
+
+      closeAllModals();
+      renderOptimization();
+      Toast.success('Zapisano!', 'Koszt firmowy został zapisany');
+    });
+
+    // Handle cost item clicks (edit and buy)
+    document.addEventListener('click', (e) => {
+      // Buy button
+      if (e.target.dataset.buyId) {
+        e.stopPropagation();
+        dataManager.markBusinessCostPurchased(e.target.dataset.buyId);
+        renderOptimization();
+        Toast.success('Oznaczono!', 'Koszt oznaczony jako kupiony');
+        return;
+      }
+
+      // Delete cost
+      if (e.target.dataset.type === 'cost') {
+        e.stopPropagation();
+        dataManager.deleteBusinessCost(e.target.dataset.id);
+        renderOptimization();
+        return;
+      }
+
+      // Edit cost
+      const costItem = e.target.closest('.cost-item');
+      if (costItem && !e.target.closest('button')) {
+        editBusinessCost(costItem.dataset.costId);
+      }
+    });
+  }
+
+  function editBusinessCost(id) {
+    const cost = dataManager.getBusinessCosts().find(c => c.id === id);
+    if (!cost) return;
+
+    editingCostId = id;
+
+    // Fill form
+    $('cost-name').value = cost.name;
+    $('cost-amount').value = cost.amount;
+    $('cost-note').value = cost.note || '';
+
+    // Set category chip
+    $('cost-category-chips').querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.value === cost.category);
+    });
+
+    // Set type chip
+    $('cost-type-chips').querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.value === (cost.isRecurring ? 'recurring' : 'oneoff'));
+    });
+
+    // Show/hide recurring options
+    $('cost-recurring-options').style.display = cost.isRecurring ? '' : 'none';
+
+    if (cost.isRecurring && cost.recurringMonths) {
+      $('cost-months-chips').querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('active', parseInt(c.dataset.value) === cost.recurringMonths);
+      });
+    }
+
+    // Update modal title
+    $('modal-business-cost').querySelector('.modal-header h2').textContent = '💼 Edytuj koszt';
+
+    openModal('modal-business-cost');
+  }
+
+  // ============ TODOS ============
+  let editingTodoId = null;
+  let currentTodoFilter = 'all';
+
+  function setupTodoFilter() {
+    const filterContainer = $('todo-filter');
+    if (!filterContainer) return;
+
+    filterContainer.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+
+      filterContainer.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+
+      currentTodoFilter = chip.dataset.filter;
+      renderTodos();
+    });
+  }
+
+  function renderTodos() {
+    const pending = dataManager.getPendingTodos(currentTodoFilter);
+    const completed = dataManager.getCompletedTodos(currentTodoFilter);
+    const stats = dataManager.getTodoStats(currentTodoFilter);
+
+    // Update stats
+    $('todo-stats').innerHTML = `
+      <span class="stat pending">${stats.pending} do zrobienia</span>
+      <span class="stat completed">${stats.completed} ukończonych</span>
+    `;
+
+    // Render pending
+    const pendingList = $('todos-pending');
+    if (pending.length === 0) {
+      pendingList.innerHTML = '<div class="empty-state">Brak zadań do zrobienia</div>';
+    } else {
+      pendingList.innerHTML = pending.map(t => renderTodoItem(t)).join('');
+    }
+
+    // Render completed
+    const completedList = $('todos-completed');
+    if (completed.length === 0) {
+      completedList.innerHTML = '<div class="empty-state">Brak ukończonych zadań</div>';
+    } else {
+      completedList.innerHTML = completed.map(t => renderTodoItem(t)).join('');
+    }
+  }
+
+  function renderTodoItem(todo) {
+    const ownerIcons = { wife: '👩', husband: '👨', both: '👫' };
+    const ownerIcon = ownerIcons[todo.owner] || '👫';
+
+    const priorityLabels = { high: 'Wysoki', normal: 'Normalny', low: 'Niski' };
+
+    let recurringText = '';
+    if (todo.isRecurring && todo.recurringDays) {
+      const days = todo.recurringDays;
+      if (days === 1) recurringText = 'codziennie';
+      else if (days === 7) recurringText = 'co tydzień';
+      else if (days === 14) recurringText = 'co 2 tyg.';
+      else if (days === 30) recurringText = 'co miesiąc';
+      else recurringText = `co ${days} dni`;
+    }
+
+    return `
+      <div class="todo-item ${todo.isCompleted ? 'completed' : ''}" data-todo-id="${todo.id}">
+        <button class="todo-checkbox ${todo.isCompleted ? 'checked' : ''}"
+                data-complete-id="${todo.id}" aria-label="Oznacz jako ${todo.isCompleted ? 'nieukończone' : 'ukończone'}">
+          ${todo.isCompleted ? '✓' : ''}
+        </button>
+        <div class="todo-content">
+          <div class="todo-title">${todo.title}</div>
+          <div class="todo-meta">
+            <span class="todo-owner">${ownerIcon}</span>
+            ${recurringText ? `<span class="todo-recurring">🔄 ${recurringText}</span>` : ''}
+            <span class="todo-priority ${todo.priority}">${priorityLabels[todo.priority]}</span>
+          </div>
+        </div>
+        <button class="todo-delete" data-id="${todo.id}" data-type="todo" aria-label="Usuń">✕</button>
+      </div>
+    `;
+  }
+
+  function setupTodoForm() {
+    const form = $('todo-form');
+    if (!form) return;
+
+    // Type chips toggle recurring options
+    const typeChips = $('todo-type-chips');
+    typeChips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+
+      typeChips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+
+      const isRecurring = chip.dataset.value === 'recurring';
+      $('todo-recurring-options').style.display = isRecurring ? '' : 'none';
+    });
+
+    // All chip groups
+    ['todo-owner-chips', 'todo-days-chips', 'todo-priority-chips'].forEach(id => {
+      const container = $(id);
+      if (!container) return;
+      container.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+
+    // Form submit
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const title = $('todo-title').value.trim();
+      const owner = $('todo-owner-chips').querySelector('.chip.active')?.dataset.value || 'both';
+      const isRecurring = $('todo-type-chips').querySelector('.chip.active')?.dataset.value === 'recurring';
+      const recurringDays = isRecurring ? parseInt($('todo-days-chips').querySelector('.chip.active')?.dataset.value) || 1 : null;
+      const priority = $('todo-priority-chips').querySelector('.chip.active')?.dataset.value || 'normal';
+
+      if (!title) return;
+
+      const todoData = { title, owner, isRecurring, recurringDays, priority };
+
+      if (editingTodoId) {
+        dataManager.updateTodo(editingTodoId, todoData);
+        editingTodoId = null;
+      } else {
+        dataManager.addTodo(todoData);
+      }
+
+      // Reset form
+      form.reset();
+      $('todo-recurring-options').style.display = 'none';
+      $('todo-type-chips').querySelectorAll('.chip').forEach((c, i) => c.classList.toggle('active', i === 0));
+      $('todo-owner-chips').querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === 'both'));
+      $('todo-priority-chips').querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === 'normal'));
+
+      closeAllModals();
+      renderTodos();
+      Toast.success('Zapisano!', 'Zadanie zostało dodane');
+    });
+
+    // Handle todo clicks
+    document.addEventListener('click', (e) => {
+      // Complete/uncomplete
+      if (e.target.dataset.completeId) {
+        e.stopPropagation();
+        const id = e.target.dataset.completeId;
+        const todo = dataManager.getTodos().find(t => t.id === id);
+        if (todo) {
+          if (todo.isCompleted) {
+            dataManager.uncompleteTodo(id);
+          } else {
+            dataManager.completeTodo(id);
+          }
+          renderTodos();
+        }
+        return;
+      }
+
+      // Delete todo
+      if (e.target.dataset.type === 'todo') {
+        e.stopPropagation();
+        dataManager.deleteTodo(e.target.dataset.id);
+        renderTodos();
+        return;
+      }
+
+      // Edit todo (click on item, not buttons)
+      const todoItem = e.target.closest('.todo-item');
+      if (todoItem && !e.target.closest('button')) {
+        editTodo(todoItem.dataset.todoId);
+      }
+    });
+  }
+
+  function editTodo(id) {
+    const todo = dataManager.getTodos().find(t => t.id === id);
+    if (!todo) return;
+
+    editingTodoId = id;
+
+    // Fill form
+    $('todo-title').value = todo.title;
+
+    // Set owner chip
+    $('todo-owner-chips').querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.value === todo.owner);
+    });
+
+    // Set type chip
+    $('todo-type-chips').querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.value === (todo.isRecurring ? 'recurring' : 'oneoff'));
+    });
+
+    // Show/hide recurring options
+    $('todo-recurring-options').style.display = todo.isRecurring ? '' : 'none';
+
+    if (todo.isRecurring && todo.recurringDays) {
+      $('todo-days-chips').querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('active', parseInt(c.dataset.value) === todo.recurringDays);
+      });
+    }
+
+    // Set priority chip
+    $('todo-priority-chips').querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.value === todo.priority);
+    });
+
+    // Update modal title
+    $('modal-todo').querySelector('.modal-header h2').textContent = '📋 Edytuj zadanie';
+
+    openModal('modal-todo');
+  }
+
   // ============ RESET EDIT STATE ============
   function resetEditState() {
     editingGoalId = null;
     editingSourceId = null;
+    editingCostId = null;
+    editingTodoId = null;
   }
 
   // ============ EXPOSE API ============
@@ -1592,7 +2048,10 @@
     clearData,
     renderAll,
     resetEditState,
-    dismissAlert
+    dismissAlert,
+    renderOptimization,
+    renderTodos,
+    switchIncomeTab
   };
 
   // ============ START ============

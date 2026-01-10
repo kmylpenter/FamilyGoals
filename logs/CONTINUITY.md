@@ -2,24 +2,17 @@
 
 ## Aktywna Sesja
 
-**Start:** 2026-01-10 (sesja 8)
-**Cel:** UI bugfixy + nowe funkcjonalności
+**Start:** 2026-01-10 (sesja 9)
+**Cel:** Optymalizacja + Todo Lista
 **Status:** COMPLETED
 **Urządzenie:** PC
-**Kontekst:** 90%
+**Kontekst:** -
 
 ### Zadania (ta sesja)
-- [x] Usunięto alerty (Studia Kasi, Remont)
-- [x] Usunięto poradę dnia
-- [x] Tytuł modalu "Edytuj cel" przy edycji
-- [x] Dynamiczne liczenie "Potrzeba: X zł/mies."
-- [x] CSS formularza - compact spacing, dwa pola obok siebie
-- [x] "Zobowiązania" zamiast "Przyszłe zobowiązania"
-- [x] Modal czyszczony przy zamykaniu
-- [x] Wykres liniowy przychody na Dashboard
-- [x] Pensja toggle z historią + przelew/gotówka
-- [ ] Optymalizacja - koszty firmowe (DO ZROBIENIA)
-- [ ] Todo lista domowa (DO ZROBIENIA)
+- [x] Faza 1: Data Manager - CRUD businessCosts + todos
+- [x] Faza 2: Optymalizacja - tabs na Income, modal, logika
+- [x] Faza 3: Todo Lista - ekran, modal, 6-ta nawigacja
+- [x] Faza 4: Testy i weryfikacja (częściowo - do kontynuacji)
 
 ---
 
