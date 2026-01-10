@@ -237,7 +237,8 @@ class DataManager {
       recordedAt: new Date().toISOString(),
       date: payment.date || new Date().toISOString(),
       amount: payment.amount,
-      note: payment.note || ''
+      note: payment.note || '',
+      type: payment.type || 'transfer' // 'transfer' lub 'cash'
     };
 
     source.payments = source.payments || [];
@@ -282,8 +283,25 @@ class DataManager {
       return !(d.getFullYear() === year && d.getMonth() === month);
     });
 
-    this.saveIncomeSources(sources);
+    this._saveIncomeSources(sources);
     this.emit('income-updated');
+  }
+
+  /**
+   * Usuń pojedynczą płatność
+   */
+  deletePayment(sourceId, paymentId) {
+    const sources = this.getIncomeSources();
+    const source = sources.find(s => s.id === sourceId);
+    if (!source || !source.payments) return false;
+
+    const idx = source.payments.findIndex(p => p.id === paymentId);
+    if (idx === -1) return false;
+
+    source.payments.splice(idx, 1);
+    this._saveIncomeSources(sources);
+    this.emit('income-updated');
+    return true;
   }
 
   /**

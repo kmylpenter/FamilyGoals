@@ -186,6 +186,7 @@
     setupIncomeForm();
     setupExpenseForm();
     setupGoalForm();
+    setupPaymentForm();
 
     // Settings
     setupSettings();
@@ -232,8 +233,6 @@
   // ============ RENDER FUNCTIONS ============
   function renderAll() {
     renderDashboard();
-    renderAlerts();
-    renderDailyTip();
     renderIncome();
     renderGoals();
     renderAchievements();
@@ -259,65 +258,6 @@
         ExpenseChart.render(sampleExpenses);
       } else {
         ExpenseChart.render(expenses);
-      }
-    }
-  }
-
-  function renderAlerts() {
-    const container = $('alerts-container');
-    if (!container) return;
-
-    // Get alerts from AlertManager if available
-    if (typeof AlertManager !== 'undefined') {
-      const alerts = AlertManager.getFormattedAlerts();
-
-      if (alerts.length === 0) {
-        container.innerHTML = '';
-        return;
-      }
-
-      container.innerHTML = alerts.slice(0, 3).map(alert => `
-        <div class="alert-item ${alert.type}" data-alert-id="${alert.categoryId || alert.goalId || ''}">
-          <span class="alert-icon">${alert.icon}</span>
-          <div class="alert-content">
-            <div class="alert-title">${alert.title}</div>
-            <div class="alert-message">${alert.message}</div>
-          </div>
-          ${alert.dismissable ? `<button class="alert-dismiss" onclick="app.dismissAlert(this.parentElement)">✕</button>` : ''}
-        </div>
-      `).join('');
-    }
-  }
-
-  function dismissAlert(alertEl) {
-    if (typeof AlertManager !== 'undefined') {
-      const alertId = alertEl.dataset.alertId;
-      // Find and dismiss the alert
-      const alerts = AlertManager.getFormattedAlerts();
-      const alert = alerts.find(a => (a.categoryId || a.goalId || '') === alertId);
-      if (alert) {
-        AlertManager.dismiss(alert);
-      }
-    }
-    alertEl.remove();
-  }
-
-  function renderDailyTip() {
-    const container = $('daily-tip');
-    if (!container) return;
-
-    // Get daily tip from AIAdvisor if available
-    if (aiAdvisor && typeof aiAdvisor.getDailyTip === 'function') {
-      const tip = aiAdvisor.getDailyTip();
-      if (tip) {
-        container.style.display = 'block';
-        container.innerHTML = `
-          <div class="tip-header">
-            <span class="tip-icon">💡</span>
-            <span class="tip-label">Porada dnia</span>
-          </div>
-          <div class="tip-content">${tip.text || tip}</div>
-        `;
       }
     }
   }
@@ -426,22 +366,25 @@
     if (!container) return;
 
     const trend = dataManager.getTrendByOwner(12);
-    const hasData = trend.some(t => t.totalIncome > 0);
+    if (!trend || trend.length === 0) {
+      container.innerHTML = '<div class="empty-state">Brak danych o przychodach</div>';
+      return;
+    }
 
     // Chart dimensions
     const width = 320;
-    const height = 140;
-    const padding = { top: 20, right: 10, bottom: 30, left: 10 };
+    const height = 120;
+    const padding = { top: 15, right: 10, bottom: 25, left: 10 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
-    // Calculate max for scaling
+    // Calculate max for scaling (separate lines for wife and husband)
     const maxIncome = Math.max(
-      neededIncome,
-      ...trend.map(t => t.totalIncome)
+      1,
+      ...trend.map(t => Math.max(t.wifeIncome || 0, t.husbandIncome || 0))
     );
 
-    // Helper to calculate Y position (inverted because SVG y=0 is top)
+    // Helper to calculate Y position
     const getY = (value) => {
       const percent = maxIncome > 0 ? value / maxIncome : 0;
       return padding.top + chartHeight * (1 - percent);
@@ -449,98 +392,53 @@
 
     // Helper to calculate X position
     const getX = (index) => {
-      return padding.left + (index / (trend.length - 1)) * chartWidth;
+      return padding.left + (index / Math.max(1, trend.length - 1)) * chartWidth;
     };
 
-    // Build area paths
-    const wifePoints = trend.map((t, i) => `${getX(i)},${getY(t.wifeIncome)}`);
-    const husbandPoints = trend.map((t, i) => `${getX(i)},${getY(t.wifeIncome + t.husbandIncome)}`);
+    // Line paths (separate lines for wife and husband)
+    const wifeLine = `M ${trend.map((t, i) => `${getX(i)},${getY(t.wifeIncome || 0)}`).join(' L ')}`;
+    const husbandLine = `M ${trend.map((t, i) => `${getX(i)},${getY(t.husbandIncome || 0)}`).join(' L ')}`;
 
-    // Area path for wife (bottom area - from baseline to wife income)
-    const wifeAreaPath = `
-      M ${getX(0)},${getY(0)}
-      ${trend.map((t, i) => `L ${getX(i)},${getY(t.wifeIncome)}`).join(' ')}
-      L ${getX(trend.length - 1)},${getY(0)}
-      Z
-    `;
+    // Month labels (show every 2nd or 3rd for space)
+    const step = trend.length > 6 ? 2 : 1;
+    const labels = trend.filter((t, i) => i % step === 0 || i === trend.length - 1).map((t, idx) => {
+      const origIdx = trend.indexOf(t);
+      return { x: getX(origIdx), text: t.monthName };
+    });
 
-    // Area path for husband (stacked on top of wife)
-    const husbandAreaPath = `
-      M ${getX(0)},${getY(trend[0].wifeIncome)}
-      ${trend.map((t, i) => `L ${getX(i)},${getY(t.wifeIncome + t.husbandIncome)}`).join(' ')}
-      L ${getX(trend.length - 1)},${getY(trend[trend.length - 1].wifeIncome)}
-      ${trend.slice().reverse().map((t, i) => `L ${getX(trend.length - 1 - i)},${getY(t.wifeIncome)}`).join(' ')}
-      Z
-    `;
-
-    // Line for wife
-    const wifeLine = `M ${wifePoints.join(' L ')}`;
-
-    // Line for total (husband top)
-    const totalLine = `M ${husbandPoints.join(' L ')}`;
-
-    // Needed income line (dashed)
-    const neededY = getY(neededIncome);
-
-    // Month labels
-    const labels = trend.map((t, i) => ({
-      x: getX(i),
-      text: t.monthName
-    }));
-
-    // Build SVG
+    // Build SVG - simple line chart
     container.innerHTML = `
-      <div class="area-chart-container">
-        <svg viewBox="0 0 ${width} ${height}" class="area-chart">
-          <defs>
-            <linearGradient id="wifeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:var(--peach);stop-opacity:0.8"/>
-              <stop offset="100%" style="stop-color:var(--peach);stop-opacity:0.2"/>
-            </linearGradient>
-            <linearGradient id="husbandGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color:var(--mint);stop-opacity:0.8"/>
-              <stop offset="100%" style="stop-color:var(--mint);stop-opacity:0.2"/>
-            </linearGradient>
-          </defs>
-
-          <!-- Needed income line (dashed) -->
-          <line x1="${padding.left}" y1="${neededY}" x2="${width - padding.right}" y2="${neededY}"
-                stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.7"/>
-
-          <!-- Wife area (bottom) -->
-          <path d="${wifeAreaPath}" fill="url(#wifeGradient)" class="area-wife"/>
-
-          <!-- Husband area (stacked) -->
-          <path d="${husbandAreaPath}" fill="url(#husbandGradient)" class="area-husband"/>
+      <div class="line-chart-container">
+        <svg viewBox="0 0 ${width} ${height}" class="line-chart">
+          <!-- Grid lines -->
+          <line x1="${padding.left}" y1="${getY(maxIncome)}" x2="${width - padding.right}" y2="${getY(maxIncome)}"
+                stroke="var(--bg-subtle)" stroke-width="1"/>
+          <line x1="${padding.left}" y1="${getY(maxIncome/2)}" x2="${width - padding.right}" y2="${getY(maxIncome/2)}"
+                stroke="var(--bg-subtle)" stroke-width="1"/>
+          <line x1="${padding.left}" y1="${getY(0)}" x2="${width - padding.right}" y2="${getY(0)}"
+                stroke="var(--bg-subtle)" stroke-width="1"/>
 
           <!-- Wife line -->
           <path d="${wifeLine}" fill="none" stroke="var(--peach)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-          <!-- Total line -->
-          <path d="${totalLine}" fill="none" stroke="var(--mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Husband line -->
+          <path d="${husbandLine}" fill="none" stroke="var(--mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 
           <!-- Data points -->
           ${trend.map((t, i) => `
-            <circle cx="${getX(i)}" cy="${getY(t.wifeIncome)}" r="4" fill="var(--peach)" stroke="white" stroke-width="1.5"/>
-            <circle cx="${getX(i)}" cy="${getY(t.wifeIncome + t.husbandIncome)}" r="4" fill="var(--mint)" stroke="white" stroke-width="1.5"/>
+            <circle cx="${getX(i)}" cy="${getY(t.wifeIncome || 0)}" r="3" fill="var(--peach)" stroke="white" stroke-width="1"/>
+            <circle cx="${getX(i)}" cy="${getY(t.husbandIncome || 0)}" r="3" fill="var(--mint)" stroke="white" stroke-width="1"/>
           `).join('')}
 
           <!-- Month labels -->
           ${labels.map(l => `
-            <text x="${l.x}" y="${height - 8}" text-anchor="middle" class="chart-label">${l.text}</text>
+            <text x="${l.x}" y="${height - 5}" text-anchor="middle" class="chart-label">${l.text}</text>
           `).join('')}
-
-          <!-- Value for current month -->
-          <text x="${getX(trend.length - 1)}" y="${getY(trend[trend.length - 1].totalIncome) - 8}"
-                text-anchor="middle" class="chart-value">
-            ${Math.round(trend[trend.length - 1].totalIncome / 1000)}k
-          </text>
         </svg>
 
         <div class="chart-legend-inline">
           <span class="legend-item-inline"><span class="legend-dot" style="background:var(--peach)"></span>👩 Żona</span>
           <span class="legend-item-inline"><span class="legend-dot" style="background:var(--mint)"></span>👨 Mąż</span>
-          <span class="legend-item-inline"><span class="legend-dot" style="background:var(--warning);opacity:0.7"></span>Cel</span>
         </div>
       </div>
     `;
@@ -889,44 +787,156 @@
     };
   }
 
+  // Payment modal state
+  let currentPaymentSourceId = null;
+
   function toggleIncomeReceived(sourceId) {
+    openPaymentModal(sourceId);
+  }
+
+  function openPaymentModal(sourceId) {
     const { year, month } = getYearMonth();
     const summary = dataManager.getMonthlyIncomeSummary(year, month);
     const source = summary.sources.find(s => s.id === sourceId);
 
     if (!source) return;
 
-    if (source.status === 'complete') {
-      // Confirm before removing
-      if (confirm(`Cofnąć otrzymanie ${source.name}?`)) {
-        dataManager.clearPaymentsForMonth(sourceId, year, month);
-        if (typeof Toast !== 'undefined') {
-          Toast.info('Cofnięto', `${source.name} oznaczone jako oczekiwane`);
-        }
-        renderAll();
-      }
-    } else {
-      // Ask for actual amount received (default to expected)
-      const inputAmount = prompt(
-        `Ile otrzymano za ${source.name}?\n(Oczekiwane: ${formatMoney(source.expected)})`,
-        source.expected
-      );
+    currentPaymentSourceId = sourceId;
 
-      if (inputAmount !== null) {
-        const amount = parseFloat(inputAmount) || source.expected;
-        dataManager.recordPayment(sourceId, {
-          amount: amount,
-          date: new Date().toISOString(),
-          note: amount !== source.expected
-            ? `Otrzymano ${formatMoney(amount)} (oczekiwane: ${formatMoney(source.expected)})`
-            : `Otrzymano ${formatMonth(currentMonth)}`
-        });
-        if (typeof Toast !== 'undefined') {
-          Toast.success('Otrzymano!', `${source.name}: ${formatMoney(amount)}`);
+    // Update modal header info
+    const sourceInfo = $('payment-source-info');
+    if (sourceInfo) {
+      sourceInfo.querySelector('.payment-source-name').textContent = source.name;
+      sourceInfo.querySelector('.payment-source-expected').textContent =
+        `Oczekiwane: ${formatMoney(source.expected)} | Otrzymane: ${formatMoney(source.totalReceived || 0)}`;
+    }
+
+    // Render payment history
+    renderPaymentHistory(sourceId, year, month);
+
+    // Reset form
+    const amountInput = $('payment-amount');
+    if (amountInput) amountInput.value = source.expected;
+
+    // Reset type chips
+    const typeChips = $('payment-type-chips');
+    if (typeChips) {
+      typeChips.querySelectorAll('.chip').forEach((c, i) => {
+        c.classList.toggle('active', i === 0);
+      });
+    }
+
+    // Open modal
+    const modal = $('modal-payment');
+    if (modal) modal.classList.add('active');
+  }
+
+  function renderPaymentHistory(sourceId, year, month) {
+    const container = $('payment-history');
+    if (!container) return;
+
+    const payments = dataManager.getPaymentsByMonth(sourceId, year, month);
+
+    if (payments.length === 0) {
+      container.innerHTML = '<div class="payment-history-empty">Brak wpłat w tym miesiącu</div>';
+      return;
+    }
+
+    container.innerHTML = payments.map(p => {
+      const date = new Date(p.date);
+      const typeIcon = p.type === 'cash' ? '💵' : '💳';
+      return `
+        <div class="payment-history-item">
+          <div class="payment-info">
+            <span class="payment-type">${typeIcon}</span>
+            <div>
+              <div class="payment-amount">${formatMoney(p.amount)}</div>
+              <div class="payment-date">${date.toLocaleDateString('pl-PL')}</div>
+            </div>
+          </div>
+          <button class="payment-delete" data-payment-id="${p.id}" title="Usuń wpłatę">✕</button>
+        </div>
+      `;
+    }).join('');
+
+    // Add delete handlers
+    container.querySelectorAll('.payment-delete').forEach(btn => {
+      btn.onclick = () => deletePayment(btn.dataset.paymentId);
+    });
+  }
+
+  function deletePayment(paymentId) {
+    if (!currentPaymentSourceId) return;
+
+    if (dataManager.deletePayment(currentPaymentSourceId, paymentId)) {
+      const { year, month } = getYearMonth();
+      renderPaymentHistory(currentPaymentSourceId, year, month);
+      renderAll();
+
+      // Update modal header
+      const summary = dataManager.getMonthlyIncomeSummary(year, month);
+      const source = summary.sources.find(s => s.id === currentPaymentSourceId);
+      if (source) {
+        const sourceInfo = $('payment-source-info');
+        if (sourceInfo) {
+          sourceInfo.querySelector('.payment-source-expected').textContent =
+            `Oczekiwane: ${formatMoney(source.expected)} | Otrzymane: ${formatMoney(source.totalReceived || 0)}`;
         }
-        renderAll();
+      }
+
+      if (typeof Toast !== 'undefined') {
+        Toast.info('Usunięto', 'Wpłata została usunięta');
       }
     }
+  }
+
+  function setupPaymentForm() {
+    const form = $('payment-form');
+    if (!form) return;
+
+    form.onsubmit = e => {
+      e.preventDefault();
+
+      if (!currentPaymentSourceId) return;
+
+      const amount = parseFloat($('payment-amount')?.value) || 0;
+      if (amount <= 0) {
+        alert('Wprowadź poprawną kwotę');
+        return;
+      }
+
+      const typeChip = $('payment-type-chips')?.querySelector('.chip.active');
+      const type = typeChip?.dataset.type || 'transfer';
+
+      dataManager.recordPayment(currentPaymentSourceId, {
+        amount,
+        type,
+        date: new Date().toISOString(),
+        note: `${type === 'cash' ? 'Gotówka' : 'Przelew'}: ${formatMoney(amount)}`
+      });
+
+      const { year, month } = getYearMonth();
+      renderPaymentHistory(currentPaymentSourceId, year, month);
+      renderAll();
+
+      // Update modal header
+      const summary = dataManager.getMonthlyIncomeSummary(year, month);
+      const source = summary.sources.find(s => s.id === currentPaymentSourceId);
+      if (source) {
+        const sourceInfo = $('payment-source-info');
+        if (sourceInfo) {
+          sourceInfo.querySelector('.payment-source-expected').textContent =
+            `Oczekiwane: ${formatMoney(source.expected)} | Otrzymane: ${formatMoney(source.totalReceived || 0)}`;
+        }
+      }
+
+      // Reset amount
+      $('payment-amount').value = '';
+
+      if (typeof Toast !== 'undefined') {
+        Toast.success('Dodano!', `Wpłata: ${formatMoney(amount)}`);
+      }
+    };
   }
 
   function deleteIncomeSource(id) {
@@ -990,6 +1000,47 @@
   function setupGoalForm() {
     const form = document.querySelector('#modal-goal form');
     if (!form) return;
+
+    // Dynamic calculation of monthly needs
+    function updateCalculatedNeeds() {
+      const targetEl = $('goal-target');
+      const savedEl = $('goal-saved');
+      const deadlineEl = $('goal-deadline');
+      const calcEl = document.querySelector('#modal-goal .calculated-value');
+
+      if (!calcEl) return;
+
+      const target = parseFloat(targetEl?.value) || 0;
+      const saved = parseFloat(savedEl?.value) || 0;
+      const deadline = deadlineEl?.value;
+
+      if (target <= 0 || !deadline) {
+        calcEl.textContent = '-- zł/mies.';
+        return;
+      }
+
+      const remaining = target - saved;
+      if (remaining <= 0) {
+        calcEl.textContent = '0 zł/mies.';
+        return;
+      }
+
+      const now = new Date();
+      const targetDate = new Date(deadline + '-01');
+      const monthsLeft = Math.max(1,
+        (targetDate.getFullYear() - now.getFullYear()) * 12 +
+        (targetDate.getMonth() - now.getMonth())
+      );
+
+      const monthly = Math.ceil(remaining / monthsLeft);
+      calcEl.textContent = formatMoney(monthly) + '/mies.';
+    }
+
+    // Attach listeners for dynamic calculation
+    ['goal-target', 'goal-saved', 'goal-deadline'].forEach(id => {
+      const el = $(id);
+      if (el) el.addEventListener('input', updateCalculatedNeeds);
+    });
 
     // Type switching - show/hide fields based on type
     const typeChips = $('goal-type-chips');
@@ -1088,10 +1139,9 @@
   }
 
   function toggleGoalFormType(isRecurring) {
-    // Pola dla jednorazowych
-    const savedGroup = $('goal-saved-group');
+    // Pola dla jednorazowych (teraz w form-row)
+    const amountsRow = $('goal-amounts-row');
     const deadlineGroup = $('goal-deadline-group');
-    const amountGroup = $('goal-amount-group');
 
     // Pola dla stałych
     const daterangeGroup = $('goal-daterange-group');
@@ -1099,9 +1149,8 @@
 
     if (isRecurring) {
       // Stały wydatek
-      if (savedGroup) savedGroup.style.display = 'none';
+      if (amountsRow) amountsRow.style.display = 'none';
       if (deadlineGroup) deadlineGroup.style.display = 'none';
-      if (amountGroup) amountGroup.style.display = 'none';
       if (daterangeGroup) daterangeGroup.style.display = 'block';
       if (monthlyGroup) monthlyGroup.style.display = 'block';
 
@@ -1117,9 +1166,8 @@
       }
     } else {
       // Jednorazowy cel
-      if (savedGroup) savedGroup.style.display = 'block';
+      if (amountsRow) amountsRow.style.display = '';
       if (deadlineGroup) deadlineGroup.style.display = 'block';
-      if (amountGroup) amountGroup.style.display = 'block';
       if (daterangeGroup) daterangeGroup.style.display = 'none';
       if (monthlyGroup) monthlyGroup.style.display = 'none';
     }

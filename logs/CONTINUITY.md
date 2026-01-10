@@ -2,17 +2,24 @@
 
 ## Aktywna Sesja
 
-**Start:** 2026-01-10
-**Cel:** Konfiguracja środowiska dev PC + analiza UI
+**Start:** 2026-01-10 (sesja 8)
+**Cel:** UI bugfixy + nowe funkcjonalności
 **Status:** COMPLETED
 **Urządzenie:** PC
-**Kontekst:** ~75%
+**Kontekst:** 90%
 
 ### Zadania (ta sesja)
-- [x] Konfiguracja środowiska dev (live-server, Puppeteer Pixel 7)
-- [x] Naprawa headless navigation (URL params deep linking)
-- [x] Kompletna analiza UI wszystkich ekranów
-- [x] Fix: Progress bary celów (getPlannedExpenses nie używał override)
+- [x] Usunięto alerty (Studia Kasi, Remont)
+- [x] Usunięto poradę dnia
+- [x] Tytuł modalu "Edytuj cel" przy edycji
+- [x] Dynamiczne liczenie "Potrzeba: X zł/mies."
+- [x] CSS formularza - compact spacing, dwa pola obok siebie
+- [x] "Zobowiązania" zamiast "Przyszłe zobowiązania"
+- [x] Modal czyszczony przy zamykaniu
+- [x] Wykres liniowy przychody na Dashboard
+- [x] Pensja toggle z historią + przelew/gotówka
+- [ ] Optymalizacja - koszty firmowe (DO ZROBIENIA)
+- [ ] Todo lista domowa (DO ZROBIENIA)
 
 ---
 

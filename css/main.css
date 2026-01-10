@@ -885,3 +885,90 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
+/* Form improvements - compact spacing */
+.form { gap: var(--s2); }
+.form-group { gap: 6px; }
+.form-group label { font-size: 0.9rem; }
+.form-group input { min-height: 48px; padding: var(--s1) var(--s2); }
+
+/* Two fields side by side */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2);
+}
+.form-row .form-group { margin-bottom: 0; }
+
+/* Button center fix */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--s2);
+}
+
+/* Calculated info compact */
+.calculated-info {
+  padding: var(--s2);
+  margin-top: 0;
+}
+
+/* Payment modal */
+.payment-source-info {
+  padding: var(--s2);
+  background: var(--bg-subtle);
+  border-radius: var(--r1);
+  margin-bottom: var(--s2);
+}
+.payment-source-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.payment-source-expected {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+.payment-history {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: var(--s2);
+}
+.payment-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s1) var(--s2);
+  background: var(--bg-card);
+  border-radius: var(--r1);
+  margin-bottom: var(--s1);
+}
+.payment-history-item .payment-info {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+.payment-history-item .payment-type {
+  font-size: 1.2rem;
+}
+.payment-history-item .payment-amount {
+  font-weight: 600;
+  color: var(--mint-dark);
+}
+.payment-history-item .payment-date {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+.payment-history-item .payment-delete {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-soft);
+}
+.payment-history-empty {
+  text-align: center;
+  padding: var(--s3);
+  color: var(--text-soft);
+}

@@ -54,12 +54,6 @@
       <span class="month-badge" id="month-badge">Grudzień 2025</span>
     </header>
 
-    <!-- Alerts Section -->
-    <div id="alerts-container" class="alerts-container"></div>
-
-    <!-- Daily Tip Section -->
-    <div id="daily-tip" class="daily-tip-card" style="display: none;"></div>
-
     <!-- Savings Hero -->
     <div class="income-hero">
       <div class="income-hero-title">🎯 Do odłożenia w tym miesiącu</div>
@@ -131,12 +125,8 @@
       </div>
     </div>
 
-    <!-- ARCHIVED: Timeline moved to Income screen for compact dashboard
-    <h2 class="section-title">📈 Historia zarobków</h2>
-    <div class="timeline-card" id="timeline-chart-container">
-      <div class="timeline-chart" id="timeline-chart"></div>
-    </div>
-    -->
+    <h2 class="section-title">📈 Przychody</h2>
+    <div class="timeline-card" id="timeline-chart-container"></div>
 
     <button type="button" class="fab" onclick="openModal('modal-add')" aria-label="Dodaj nowy element">+</button>
   </div>
@@ -269,7 +259,7 @@
       </div>
     </div>
 
-    <h2 class="section-title">Przyszłe zobowiązania</h2>
+    <h2 class="section-title">Zobowiązania</h2>
     <div class="list">
       <div class="goal-item future" onclick="openModal('modal-goal')" tabindex="0" role="button" aria-label="Edytuj cel: Rata kredytu">
         <div class="goal-item-header">
@@ -547,13 +537,15 @@
             <button type="button" class="chip" data-type="recurring">🔄 Stały wydatek</button>
           </div>
         </div>
-        <div class="form-group" id="goal-amount-group">
-          <label>Docelowa kwota (zł)</label>
-          <input type="number" id="goal-target" placeholder="10000">
-        </div>
-        <div class="form-group" id="goal-saved-group">
-          <label>Już zebrano (zł)</label>
-          <input type="number" id="goal-saved" placeholder="0" value="0">
+        <div class="form-row" id="goal-amounts-row">
+          <div class="form-group" id="goal-amount-group">
+            <label>Docelowa kwota (zł)</label>
+            <input type="number" id="goal-target" placeholder="10000">
+          </div>
+          <div class="form-group" id="goal-saved-group">
+            <label>Już zebrano (zł)</label>
+            <input type="number" id="goal-saved" placeholder="0" value="0">
+          </div>
         </div>
         <!-- Dla jednorazowych: termin -->
         <div class="form-group" id="goal-deadline-group">
@@ -595,6 +587,39 @@
           <span class="calculated-value">1 250 zł/mies.</span>
         </div>
         <button type="submit" class="btn-primary sticky">💾 Zapisz</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Payment (historia wplat) -->
+  <div id="modal-payment" class="modal" role="dialog" aria-label="Zarządzanie wpłatami" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>💵 Wpłaty</h2>
+        <button type="button" class="modal-close" onclick="closeAllModals()" aria-label="Zamknij">✕</button>
+      </div>
+      <div class="payment-source-info" id="payment-source-info">
+        <div class="payment-source-name"></div>
+        <div class="payment-source-expected"></div>
+      </div>
+      <div class="payment-history" id="payment-history">
+        <!-- Rendered by JS -->
+      </div>
+      <form class="form" id="payment-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Kwota (zł)</label>
+            <input type="number" id="payment-amount" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Typ</label>
+            <div class="chips" id="payment-type-chips">
+              <button type="button" class="chip active" data-type="transfer">💳 Przelew</button>
+              <button type="button" class="chip" data-type="cash">💵 Gotówka</button>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary">💾 Dodaj wpłatę</button>
       </form>
     </div>
   </div>
@@ -743,9 +768,56 @@
       }
       // Reset modal titles
       var goalModal = document.getElementById('modal-goal');
-      if (goalModal) goalModal.querySelector('.modal-header h2').textContent = '🎯 Nowy cel';
+      if (goalModal) {
+        goalModal.querySelector('.modal-header h2').textContent = '🎯 Nowy cel';
+        // Reset goal form
+        var form = goalModal.querySelector('form');
+        if (form) {
+          form.querySelector('input[type="text"]').value = '';
+          var target = document.getElementById('goal-target');
+          if (target) target.value = '';
+          var saved = document.getElementById('goal-saved');
+          if (saved) saved.value = '0';
+          var deadline = document.getElementById('goal-deadline');
+          if (deadline) deadline.value = '';
+          var startDate = document.getElementById('goal-start-date');
+          if (startDate) startDate.value = '';
+          var endDate = document.getElementById('goal-end-date');
+          if (endDate) endDate.value = '';
+          var monthly = document.getElementById('goal-monthly');
+          if (monthly) monthly.value = '';
+          // Reset type chips to oneoff
+          var typeChips = document.getElementById('goal-type-chips');
+          if (typeChips) {
+            typeChips.querySelectorAll('.chip').forEach(function(c, i) {
+              c.classList.toggle('active', i === 0);
+            });
+          }
+          // Reset icon chips to first
+          var iconChips = form.querySelectorAll('.chips')[1];
+          if (iconChips) {
+            iconChips.querySelectorAll('.chip').forEach(function(c, i) {
+              c.classList.toggle('active', i === 1);
+            });
+          }
+          // Reset calculated value
+          var calc = goalModal.querySelector('.calculated-value');
+          if (calc) calc.textContent = '-- zł/mies.';
+          // Show oneoff fields, hide recurring
+          var amountsRow = document.getElementById('goal-amounts-row');
+          if (amountsRow) amountsRow.style.display = '';
+          document.getElementById('goal-deadline-group').style.display = '';
+          document.getElementById('goal-daterange-group').style.display = 'none';
+          document.getElementById('goal-monthly-group').style.display = 'none';
+        }
+      }
       var incomeModal = document.getElementById('modal-income');
-      if (incomeModal) incomeModal.querySelector('.modal-header h2').textContent = '💵 Dodaj przychód';
+      if (incomeModal) {
+        incomeModal.querySelector('.modal-header h2').textContent = '💵 Dodaj przychód';
+        // Reset income form
+        var form = incomeModal.querySelector('form');
+        if (form) form.reset();
+      }
     }
 
     // Chips
