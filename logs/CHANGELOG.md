@@ -13,17 +13,55 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-### Fixed (sesja 10 - w trakcie)
+---
+
+## [2026-01-26] Sesja 11 - Major Audit Fixes (75/90 issues)
+
+### Security
+- SHA-256 PIN hashing via Web Crypto API. Files: `js/pin-manager.js`. Commit: `38a0558`
+- XSS protection via escapeHtml() throughout codebase. Files: `js/utils.js`, `js/app.js`. Commit: `38a0558`
+- Rate limiting: 5 attempts, 5 min lockout. Files: `js/pin-manager.js`. Commit: `38a0558`
+- Import validation and sanitization. Files: `js/app.js`. Commit: `38a0558`
+- Array growth limits to prevent unbounded storage. Files: `js/engagement-manager.js`. Commit: `38a0558`
+
+### Performance
+- In-memory caching layer in DataManager. Files: `js/data-manager.js`. Commit: `38a0558`
+- Debounced renderAll at 100ms. Files: `js/app.js`. Commit: `38a0558`
+- N+1 query fix in getTrendByOwner. Files: `js/data-manager.js`. Commit: `38a0558`
+
+### Fixed
+- All JSON.parse wrapped in try-catch. Files: `js/*.js` (multiple). Commit: `38a0558`
+- Null checks throughout codebase. Files: `js/*.js` (multiple). Commit: `38a0558`
+- Division by zero prevention. Files: `js/ai-advisor.js`, `js/data-manager.js`. Commit: `38a0558`
+- Response cloning in service worker. Files: `sw.js`. Commit: `38a0558`
+- Bounds checking for array access. Files: `js/app.js`. Commit: `38a0558`
+
+### Added
+- Shared utilities module. Files: `js/utils.js`. Commit: `38a0558`
+- ACHIEVEMENT_CATEGORY_NAMES constant. Files: `js/utils.js`. Commit: `38a0558`
+- renderEmptyState helper function. Files: `js/utils.js`. Commit: `38a0558`
+
+### Changed
+- Consolidated MONTHS, formatMoney, escapeHtml to utils.js. Files: `js/utils.js`, `js/app.js`. Commit: `38a0558`
+- Removed console.log statements. Files: `js/app.js`. Commit: `38a0558`
+- Named constants for magic numbers. Files: `js/pin-manager.js`. Commit: `38a0558`
+- SW version bumped to v9. Files: `sw.js`. Commit: `38a0558`
+
+---
+
+## [2026-01-19] Sesja 10 - Bug Fixes (partial)
+
+### Fixed
 - Console error: `dismissAlert is not defined` - usunięto z window.app. Files: `js/app.js`
 - Console error: `DataManager.getGoals not a function` - użyto instancji dataManager zamiast klasy. Files: `js/ui-features.js`
 - Horizontal scroll w modalach - dodano max-width i overflow-x:hidden. Files: `css/main.css`
 - Static goal-item i list-item w HTML blokowały dynamiczne renderowanie. Files: `index.html`
 
-### Changed (sesja 10 - w trakcie)
+### Changed
 - Mniejsze pola formularzy (min-height: 44px). Files: `css/main.css`
 - Goals/Income lists używają ID zamiast querySelector. Files: `js/app.js`
 
-### Added (sesja 10 - w trakcie)
+### Added
 - CSS dla `.line-chart-container` i `.line-chart`. Files: `css/main.css`
 
 ---
