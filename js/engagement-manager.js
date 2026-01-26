@@ -133,7 +133,13 @@ class EngagementManager {
       difficulty: 'hard',
       check: (dm) => {
         // Sprawdź czy dzisiaj była wpłata na cel
-        return false; // TODO: implement
+        const today = new Date().toISOString().split('T')[0];
+        const goals = dm.getPlannedExpenses();
+        return goals.some(goal =>
+          goal.payments && goal.payments.some(p =>
+            p.date && p.date.startsWith(today)
+          )
+        );
       }
     },
 
@@ -212,7 +218,13 @@ class EngagementManager {
         coopChallengesCompleted: []
       }
     };
-    return stored ? { ...defaultData, ...JSON.parse(stored) } : defaultData;
+    if (!stored) return defaultData;
+    try {
+      return { ...defaultData, ...JSON.parse(stored) };
+    } catch (e) {
+      console.error('[EngagementManager] JSON parse error:', e);
+      return defaultData;
+    }
   }
 
   _createUserData() {
@@ -230,7 +242,24 @@ class EngagementManager {
     };
   }
 
+  static MAX_HISTORY_ITEMS = 100; // Limit array growth
+
   _save() {
+    // Cleanup unbounded arrays before saving
+    ['wife', 'husband'].forEach(owner => {
+      const user = this.data[owner];
+      if (user) {
+        if (user.freezesUsed && user.freezesUsed.length > EngagementManager.MAX_HISTORY_ITEMS) {
+          user.freezesUsed = user.freezesUsed.slice(-EngagementManager.MAX_HISTORY_ITEMS);
+        }
+        if (user.dailyChallenges && user.dailyChallenges.length > EngagementManager.MAX_HISTORY_ITEMS) {
+          user.dailyChallenges = user.dailyChallenges.slice(-EngagementManager.MAX_HISTORY_ITEMS);
+        }
+        if (user.weeklyChallenges && user.weeklyChallenges.length > EngagementManager.MAX_HISTORY_ITEMS) {
+          user.weeklyChallenges = user.weeklyChallenges.slice(-EngagementManager.MAX_HISTORY_ITEMS);
+        }
+      }
+    });
     localStorage.setItem(EngagementManager.STORAGE_KEY, JSON.stringify(this.data));
   }
 
@@ -354,6 +383,11 @@ class EngagementManager {
 
     const cost = EngagementManager.STREAK_CONFIG.freezeCost[daysMissed];
 
+    // Sprawdź czy GamificationManager jest dostępny
+    if (!this.gm || !this.gm.unlockedAchievements || !this.gm.unlockedAchievements[owner]) {
+      return { success: false, error: 'System punktów niedostępny' };
+    }
+
     // Sprawdź czy stać
     if (this.gm.unlockedAchievements[owner].points < cost) {
       return { success: false, error: `Za mało punktów (potrzeba: ${cost})` };
@@ -388,6 +422,11 @@ class EngagementManager {
   buyFreeze(owner = 'wife') {
     const cost = 200; // Stała cena
     const user = this.data[owner];
+
+    // Sprawdź czy GamificationManager jest dostępny
+    if (!this.gm || !this.gm.unlockedAchievements || !this.gm.unlockedAchievements[owner]) {
+      return { success: false, error: 'System punktów niedostępny' };
+    }
 
     if (this.gm.unlockedAchievements[owner].points < cost) {
       return { success: false, error: 'Za mało punktów' };
@@ -585,12 +624,19 @@ class EngagementManager {
   // ==========================================
 
   _getDateString(date) {
-    return date.toISOString().split('T')[0];
+    // Use shared utility if available
+    return window.FGUtils?.getDateString?.(date) || date.toISOString().split('T')[0];
   }
 
   _daysBetween(date1Str, date2Str) {
+    // Use shared utility if available
+    if (window.FGUtils?.daysBetween) {
+      return FGUtils.daysBetween(date1Str, date2Str);
+    }
+    if (!date1Str || !date2Str) return 0;
     const d1 = new Date(date1Str);
     const d2 = new Date(date2Str);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
     return Math.floor((d2 - d1) / 86400000);
   }
 

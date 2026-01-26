@@ -23,21 +23,8 @@
   const $ = id => document.getElementById(id);
   const $$ = sel => document.querySelectorAll(sel);
 
-  const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
-                  'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
-
-  function formatMoney(n) {
-    return (n || 0).toLocaleString('pl-PL') + ' zł';
-  }
-
-  function formatMonth(date) {
-    return MONTHS[date.getMonth()] + ' ' + date.getFullYear();
-  }
-
-  function formatMonthShort(date) {
-    const shortMonths = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
-    return shortMonths[date.getMonth()] + ' ' + date.getFullYear();
-  }
+  // Use shared utilities from utils.js (D1, D6)
+  const { MONTHS, escapeHtml, formatMoney, formatMonth, formatMonthShort, safeJsonParse, renderEmptyState } = window.FGUtils || window;
 
   function getYearMonth() {
     return { year: currentMonth.getFullYear(), month: currentMonth.getMonth() };
@@ -84,7 +71,7 @@
     localStorage.setItem('familygoals_income_sources', JSON.stringify(demoSources));
     localStorage.setItem('familygoals_planned_override', JSON.stringify(demoGoals));
     localStorage.setItem('familygoals_income', JSON.stringify(demoIncome));
-    console.log('Demo data initialized');
+    // Demo data initialized
   }
 
   // ============ URL PARAMS (Deep Linking) ============
@@ -158,9 +145,14 @@
       // Setup UI event listeners
       setupEventListeners();
 
-      // Subscribe to data changes for auto-refresh
+      // Subscribe to data changes for auto-refresh (debounced)
       if (typeof EventBus !== 'undefined') {
-        EventBus.on('data:changed', () => renderAll());
+        let renderTimeout = null;
+        const debouncedRender = () => {
+          if (renderTimeout) clearTimeout(renderTimeout);
+          renderTimeout = setTimeout(() => renderAll(), 100);
+        };
+        EventBus.on('data:changed', debouncedRender);
       }
 
       // Render UI
@@ -169,7 +161,7 @@
       // Handle URL params for deep linking
       handleUrlParams();
 
-      console.log('FamilyGoals App initialized with all managers');
+      // FamilyGoals App initialized with all managers
     } catch (err) {
       console.error('Init error:', err);
     }
@@ -318,7 +310,7 @@
         return `
           <div class="goal-card ${isFuture ? 'future' : ''}" onclick="showScreen('screen-goals')">
             <div class="goal-header">
-              <span class="goal-name">${g.icon || '🎯'} ${g.name}</span>
+              <span class="goal-name">${escapeHtml(g.icon) || '🎯'} ${escapeHtml(g.name)}</span>
               <span class="goal-amount monthly ${isFuture ? 'warning' : ''}">${formatMoney(monthly).replace(' zł', '')}/m</span>
             </div>
             <div class="goal-detail">
@@ -373,7 +365,7 @@
 
     const trend = dataManager.getTrendByOwner(12);
     if (!trend || trend.length === 0) {
-      container.innerHTML = '<div class="empty-state">Brak danych o przychodach</div>';
+      renderEmptyState(container, 'Brak danych o przychodach');
       return;
     }
 
@@ -487,7 +479,7 @@
           <div class="list-item" data-edit-id="${src.id}" data-edit-type="source">
             <div class="list-icon">${icon}</div>
             <div class="list-content">
-              <div class="list-title">${src.name}${person ? ' (' + person + ')' : ''}</div>
+              <div class="list-title">${escapeHtml(src.name)}${person ? ' (' + person + ')' : ''}</div>
               <div class="list-subtitle">${src.status === 'complete' ? 'Otrzymane' : 'Oczekiwane'}</div>
             </div>
             <div class="list-amount ${src.totalReceived > 0 ? 'positive' : ''}">${formatMoney(src.totalReceived || src.expected)}</div>
@@ -498,7 +490,7 @@
       }).join('');
 
       if (summary.sources.length === 0) {
-        list.innerHTML = '<div class="empty-state">Brak źródeł przychodów. Dodaj pierwsze!</div>';
+        renderEmptyState(list, 'Brak źródeł przychodów. Dodaj pierwsze!');
       }
     }
   }
@@ -545,9 +537,9 @@
         return `
           <div class="goal-item" data-edit-id="${g.id}" data-edit-type="goal">
             <div class="goal-item-header">
-              <span class="goal-item-icon">${g.icon || '🎯'}</span>
+              <span class="goal-item-icon">${escapeHtml(g.icon) || '🎯'}</span>
               <div class="goal-item-info">
-                <div class="goal-item-name">${g.name}</div>
+                <div class="goal-item-name">${escapeHtml(g.name)}</div>
                 <div class="goal-item-date">${deadline ? formatMonth(deadline) : 'Bez terminu'}</div>
               </div>
               <div class="goal-item-monthly">${formatMoney(monthly).replace(' zł', '')}/m</div>
@@ -563,7 +555,7 @@
       }).join('');
 
       if (oneoff.length === 0) {
-        oneoffList.innerHTML = '<div class="empty-state">Brak celów. Dodaj pierwszy!</div>';
+        renderEmptyState(oneoffList, 'Brak celów. Dodaj pierwszy!');
       }
     }
 
@@ -591,9 +583,9 @@
         return `
         <div class="goal-item future ${isActive ? 'active-recurring' : ''}" data-edit-id="${g.id}" data-edit-type="goal">
           <div class="goal-item-header">
-            <span class="goal-item-icon">${g.icon || '🏦'}</span>
+            <span class="goal-item-icon">${escapeHtml(g.icon) || '🏦'}</span>
             <div class="goal-item-info">
-              <div class="goal-item-name">${g.name}</div>
+              <div class="goal-item-name">${escapeHtml(g.name)}</div>
               <div class="goal-item-date">${dateText}</div>
             </div>
             <div class="goal-item-monthly warning">${formatMoney(g.monthlyContribution || g.targetAmount).replace(' zł', '')}/m</div>
@@ -605,7 +597,7 @@
       }).join('');
 
       if (recurring.length === 0) {
-        recurringList.innerHTML = '<div class="empty-state">Brak stałych zobowiązań</div>';
+        renderEmptyState(recurringList, 'Brak stałych zobowiązań');
       }
     }
   }
@@ -671,19 +663,7 @@
         }
       });
 
-      const catNames = {
-        start: '🌟 Pierwsze kroki',
-        savings: '💰 Oszczędności',
-        consistency: '📈 Systematyczność',
-        goals: '🎯 Cele',
-        income: '💵 Przychody',
-        couple: '💑 Para',
-        coop: '🤝 Współpraca',
-        streak: '🔥 Streak',
-        level: '📊 Poziomy',
-        special: '🎉 Specjalne',
-        expert: '🏆 Ekspert'
-      };
+      const catNames = FGUtils.ACHIEVEMENT_CATEGORY_NAMES;
 
       catList.innerHTML = Object.entries(catCounts).map(([cat, data]) => {
         const percent = data.total > 0 ? Math.round((data.unlocked / data.total) * 100) : 0;
@@ -769,7 +749,7 @@
         if (gamificationManager) {
           const newAchievements = gamificationManager.checkAchievements(owner);
           if (newAchievements.length > 0) {
-            console.log('New achievements:', newAchievements);
+            // New achievements unlocked
             // Show achievement toast
             if (typeof Toast !== 'undefined') {
               newAchievements.forEach(a => {
@@ -982,7 +962,7 @@
 
     // Set person chip
     const personChips = form.querySelectorAll('.chips')[1]?.querySelectorAll('.chip');
-    if (personChips) {
+    if (personChips && personChips.length >= 2) {
       personChips.forEach(c => c.classList.remove('active'));
       if (source.owner === 'wife') {
         personChips[0].classList.add('active');
@@ -1036,7 +1016,16 @@
       }
 
       const now = new Date();
+      // Validate date format (YYYY-MM)
+      if (!/^\d{4}-\d{2}$/.test(deadline)) {
+        calcEl.textContent = '-- zł/mies.';
+        return;
+      }
       const targetDate = new Date(deadline + '-01');
+      if (isNaN(targetDate.getTime())) {
+        calcEl.textContent = '-- zł/mies.';
+        return;
+      }
       const monthsLeft = Math.max(1,
         (targetDate.getFullYear() - now.getFullYear()) * 12 +
         (targetDate.getMonth() - now.getMonth())
@@ -1286,7 +1275,7 @@
         if (gamificationManager) {
           const newAchievements = gamificationManager.checkAchievements(currentPerson);
           if (newAchievements.length > 0) {
-            console.log('New achievements:', newAchievements);
+            // New achievements unlocked
           }
         }
 
@@ -1380,7 +1369,7 @@
         alert('PIN zmieniony!');
       } else {
         // Fallback
-        const settings = JSON.parse(localStorage.getItem('familygoals_settings') || '{}');
+        const settings = safeJsonParse(localStorage.getItem('familygoals_settings'), {});
         settings.pin = newPin;
         localStorage.setItem('familygoals_settings', JSON.stringify(settings));
         alert('PIN zmieniony!');
@@ -1424,18 +1413,39 @@
         try {
           const imported = JSON.parse(ev.target.result);
 
-          // Import each type
-          if (imported.expenses) {
-            localStorage.setItem(DataManager.STORAGE_KEYS.expenses, JSON.stringify(imported.expenses));
+          // Validate structure
+          const isValidArray = arr => Array.isArray(arr) && arr.every(item =>
+            typeof item === 'object' && item !== null && !Array.isArray(item)
+          );
+
+          // Sanitize string fields (XSS protection)
+          const sanitize = obj => {
+            if (typeof obj !== 'object' || obj === null) return obj;
+            const result = Array.isArray(obj) ? [] : {};
+            for (const [key, val] of Object.entries(obj)) {
+              if (typeof val === 'string') {
+                result[key] = val.replace(/[<>]/g, ''); // Basic XSS prevention
+              } else if (typeof val === 'object') {
+                result[key] = sanitize(val);
+              } else {
+                result[key] = val;
+              }
+            }
+            return result;
+          };
+
+          // Import each type with validation
+          if (imported.expenses && isValidArray(imported.expenses)) {
+            localStorage.setItem(DataManager.STORAGE_KEYS.expenses, JSON.stringify(sanitize(imported.expenses)));
           }
-          if (imported.income) {
-            localStorage.setItem(DataManager.STORAGE_KEYS.income, JSON.stringify(imported.income));
+          if (imported.income && isValidArray(imported.income)) {
+            localStorage.setItem(DataManager.STORAGE_KEYS.income, JSON.stringify(sanitize(imported.income)));
           }
-          if (imported.incomeSources) {
-            localStorage.setItem(DataManager.STORAGE_KEYS.incomeSources, JSON.stringify(imported.incomeSources));
+          if (imported.incomeSources && isValidArray(imported.incomeSources)) {
+            localStorage.setItem(DataManager.STORAGE_KEYS.incomeSources, JSON.stringify(sanitize(imported.incomeSources)));
           }
-          if (imported.goals) {
-            localStorage.setItem('familygoals_planned_override', JSON.stringify(imported.goals));
+          if (imported.goals && isValidArray(imported.goals)) {
+            localStorage.setItem('familygoals_planned_override', JSON.stringify(sanitize(imported.goals)));
           }
 
           renderAll();
@@ -1471,19 +1481,7 @@
     const wifeUnlocked = gamificationManager.unlockedAchievements?.wife?.unlocked || [];
     const husbandUnlocked = gamificationManager.unlockedAchievements?.husband?.unlocked || [];
 
-    const catNames = {
-      start: '🌟 Pierwsze kroki',
-      savings: '💰 Oszczędności',
-      consistency: '📈 Systematyczność',
-      goals: '🎯 Cele',
-      income: '💵 Przychody',
-      couple: '💑 Para',
-      coop: '🤝 Współpraca',
-      streak: '🔥 Streak',
-      level: '📊 Poziomy',
-      special: '🎉 Specjalne',
-      expert: '🏆 Ekspert'
-    };
+    const catNames = FGUtils.ACHIEVEMENT_CATEGORY_NAMES;
 
     // Create modal if not exists
     let modal = $('modal-achievements');
@@ -1643,7 +1641,7 @@
     // Render upcoming purchases
     const upcomingList = $('upcoming-purchases');
     if (upcoming.length === 0) {
-      upcomingList.innerHTML = '<div class="empty-state">Brak nadchodzących zakupów</div>';
+      renderEmptyState(upcomingList, 'Brak nadchodzących zakupów');
     } else {
       upcomingList.innerHTML = upcoming.map(c => renderCostItem(c, true)).join('');
     }
@@ -1651,7 +1649,7 @@
     // Render all costs
     const costsList = $('business-costs-list');
     if (costs.length === 0) {
-      costsList.innerHTML = '<div class="empty-state">Dodaj pierwszy koszt firmowy</div>';
+      renderEmptyState(costsList, 'Dodaj pierwszy koszt firmowy');
     } else {
       costsList.innerHTML = costs.map(c => renderCostItem(c, false)).join('');
     }
@@ -1846,7 +1844,7 @@
     // Render pending
     const pendingList = $('todos-pending');
     if (pending.length === 0) {
-      pendingList.innerHTML = '<div class="empty-state">Brak zadań do zrobienia</div>';
+      renderEmptyState(pendingList, 'Brak zadań do zrobienia');
     } else {
       pendingList.innerHTML = pending.map(t => renderTodoItem(t)).join('');
     }
@@ -1854,7 +1852,7 @@
     // Render completed
     const completedList = $('todos-completed');
     if (completed.length === 0) {
-      completedList.innerHTML = '<div class="empty-state">Brak ukończonych zadań</div>';
+      renderEmptyState(completedList, 'Brak ukończonych zadań');
     } else {
       completedList.innerHTML = completed.map(t => renderTodoItem(t)).join('');
     }
@@ -1883,7 +1881,7 @@
           ${todo.isCompleted ? '✓' : ''}
         </button>
         <div class="todo-content">
-          <div class="todo-title">${todo.title}</div>
+          <div class="todo-title">${escapeHtml(todo.title)}</div>
           <div class="todo-meta">
             <span class="todo-owner">${ownerIcon}</span>
             ${recurringText ? `<span class="todo-recurring">🔄 ${recurringText}</span>` : ''}

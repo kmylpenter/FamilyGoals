@@ -5,26 +5,97 @@
 class PinManager {
   static STORAGE_KEY = 'familygoals_pin';
   static SESSION_KEY = 'familygoals_session';
-  static SESSION_DURATION = 30 * 60 * 1000; // 30 minut
+  static ATTEMPTS_KEY = 'familygoals_pin_attempts';
+  static LOCKOUT_KEY = 'familygoals_pin_lockout';
+
+  // Configuration constants
+  static SESSION_DURATION_MS = 30 * 60 * 1000; // 30 minut
+  static MAX_ATTEMPTS = 5;
+  static LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minut lockout
+
+  // Backwards compatibility
+  static get SESSION_DURATION() { return this.SESSION_DURATION_MS; }
 
   /**
    * Ustaw nowy PIN
    */
-  static setPin(pin) {
+  static async setPin(pin) {
     if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
       throw new Error('PIN musi mieć 4 cyfry');
     }
-    const hash = this._hash(pin);
+    const hash = await this._hash(pin);
     localStorage.setItem(this.STORAGE_KEY, hash);
   }
 
   /**
-   * Sprawdź czy PIN jest poprawny
+   * Sprawdź czy PIN jest poprawny (z rate limiting)
    */
-  static verify(pin) {
+  static async verify(pin) {
+    // Check if locked out
+    if (this.isLockedOut()) {
+      return { success: false, locked: true, remainingTime: this._getLockoutRemaining() };
+    }
+
     const stored = localStorage.getItem(this.STORAGE_KEY);
-    if (!stored) return false;
-    return stored === this._hash(pin);
+    if (!stored) return { success: false };
+
+    // Support both old (base64) and new (SHA-256) hash formats
+    const newHash = await this._hash(pin);
+    let valid = stored === newHash;
+
+    // Fallback for old format - migrate to new
+    if (!valid && stored === this._hashSync(pin)) {
+      await this.setPin(pin); // Migrate to new hash
+      valid = true;
+    }
+
+    if (valid) {
+      this._resetAttempts();
+      return { success: true };
+    } else {
+      this._recordFailedAttempt();
+      const attempts = this._getAttempts();
+      if (attempts >= this.MAX_ATTEMPTS) {
+        this._startLockout();
+        return { success: false, locked: true, remainingTime: this.LOCKOUT_DURATION_MS };
+      }
+      return { success: false, attemptsLeft: this.MAX_ATTEMPTS - attempts };
+    }
+  }
+
+  /**
+   * Check if currently locked out
+   */
+  static isLockedOut() {
+    const lockoutUntil = sessionStorage.getItem(this.LOCKOUT_KEY);
+    if (!lockoutUntil) return false;
+    if (Date.now() < parseInt(lockoutUntil)) return true;
+    sessionStorage.removeItem(this.LOCKOUT_KEY);
+    this._resetAttempts();
+    return false;
+  }
+
+  static _getLockoutRemaining() {
+    const lockoutUntil = sessionStorage.getItem(this.LOCKOUT_KEY);
+    return lockoutUntil ? Math.max(0, parseInt(lockoutUntil) - Date.now()) : 0;
+  }
+
+  static _getAttempts() {
+    return parseInt(sessionStorage.getItem(this.ATTEMPTS_KEY) || '0');
+  }
+
+  static _recordFailedAttempt() {
+    const attempts = this._getAttempts() + 1;
+    sessionStorage.setItem(this.ATTEMPTS_KEY, attempts.toString());
+  }
+
+  static _resetAttempts() {
+    sessionStorage.removeItem(this.ATTEMPTS_KEY);
+  }
+
+  static _startLockout() {
+    const lockoutUntil = Date.now() + this.LOCKOUT_DURATION_MS;
+    sessionStorage.setItem(this.LOCKOUT_KEY, lockoutUntil.toString());
   }
 
   /**
@@ -88,9 +159,20 @@ class PinManager {
   }
 
   /**
-   * Prosty hash (nie kryptograficzny)
+   * SHA-256 hash PIN
    */
-  static _hash(pin) {
+  static async _hash(pin) {
+    const salt = 'familygoals_2025';
+    const data = new TextEncoder().encode(pin + salt);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /**
+   * Sync hash for backwards compatibility (fallback)
+   */
+  static _hashSync(pin) {
     const salt = 'familygoals_2025';
     return btoa(pin + salt);
   }

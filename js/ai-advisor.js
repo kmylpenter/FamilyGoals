@@ -43,8 +43,9 @@ class AIAdvisor {
   }
 
   _analyzeData(stats, trend, goals, income) {
-    const avgSavings = trend.reduce((s, t) => s + t.savings, 0) / trend.length;
-    const avgExpenses = trend.reduce((s, t) => s + t.totalExpenses, 0) / trend.length;
+    const trendLen = trend.length || 1; // Prevent division by zero
+    const avgSavings = trend.reduce((s, t) => s + t.savings, 0) / trendLen;
+    const avgExpenses = trend.reduce((s, t) => s + t.totalExpenses, 0) / trendLen;
     const savingsTarget = stats.savingsTarget || 0;
 
     // Trendy

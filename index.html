@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#faf8f5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>FamilyGoals</title>
@@ -579,8 +579,8 @@
   <div id="modal-categories" class="modal" role="dialog" aria-label="Zarządzanie kategoriami" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
         <h2>📁 Kategorie</h2>
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
       </div>
       <div class="modal-body">
         <div id="categories-list" class="list categories-list">
@@ -759,7 +759,9 @@
     </button>
   </nav>
 
-  <!-- Load managers first -->
+  <!-- Load shared utilities first -->
+  <script src="js/utils.js"></script>
+  <!-- Load managers -->
   <script src="js/data-manager.js"></script>
   <script src="js/event-bus.js"></script>
   <script src="js/gamification-manager.js"></script>
@@ -803,16 +805,31 @@
         d.classList.remove('error');
       });
       if (pinInput.length === 4) {
-        setTimeout(function() {
+        setTimeout(async function() {
           var isValid = false;
           if (typeof PinManager !== 'undefined' && PinManager.isEnabled()) {
-            isValid = PinManager.verify(pinInput);
-            if (isValid) {
+            // Check lockout first
+            if (PinManager.isLockedOut()) {
+              var remaining = Math.ceil(PinManager._getLockoutRemaining() / 1000);
+              alert('Zbyt wiele prób. Spróbuj za ' + remaining + ' sekund.');
+              pinInput = '';
+              dots.forEach(function(d) { d.classList.remove('filled'); });
+              return;
+            }
+            var result = await PinManager.verify(pinInput);
+            if (result.success) {
+              isValid = true;
               PinManager.startSession();
+            } else if (result.locked) {
+              var secs = Math.ceil(result.remainingTime / 1000);
+              alert('Zbyt wiele prób. Spróbuj za ' + secs + ' sekund.');
+              pinInput = '';
+              dots.forEach(function(d) { d.classList.remove('filled'); });
+              return;
             }
           } else {
-            // Fallback - default PIN
-            isValid = (pinInput === '9890');
+            // No PinManager - allow access (first-time setup will prompt for PIN)
+            isValid = true;
           }
 
           if (isValid) {
@@ -853,7 +870,15 @@
       document.getElementById(id).classList.add('active');
     }
     function closeModal(e) {
-      if (e.target.classList.contains('modal')) { e.target.classList.remove('active'); }
+      // Handle both event-based calls and direct calls without event
+      if (!e) {
+        // Called from close button without event - close active modal
+        closeAllModals();
+        return;
+      }
+      if (e.target && e.target.classList && e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+      }
     }
     function closeAllModals() {
       document.querySelectorAll('.modal').forEach(function(m) { m.classList.remove('active'); });
@@ -925,10 +950,9 @@
       });
     });
 
-    // Month
-    var months = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+    // Month - use shared constants
     var now = new Date();
-    document.getElementById('month-badge').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
+    document.getElementById('month-badge').textContent = (window.FGUtils ? FGUtils.MONTHS : ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'])[now.getMonth()] + ' ' + now.getFullYear();
 
     // Service Worker Registration
     if ('serviceWorker' in navigator) {

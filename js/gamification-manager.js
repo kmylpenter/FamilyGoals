@@ -587,8 +587,8 @@ class GamificationManager {
       category: 'couple',
       points: 40
     },
-    double_income: {
-      id: 'double_income',
+    dual_income: {
+      id: 'dual_income',
       name: 'Podwójne źródło',
       description: 'Oboje macie aktywne źródła przychodu',
       icon: '💵',
@@ -1023,7 +1023,14 @@ class GamificationManager {
 
   _loadAchievements() {
     const data = localStorage.getItem(GamificationManager.STORAGE_KEY);
-    return data ? JSON.parse(data) : {
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        console.error('[GamificationManager] JSON parse error:', e);
+      }
+    }
+    return {
       wife: { unlocked: [], points: 0, rewards: [] },
       husband: { unlocked: [], points: 0, rewards: [] }
     };
@@ -1209,13 +1216,21 @@ class GamificationManager {
   purchaseReward(rewardId, owner = 'wife') {
     const reward = GamificationManager.REWARDS[rewardId];
     if (!reward) return { success: false, error: 'Nieznana nagroda' };
+    if (!reward.cost || reward.cost <= 0) return { success: false, error: 'Nieprawidłowy koszt nagrody' };
 
     const data = this.unlockedAchievements[owner];
+    if (!data) return { success: false, error: 'Nieprawidłowy użytkownik' };
+    if (typeof data.points !== 'number' || data.points < 0) {
+      data.points = 0; // Reset corrupted points
+    }
     if (data.points < reward.cost) {
       return { success: false, error: 'Za mało punktów' };
     }
 
-    data.points -= reward.cost;
+    // Validate points won't go negative
+    const newPoints = data.points - reward.cost;
+    if (newPoints < 0) return { success: false, error: 'Błąd kalkulacji punktów' };
+    data.points = newPoints;
     data.rewards.push({
       rewardId,
       purchasedAt: new Date().toISOString(),

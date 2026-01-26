@@ -20,8 +20,67 @@ class DataManager {
     this.planned = null;
     this.isOffline = !navigator.onLine;
 
+    // In-memory cache to avoid repeated localStorage parsing (P1-P3)
+    this._cache = {};
+    this._cacheValid = {};
+
     window.addEventListener('online', () => this.isOffline = false);
     window.addEventListener('offline', () => this.isOffline = true);
+  }
+
+  /**
+   * Get data from cache or localStorage
+   * @param {string} key - Storage key
+   * @param {*} fallback - Default value
+   * @returns {*} Cached or parsed data
+   */
+  _getCached(key, fallback = []) {
+    if (this._cacheValid[key] && this._cache[key] !== undefined) {
+      return this._cache[key];
+    }
+    const data = localStorage.getItem(key);
+    this._cache[key] = this._safeJsonParse(data, fallback);
+    this._cacheValid[key] = true;
+    return this._cache[key];
+  }
+
+  /**
+   * Save data to localStorage and update cache
+   * @param {string} key - Storage key
+   * @param {*} data - Data to save
+   */
+  _setCached(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+    this._cache[key] = data;
+    this._cacheValid[key] = true;
+  }
+
+  /**
+   * Invalidate cache for a key
+   * @param {string} key - Storage key
+   */
+  _invalidateCache(key) {
+    this._cacheValid[key] = false;
+  }
+
+  /**
+   * Invalidate all cache
+   */
+  _invalidateAllCache() {
+    this._cacheValid = {};
+  }
+
+  /**
+   * Safe JSON parse with fallback
+   */
+  _safeJsonParse(data, fallback = []) {
+    if (!data) return fallback;
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      return fallback;
+    }
   }
 
   /**
@@ -71,15 +130,15 @@ class DataManager {
     // Użyj cache jeśli brak danych z repo
     if (!this.config) {
       const cached = localStorage.getItem('familygoals_config_cache');
-      this.config = cached ? JSON.parse(cached) : this._getDefaultConfig();
+      this.config = this._safeJsonParse(cached, this._getDefaultConfig());
     }
     if (!this.inflation) {
       const cached = localStorage.getItem('familygoals_inflation_cache');
-      this.inflation = cached ? JSON.parse(cached) : null;
+      this.inflation = this._safeJsonParse(cached, null);
     }
     if (!this.planned) {
       const cached = localStorage.getItem('familygoals_planned_cache');
-      this.planned = cached ? JSON.parse(cached) : { plannedExpenses: [] };
+      this.planned = this._safeJsonParse(cached, { plannedExpenses: [] });
     }
 
     return {
@@ -114,8 +173,7 @@ class DataManager {
   // === EXPENSES ===
 
   getExpenses() {
-    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.expenses);
-    return data ? JSON.parse(data) : [];
+    return this._getCached(this.constructor.STORAGE_KEYS.expenses, []);
   }
 
   addExpense(expense) {
@@ -148,14 +206,13 @@ class DataManager {
   }
 
   _saveExpenses(expenses) {
-    localStorage.setItem(this.constructor.STORAGE_KEYS.expenses, JSON.stringify(expenses));
+    this._setCached(this.constructor.STORAGE_KEYS.expenses, expenses);
   }
 
   // === INCOME ===
 
   getIncome() {
-    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.income);
-    return data ? JSON.parse(data) : [];
+    return this._getCached(this.constructor.STORAGE_KEYS.income, []);
   }
 
   addIncome(income) {
@@ -166,14 +223,14 @@ class DataManager {
       ...income
     };
     incomes.push(newIncome);
-    localStorage.setItem(this.constructor.STORAGE_KEYS.income, JSON.stringify(incomes));
+    this._setCached(this.constructor.STORAGE_KEYS.income, incomes);
     return newIncome;
   }
 
   deleteIncome(id) {
     const incomes = this.getIncome();
     const filtered = incomes.filter(i => i.id !== id);
-    localStorage.setItem(this.constructor.STORAGE_KEYS.income, JSON.stringify(filtered));
+    this._setCached(this.constructor.STORAGE_KEYS.income, filtered);
   }
 
   // === INCOME SOURCES (Źródła przychodów) ===
@@ -182,8 +239,7 @@ class DataManager {
    * Pobierz wszystkie źródła przychodów
    */
   getIncomeSources() {
-    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.incomeSources);
-    return data ? JSON.parse(data) : [];
+    return this._getCached(this.constructor.STORAGE_KEYS.incomeSources, []);
   }
 
   /**
@@ -286,7 +342,7 @@ class DataManager {
     });
 
     this._saveIncomeSources(sources);
-    this.emit('income-updated');
+    if (typeof EventBus !== 'undefined') EventBus.emit('income:updated');
   }
 
   /**
@@ -302,7 +358,7 @@ class DataManager {
 
     source.payments.splice(idx, 1);
     this._saveIncomeSources(sources);
-    this.emit('income-updated');
+    if (typeof EventBus !== 'undefined') EventBus.emit('income:updated');
     return true;
   }
 
@@ -360,7 +416,7 @@ class DataManager {
   }
 
   _saveIncomeSources(sources) {
-    localStorage.setItem(this.constructor.STORAGE_KEYS.incomeSources, JSON.stringify(sources));
+    this._setCached(this.constructor.STORAGE_KEYS.incomeSources, sources);
   }
 
   // === CATEGORIES ===
@@ -372,8 +428,7 @@ class DataManager {
   }
 
   getCustomCategories() {
-    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.categories);
-    return data ? JSON.parse(data) : [];
+    return this._getCached(this.constructor.STORAGE_KEYS.categories, []);
   }
 
   addCategory(category) {
@@ -384,7 +439,7 @@ class DataManager {
       ...category
     };
     categories.push(newCategory);
-    localStorage.setItem(this.constructor.STORAGE_KEYS.categories, JSON.stringify(categories));
+    this._setCached(this.constructor.STORAGE_KEYS.categories, categories);
     return newCategory;
   }
 
@@ -393,7 +448,7 @@ class DataManager {
     const index = categories.findIndex(c => c.id === id);
     if (index !== -1) {
       categories[index] = { ...categories[index], ...updates };
-      localStorage.setItem(this.constructor.STORAGE_KEYS.categories, JSON.stringify(categories));
+      this._setCached(this.constructor.STORAGE_KEYS.categories, categories);
       return categories[index];
     }
     return null;
@@ -402,7 +457,7 @@ class DataManager {
   deleteCategory(id) {
     const categories = this.getCustomCategories();
     const filtered = categories.filter(c => c.id !== id);
-    localStorage.setItem(this.constructor.STORAGE_KEYS.categories, JSON.stringify(filtered));
+    this._setCached(this.constructor.STORAGE_KEYS.categories, filtered);
   }
 
   // === FILTERED GETTERS ===
@@ -530,9 +585,13 @@ class DataManager {
       let wifeIncome = 0;
       let husbandIncome = 0;
 
-      // Zbierz zarobki per owner z sources
+      // Zbierz zarobki per owner z sources (P2 optimized - no N+1)
       sources.forEach(source => {
-        const payments = this.getPaymentsByMonth(source.id, year, month);
+        // Filter payments directly from source instead of calling getPaymentsByMonth
+        const payments = (source.payments || []).filter(p => {
+          const d = new Date(p.date);
+          return d.getFullYear() === year && d.getMonth() === month;
+        });
         const total = payments.reduce((sum, p) => sum + p.amount, 0);
         if (source.owner === 'wife') {
           wifeIncome += total;
@@ -832,7 +891,9 @@ class DataManager {
   _getPlannedFromStorage() {
     // Check for local overrides first
     const override = localStorage.getItem('familygoals_planned_override');
-    if (override) return JSON.parse(override);
+    if (override) {
+      return this._safeJsonParse(override, this.planned?.plannedExpenses || []);
+    }
     return this.planned?.plannedExpenses || [];
   }
 
@@ -965,8 +1026,7 @@ class DataManager {
   // === BUSINESS COSTS (Optymalizacja) ===
 
   getBusinessCosts() {
-    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.businessCosts);
-    return data ? JSON.parse(data) : [];
+    return this._getCached(this.constructor.STORAGE_KEYS.businessCosts, []);
   }
 
   addBusinessCost(cost) {
@@ -1056,7 +1116,7 @@ class DataManager {
     let monthlySavings = 0;
 
     costs.forEach(cost => {
-      if (cost.isRecurring && cost.recurringMonths) {
+      if (cost.isRecurring && cost.recurringMonths && cost.recurringMonths > 0) {
         // Distribute cost over recurring period
         monthlySavings += cost.amount / cost.recurringMonths;
       } else {
@@ -1090,7 +1150,7 @@ class DataManager {
   }
 
   _saveBusinessCosts(costs) {
-    localStorage.setItem(this.constructor.STORAGE_KEYS.businessCosts, JSON.stringify(costs));
+    this._setCached(this.constructor.STORAGE_KEYS.businessCosts, costs);
   }
 
   _calculateNextDueDate(fromDate, months) {
@@ -1102,8 +1162,7 @@ class DataManager {
   // === TODOS (Zadania domowe) ===
 
   getTodos() {
-    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.todos);
-    return data ? JSON.parse(data) : [];
+    return this._getCached(this.constructor.STORAGE_KEYS.todos, []);
   }
 
   addTodo(todo) {
@@ -1249,7 +1308,7 @@ class DataManager {
   }
 
   _saveTodos(todos) {
-    localStorage.setItem(this.constructor.STORAGE_KEYS.todos, JSON.stringify(todos));
+    this._setCached(this.constructor.STORAGE_KEYS.todos, todos);
   }
 
   // === EXPORT/IMPORT ===
@@ -1267,29 +1326,28 @@ class DataManager {
 
   importData(data) {
     if (data.expenses) {
-      localStorage.setItem(this.constructor.STORAGE_KEYS.expenses, JSON.stringify(data.expenses));
+      this._setCached(this.constructor.STORAGE_KEYS.expenses, data.expenses);
     }
     if (data.income) {
-      localStorage.setItem(this.constructor.STORAGE_KEYS.income, JSON.stringify(data.income));
+      this._setCached(this.constructor.STORAGE_KEYS.income, data.income);
     }
     if (data.categories) {
-      localStorage.setItem(this.constructor.STORAGE_KEYS.categories, JSON.stringify(data.categories));
+      this._setCached(this.constructor.STORAGE_KEYS.categories, data.categories);
     }
     if (data.settings) {
-      localStorage.setItem(this.constructor.STORAGE_KEYS.settings, JSON.stringify(data.settings));
+      this._setCached(this.constructor.STORAGE_KEYS.settings, data.settings);
     }
   }
 
   // === SETTINGS ===
 
   getSettings() {
-    const data = localStorage.getItem(this.constructor.STORAGE_KEYS.settings);
-    return data ? JSON.parse(data) : {};
+    return this._getCached(this.constructor.STORAGE_KEYS.settings, {});
   }
 
   updateSettings(updates) {
     const settings = { ...this.getSettings(), ...updates };
-    localStorage.setItem(this.constructor.STORAGE_KEYS.settings, JSON.stringify(settings));
+    this._setCached(this.constructor.STORAGE_KEYS.settings, settings);
     return settings;
   }
 

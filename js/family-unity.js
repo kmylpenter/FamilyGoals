@@ -285,7 +285,14 @@ class FamilyUnityManager {
 
   _loadData() {
     const stored = localStorage.getItem(FamilyUnityManager.STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('[FamilyUnityManager] JSON parse error:', e);
+      }
+    }
+    return {
       // WSPÓLNE dane rodziny
       family: {
         teamLevel: 1,

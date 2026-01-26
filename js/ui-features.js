@@ -14,6 +14,15 @@ const Toast = {
     },
 
     show(options) {
+        // Ensure container is initialized
+        if (!this.container) {
+            this.init();
+        }
+        if (!this.container) {
+            console.warn('[Toast] Container not found');
+            return;
+        }
+
         const { type = 'info', title, message, duration = 4000 } = options;
 
         const icons = {
@@ -23,13 +32,21 @@ const Toast = {
             info: 'ℹ️'
         };
 
+        // XSS protection
+        const escapeHtml = (str) => {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        };
+
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `
             <span class="toast-icon">${icons[type]}</span>
             <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                ${message ? `<div class="toast-message">${message}</div>` : ''}
+                <div class="toast-title">${escapeHtml(title)}</div>
+                ${message ? `<div class="toast-message">${escapeHtml(message)}</div>` : ''}
             </div>
             <button class="toast-close" onclick="Toast.dismiss(this.parentElement)">✕</button>
         `;
@@ -317,12 +334,14 @@ const ExpenseChart = {
     },
 
     formatMoney(amount) {
-        return new Intl.NumberFormat('pl-PL', {
-            style: 'currency',
-            currency: 'PLN',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(amount).replace('PLN', 'zł');
+        // Use shared utility if available, otherwise inline implementation
+        return window.FGUtils?.formatCurrency?.(amount) ||
+            new Intl.NumberFormat('pl-PL', {
+                style: 'currency',
+                currency: 'PLN',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount).replace('PLN', 'zł');
     }
 };
 
@@ -393,6 +412,8 @@ const Notifications = {
         localStorage.setItem('fg_notifications', JSON.stringify(this.items));
     },
 
+    MAX_NOTIFICATIONS: 100, // Limit array growth
+
     add(notification) {
         this.items.unshift({
             id: Date.now(),
@@ -400,6 +421,10 @@ const Notifications = {
             read: false,
             timestamp: new Date().toISOString()
         });
+        // Prevent unbounded growth - keep only recent notifications
+        if (this.items.length > this.MAX_NOTIFICATIONS) {
+            this.items = this.items.slice(0, this.MAX_NOTIFICATIONS);
+        }
         this.save();
         this.updateBadge();
 
@@ -426,19 +451,28 @@ const Notifications = {
         return this.items.filter(n => !n.read).length;
     },
 
+    _navItem: null, // Cached nav item reference
+
     updateBadge() {
         const count = this.getUnreadCount();
+
+        // Remove existing badges
         const existingBadges = document.querySelectorAll('.notification-badge');
         existingBadges.forEach(b => b.remove());
 
         if (count > 0) {
-            // Add badge to achievements nav item (or create notifications tab)
-            const navItems = document.querySelectorAll('.nav-item');
-            if (navItems.length >= 4) {
+            // Cache nav item reference for performance
+            if (!this._navItem) {
+                const navItems = document.querySelectorAll('.nav-item');
+                if (navItems.length >= 4) {
+                    this._navItem = navItems[3];
+                }
+            }
+            if (this._navItem) {
                 const badge = document.createElement('span');
                 badge.className = 'notification-badge';
                 badge.textContent = count > 9 ? '9+' : count;
-                navItems[3].appendChild(badge);
+                this._navItem.appendChild(badge);
             }
         }
     },

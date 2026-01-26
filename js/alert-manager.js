@@ -8,6 +8,7 @@ class AlertManager {
    * Pobierz wszystkie aktywne alerty
    */
   static getAlerts() {
+    if (typeof dataManager === 'undefined' || !dataManager) return [];
     const all = dataManager.getAllAlerts();
     const dismissed = this.getDismissed();
 
@@ -58,7 +59,14 @@ class AlertManager {
     const data = localStorage.getItem(this.DISMISSED_KEY);
     if (!data) return [];
 
-    const { month, dismissed } = JSON.parse(data);
+    let parsed;
+    try {
+      parsed = JSON.parse(data);
+    } catch (e) {
+      console.error('[AlertManager] JSON parse error:', e);
+      return [];
+    }
+    const { month, dismissed } = parsed;
     const currentMonth = new Date().toISOString().slice(0, 7);
 
     // Reset na nowy miesiąc

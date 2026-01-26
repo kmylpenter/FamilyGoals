@@ -9,11 +9,15 @@ class RecurringManager {
    * Wywołaj przy starcie aplikacji
    */
   static processAll() {
+    if (typeof dataManager === 'undefined' || !dataManager) {
+      console.warn('[RecurringManager] dataManager not initialized');
+      return [];
+    }
     const processed = dataManager.processRecurring();
 
     if (processed.length > 0) {
       this._markProcessed(new Date());
-      console.log(`Processed ${processed.length} recurring items`);
+      // console.log(`Processed ${processed.length} recurring items`);
     }
 
     return processed;
@@ -69,6 +73,9 @@ class RecurringManager {
    * Podsumowanie wydatków stałych
    */
   static getSummary() {
+    if (typeof dataManager === 'undefined' || !dataManager) {
+      return { expensesCount: 0, incomeCount: 0, totalExpenses: 0, totalIncome: 0, netRecurring: 0, expenses: [], income: [] };
+    }
     const expenses = dataManager.getRecurringExpenses();
     const income = dataManager.getRecurringIncome();
 

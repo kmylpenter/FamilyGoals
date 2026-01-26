@@ -29,7 +29,8 @@ class EventBus {
    * @param {*} data - Dane do przekazania
    */
   static emit(event, data = null) {
-    console.log(`[EventBus] ${event}`, data);
+    // Debug logging disabled in production
+    // console.log(`[EventBus] ${event}`, data);
 
     if (this._listeners[event]) {
       this._listeners[event].forEach(callback => {
@@ -300,7 +301,7 @@ function connectDataManagerToEventBus(dataManager) {
     return result;
   };
 
-  console.log('[EventBus] Connected to DataManager');
+  // console.log('[EventBus] Connected to DataManager');
 }
 
 // Export

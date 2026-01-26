@@ -1,0 +1,887 @@
+meta:
+  mode: audit
+  target: "."
+  started: "2026-01-26T13:35:00"
+  updated: "2026-01-26T13:55:00"
+  status: completed
+  iterations: 5
+  lenses: [bugs, duplicates, security, performance, style, accessibility]
+
+issues:
+  # === BUGS (12 issues) ===
+  - id: "B1"
+    severity: critical
+    lens: bugs
+    item: "DataManager.emit() method doesn't exist - calls to this.emit() will throw TypeError"
+    location: "js/data-manager.js:289,305"
+    suggestion: "Add emit method to DataManager class or remove these calls since EventBus integration happens via connectDataManagerToEventBus wrapper"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B2"
+    severity: major
+    lens: bugs
+    item: "RecurringManager.processAll() uses global 'dataManager' variable which may not be initialized"
+    location: "js/recurring-manager.js:12"
+    suggestion: "RecurringManager depends on global dataManager singleton defined at data-manager.js:1319 but it's loaded before app.js initializes. Verify load order or pass dataManager as parameter"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B3"
+    severity: major
+    lens: bugs
+    item: "goal:completed event check has potential null access when result is null"
+    location: "js/event-bus.js:297-298"
+    suggestion: "Check if result is truthy before accessing result.currentAmount. If originalUpdatePlannedGoal returns null (goal not found), this will throw"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B4"
+    severity: major
+    lens: bugs
+    item: "JSON.parse without try-catch on localStorage data can throw on corrupted data"
+    location: "js/data-manager.js:117-118,157-158,186,376,968,1105"
+    suggestion: "Wrap JSON.parse calls in try-catch to handle corrupted localStorage data gracefully"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B5"
+    severity: minor
+    lens: bugs
+    item: "closeModal(event) expects event parameter but called without it in some places"
+    location: "index.html:582,636,687"
+    suggestion: "closeModal() is called from onclick without event parameter (e.g., onclick='closeModal()') which will fail e.target check"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B6"
+    severity: minor
+    lens: bugs
+    item: "Toast.init() called implicitly but container reference can be null if called before DOMContentLoaded"
+    location: "js/ui-features.js:12-14"
+    suggestion: "Toast methods should check if container is null and call init() if needed, or ensure init() is called after DOM ready"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B7"
+    severity: minor
+    lens: bugs
+    item: "PinManager._hash() uses simple base64 which is reversible - PIN stored in plain text"
+    location: "js/pin-manager.js:93-96"
+    suggestion: "While documented as 'not bank-level', the hash is trivially reversible. Consider using crypto.subtle for proper hashing"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B8"
+    severity: minor
+    lens: bugs
+    item: "Array index access without bounds checking in editIncomeSource"
+    location: "js/app.js:984-990"
+    suggestion: "personChips[0] and personChips[1] accessed without checking if array has elements"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B9"
+    severity: minor
+    lens: bugs
+    item: "Division by zero possible in calculateBusinessSavings when recurringMonths is 0"
+    location: "js/data-manager.js:1059-1062"
+    suggestion: "Add check: if (cost.recurringMonths > 0) before division"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B10"
+    severity: minor
+    lens: bugs
+    item: "closeModal(e) called as onclick handler without event will cause e.target undefined"
+    location: "index.html:855-856"
+    suggestion: "The closeModal function checks e.target.classList but when called from keyboard (Escape) or programmatically, e might not have target"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B11"
+    severity: minor
+    lens: bugs
+    item: "No validation of date inputs can lead to Invalid Date objects"
+    location: "js/app.js:1039,1109,1116"
+    suggestion: "When parsing deadline + '-01' or other date strings, no validation if input is valid month format YYYY-MM"
+    found_in_iteration: 1
+    status: open
+
+  - id: "B12"
+    severity: minor
+    lens: bugs
+    item: "Race condition: connectDataManagerToEventBus may be called before EventBus is defined"
+    location: "js/app.js:123-125"
+    suggestion: "The typeof check exists but if event-bus.js fails to load, error handling is silent"
+    found_in_iteration: 1
+    status: open
+
+  # === SECURITY (9 issues) ===
+  - id: "S1"
+    severity: critical
+    lens: security
+    item: "Weak PIN hashing using base64 encoding instead of cryptographic hash"
+    location: "js/pin-manager.js:93-96"
+    suggestion: "Replace btoa() with proper cryptographic hash like SHA-256 via Web Crypto API: crypto.subtle.digest('SHA-256', data)"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S2"
+    severity: critical
+    lens: security
+    item: "XSS vulnerability - User-controlled data rendered via innerHTML without sanitization"
+    location: "js/app.js:321,490,551,597,1886"
+    suggestion: "User input (goal names, income source names, todo titles) is directly interpolated into innerHTML templates without escaping"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S3"
+    severity: major
+    lens: security
+    item: "XSS in Toast notifications - title and message passed directly to innerHTML"
+    location: "js/ui-features.js:28-33"
+    suggestion: "Toast.show() interpolates title and message directly into innerHTML. Escape HTML entities or use textContent"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S4"
+    severity: major
+    lens: security
+    item: "Sensitive financial data stored unencrypted in localStorage"
+    location: "js/data-manager.js:117-176"
+    suggestion: "All income, expenses, and financial data stored in plain JSON in localStorage. Consider encrypting sensitive data"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S5"
+    severity: major
+    lens: security
+    item: "Session expiry stored client-side in sessionStorage - easily manipulated"
+    location: "js/pin-manager.js:48-71"
+    suggestion: "Session timeout is stored as a timestamp in sessionStorage. An attacker can modify this value via DevTools"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S6"
+    severity: major
+    lens: security
+    item: "Import functionality accepts arbitrary JSON without validation"
+    location: "js/app.js:1416-1450"
+    suggestion: "importData() parses JSON and writes directly to localStorage without validating structure or sanitizing values"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S7"
+    severity: minor
+    lens: security
+    item: "Hardcoded salt value in PIN hashing"
+    location: "js/pin-manager.js:94"
+    suggestion: "Salt 'familygoals_2025' is hardcoded and identical for all users. Generate unique per-user salt"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S8"
+    severity: minor
+    lens: security
+    item: "No rate limiting on PIN attempts"
+    location: "js/pin-manager.js:24-28"
+    suggestion: "PIN verification has no attempt counter or lockout mechanism. A 4-digit PIN can be brute-forced with 10,000 attempts"
+    found_in_iteration: 1
+    status: open
+
+  - id: "S9"
+    severity: minor
+    lens: security
+    item: "PIN remains accessible in JavaScript memory"
+    location: "index.html:35-46"
+    suggestion: "PIN entry via onclick='pinKey(X)' keeps PIN digits in JavaScript scope"
+    found_in_iteration: 1
+    status: open
+
+  # === DUPLICATES (12 issues) ===
+  - id: "D1"
+    severity: major
+    lens: duplicates
+    item: "formatMoney() function duplicated across files"
+    location: "js/app.js:29-31, js/ui-features.js:319-326"
+    suggestion: "Extract to shared utils.js module. Consolidate to one implementation"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D2"
+    severity: major
+    lens: duplicates
+    item: "localStorage save pattern repeated for every entity type"
+    location: "js/data-manager.js:150-152, 169-170, 176-177, 203, 215-216, 224, 362-364, 387, 396-397, 405-406"
+    suggestion: "Create generic _saveToStorage(key, data) and _getFromStorage(key, defaultValue) methods"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D3"
+    severity: major
+    lens: duplicates
+    item: "Chip selection handler duplicated across form setups"
+    location: "js/app.js:919-926, 1056-1063, 1701-1723"
+    suggestion: "Extract chip selection logic to reusable function like setupChipGroup(containerId, callback)"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D4"
+    severity: major
+    lens: duplicates
+    item: "calculateRequiredMonthlySavings logic duplicated"
+    location: "js/app.js:1032-1046, js/data-manager.js:743-755"
+    suggestion: "Remove duplicate from app.js updateCalculatedNeeds(). Use dataManager.calculateRequiredMonthlySavings() instead"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D5"
+    severity: major
+    lens: duplicates
+    item: "Category icons and names defined in multiple places"
+    location: "js/ui-features.js:215-258, js/app.js:1324-1331, js/app.js:1661-1666"
+    suggestion: "Create shared CATEGORY_CONFIG object with icons, names, and colors"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D6"
+    severity: minor
+    lens: duplicates
+    item: "MONTHS array defined in multiple places"
+    location: "js/app.js:26-27, js/ui-features.js:338, index.html:929"
+    suggestion: "Create shared constants.js with MONTHS array and month formatting utilities"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D7"
+    severity: minor
+    lens: duplicates
+    item: "Modal creation pattern duplicated"
+    location: "js/app.js:1489-1505, 1544-1559"
+    suggestion: "Create createDynamicModal(id, title) helper"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D8"
+    severity: minor
+    lens: duplicates
+    item: "Date filtering pattern repeated"
+    location: "js/data-manager.js:265-272, 283-286, 411-414, 418-421"
+    suggestion: "Create _filterByMonth(array, year, month, dateField='date') helper"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D9"
+    severity: minor
+    lens: duplicates
+    item: "Toast notification pattern after CRUD operations"
+    location: "js/app.js:786-788, 897-899, 946-948, 956-958, 1137-1139, 1190-1192"
+    suggestion: "Create wrapper methods like saveWithToast(operation, successMsg)"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D10"
+    severity: minor
+    lens: duplicates
+    item: "Achievement category names mapping duplicated"
+    location: "js/app.js:1474-1486, js/app.js:674-685"
+    suggestion: "Extract catNames object to GamificationManager.CATEGORY_NAMES constant"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D11"
+    severity: minor
+    lens: duplicates
+    item: "getYearMonth pattern repeated"
+    location: "js/app.js:42-44, 726-727, 808-809, 882-883, 928-929"
+    suggestion: "Simplify if currentMonth was a module-level reactive state"
+    found_in_iteration: 1
+    status: open
+
+  - id: "D12"
+    severity: minor
+    lens: duplicates
+    item: "Empty state HTML pattern repeated"
+    location: "js/app.js:376-377, 500-501, 565-567, 607-609, 851-852, 1645-1647, 1653-1655, 1848-1850, 1855-1858"
+    suggestion: "Create renderEmptyState(container, message) helper"
+    found_in_iteration: 1
+    status: open
+
+  # === PERFORMANCE (11 issues) ===
+  - id: "P1"
+    severity: major
+    lens: performance
+    item: "Repeated localStorage.getItem + JSON.parse on every data access"
+    location: "js/data-manager.js:116-118, 156-158, 184-186, 374-376, 968-969, 1104-1106"
+    suggestion: "Cache parsed data in memory and invalidate only on write"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P2"
+    severity: major
+    lens: performance
+    item: "N+1 query pattern in getTrendByOwner - calls getPaymentsByMonth inside loop"
+    location: "js/data-manager.js:520-567"
+    suggestion: "Load all sources once outside the loop, filter payments by month in memory"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P3"
+    severity: major
+    lens: performance
+    item: "checkAchievements iterates ALL 100+ achievements and calls dataManager methods repeatedly"
+    location: "js/gamification-manager.js:1039-1054"
+    suggestion: "Pre-fetch all needed data once before the loop"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P4"
+    severity: major
+    lens: performance
+    item: "renderAll() called on every data:changed event without debouncing"
+    location: "js/app.js:162-164"
+    suggestion: "Add debounce/throttle (e.g., 100ms) to prevent multiple rapid re-renders"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P5"
+    severity: minor
+    lens: performance
+    item: "innerHTML used for large DOM updates instead of DocumentFragment"
+    location: "js/app.js:312-330, 482-502, 536-567"
+    suggestion: "For lists with many items, use DocumentFragment or virtual DOM diffing"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P6"
+    severity: minor
+    lens: performance
+    item: "querySelectorAll called repeatedly in render functions without caching"
+    location: "js/app.js:181-182, 334, 458, 623-636"
+    suggestion: "Cache DOM element references at init time"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P7"
+    severity: minor
+    lens: performance
+    item: "getMonthlyStats called multiple times in getYearlyStats loop"
+    location: "js/data-manager.js:461-464"
+    suggestion: "getYearlyStats calls getMonthlyStats 12 times, each of which re-parses localStorage. Batch the data loading"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P8"
+    severity: minor
+    lens: performance
+    item: "Missing event listener cleanup - online/offline listeners on window"
+    location: "js/data-manager.js:23-24"
+    suggestion: "Store listener references for cleanup when DataManager is disposed"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P9"
+    severity: minor
+    lens: performance
+    item: "PullToRefresh touchmove handler runs on every touch event"
+    location: "js/ui-features.js:95-109"
+    suggestion: "Add passive: false only when needed and consider throttling"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P10"
+    severity: minor
+    lens: performance
+    item: "Notifications.updateBadge queries all .notification-badge and .nav-item on every call"
+    location: "js/ui-features.js:431-443"
+    suggestion: "Cache the nav item reference and reuse it"
+    found_in_iteration: 1
+    status: open
+
+  - id: "P11"
+    severity: minor
+    lens: performance
+    item: "EventBus emits 'data:changed' recursively for every specific event"
+    location: "js/event-bus.js:44-48"
+    suggestion: "This causes renderAll to be called twice - once for specific event, once for data:changed"
+    found_in_iteration: 1
+    status: open
+
+  # === STYLE (13 issues) ===
+  - id: "ST1"
+    severity: major
+    lens: style
+    item: "Inconsistent JSDoc documentation - some methods have JSDoc, others have none"
+    location: "js/data-manager.js vs js/app.js"
+    suggestion: "Add JSDoc documentation to all public functions, especially in app.js"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST2"
+    severity: major
+    lens: style
+    item: "Inconsistent error handling patterns - some use try/catch with Toast, others use console.error only"
+    location: "js/app.js:709-796 vs js/app.js:1263-1298"
+    suggestion: "Standardize error handling to always use Toast notifications for user-facing errors"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST3"
+    severity: major
+    lens: style
+    item: "Global window function assignments instead of module pattern"
+    location: "js/app.js:1347 (window.addNewCategory), js/app.js:1367 (window.deleteCategory)"
+    suggestion: "Use the existing app namespace pattern or module exports instead of directly assigning to window"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST4"
+    severity: minor
+    lens: style
+    item: "console.log statements left in production code"
+    location: "js/app.js:87, 172, 772, 1289, js/event-bus.js:32, js/recurring-manager.js:17, js/data-manager.js:34, 638"
+    suggestion: "Remove console.log statements or replace with configurable logging utility"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST5"
+    severity: minor
+    lens: style
+    item: "Inconsistent function declaration styles - mix of arrow functions and regular functions"
+    location: "js/app.js (multiple locations)"
+    suggestion: "Standardize on one style - use arrow functions consistently for all non-method functions"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST6"
+    severity: minor
+    lens: style
+    item: "Mixed comment language (Polish and English)"
+    location: "js/app.js vs js/data-manager.js"
+    suggestion: "Standardize on one language for comments"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST7"
+    severity: minor
+    lens: style
+    item: "Dead code: TODO comment with unimplemented functionality"
+    location: "js/engagement-manager.js:136-137"
+    suggestion: "Implement the check function for savings_boost challenge or remove the TODO"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST8"
+    severity: minor
+    lens: style
+    item: "Inconsistent use of optional chaining - mixed patterns"
+    location: "js/app.js:618"
+    suggestion: "Use optional chaining consistently throughout the codebase"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST9"
+    severity: minor
+    lens: style
+    item: "Inconsistent string quotes - mix of single and double quotes"
+    location: "Multiple files"
+    suggestion: "Standardize on single quotes for JS strings, backticks for template literals"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST10"
+    severity: minor
+    lens: style
+    item: "Inconsistent naming for DOM query helpers"
+    location: "js/app.js:23-24 defines $ and $$ helpers but js/ui-features.js uses document.getElementById directly"
+    suggestion: "Export and use the helper functions consistently across all modules"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST11"
+    severity: minor
+    lens: style
+    item: "Magic numbers without constants"
+    location: "js/pin-manager.js:8 (30 * 60 * 1000), js/engagement-manager.js:44"
+    suggestion: "Extract magic numbers to named constants"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST12"
+    severity: minor
+    lens: style
+    item: "Inconsistent class naming - some use Manager suffix, others use different patterns"
+    location: "DataManager, GamificationManager vs Toast, PullToRefresh, Skeleton, ExpenseChart"
+    suggestion: "Consider converting object literals to classes for consistency"
+    found_in_iteration: 1
+    status: open
+
+  - id: "ST13"
+    severity: minor
+    lens: style
+    item: "File size imbalance - index.html is 41KB with mixed HTML/JS"
+    location: "index.html"
+    suggestion: "Consider extracting inline scripts to separate files"
+    found_in_iteration: 1
+    status: open
+
+  # === ITERATION 2 - NEW BUGS ===
+  - id: "B13"
+    severity: major
+    lens: bugs
+    item: "AlertManager.getAlerts() accesses global dataManager without null check"
+    location: "js/alert-manager.js:11"
+    suggestion: "Add null check before calling dataManager.getAllAlerts()"
+    found_in_iteration: 2
+    status: open
+
+  - id: "B14"
+    severity: major
+    lens: bugs
+    item: "EngagementManager useFreeze/buyFreeze access this.gm without null check"
+    location: "js/engagement-manager.js:358,392"
+    suggestion: "Add null checks for gamification manager"
+    found_in_iteration: 2
+    status: open
+
+  - id: "B15"
+    severity: major
+    lens: bugs
+    item: "AIAdvisor _analyzeData divides by trend.length without checking if array is empty"
+    location: "js/ai-advisor.js:46-47"
+    suggestion: "Add check: if (trend.length === 0) return defaultAnalysis"
+    found_in_iteration: 2
+    status: open
+
+  - id: "B16"
+    severity: minor
+    lens: bugs
+    item: "EngagementManager _daysBetween returns NaN when user.lastLoginDate is null"
+    location: "js/engagement-manager.js:349,591-594"
+    suggestion: "Add null check for date parameters"
+    found_in_iteration: 2
+    status: open
+
+  - id: "B17"
+    severity: minor
+    lens: bugs
+    item: "FamilyUnityManager._loadData JSON.parse without try-catch"
+    location: "js/family-unity.js:288"
+    suggestion: "Wrap JSON.parse in try-catch block"
+    found_in_iteration: 2
+    status: open
+
+  - id: "B18"
+    severity: minor
+    lens: bugs
+    item: "FamilyBalanceManager._loadData JSON.parse without try-catch"
+    location: "js/family-balance.js:318"
+    suggestion: "Wrap JSON.parse in try-catch block"
+    found_in_iteration: 2
+    status: open
+
+  - id: "B19"
+    severity: minor
+    lens: bugs
+    item: "GamificationManager._loadAchievements JSON.parse without try-catch"
+    location: "js/gamification-manager.js:1026"
+    suggestion: "Wrap JSON.parse in try-catch block"
+    found_in_iteration: 2
+    status: open
+
+  - id: "B20"
+    severity: minor
+    lens: bugs
+    item: "AlertManager getDismissed JSON.parse without try-catch"
+    location: "js/alert-manager.js:61"
+    suggestion: "Wrap JSON.parse in try-catch block"
+    found_in_iteration: 2
+    status: open
+
+  # === ITERATION 2 - NEW SECURITY ===
+  - id: "S10"
+    severity: major
+    lens: security
+    item: "Service worker caches sensitive data URLs without validation"
+    location: "sw.js:46-81"
+    suggestion: "Add validation for what can be cached, exclude /data/ paths"
+    found_in_iteration: 2
+    status: open
+
+  - id: "S11"
+    severity: major
+    lens: security
+    item: "Points manipulation via direct property access"
+    location: "js/engagement-manager.js:282, js/family-unity.js:171"
+    suggestion: "GamificationManager.unlockedAchievements[owner].points directly modified - add validation methods"
+    found_in_iteration: 2
+    status: open
+
+  - id: "S12"
+    severity: minor
+    lens: security
+    item: "Unbounded array growth in localStorage data structures"
+    location: "js/engagement-manager.js, js/family-unity.js, js/family-balance.js"
+    suggestion: "Arrays grow indefinitely without cleanup - implement periodic cleanup"
+    found_in_iteration: 2
+    status: open
+
+  # === ITERATION 2 - NEW PERFORMANCE ===
+  - id: "P12"
+    severity: major
+    lens: performance
+    item: "EngagementManager daily challenge checks iterate all expenses/income on every check call"
+    location: "js/engagement-manager.js:60-120"
+    suggestion: "Cache today's expenses once and reuse"
+    found_in_iteration: 2
+    status: open
+
+  - id: "P13"
+    severity: major
+    lens: performance
+    item: "AIAdvisor.generateAdvice calls dm.getTrend(6) which processes 6 months of data on every advice generation"
+    location: "js/ai-advisor.js:20-30"
+    suggestion: "Cache trend data or implement lazy loading"
+    found_in_iteration: 2
+    status: open
+
+  - id: "P14"
+    severity: minor
+    lens: performance
+    item: "FamilyUnityManager._countContributions iterates contributions array multiple times"
+    location: "js/family-unity.js:650-660"
+    suggestion: "Use single reduce() to count all types in one pass"
+    found_in_iteration: 2
+    status: open
+
+  - id: "P15"
+    severity: minor
+    lens: performance
+    item: "EngagementManager._getDailyChallenges shuffles challenges array on every call"
+    location: "js/engagement-manager.js"
+    suggestion: "Cache the shuffled challenges for the current day"
+    found_in_iteration: 2
+    status: open
+
+  # === ITERATION 2 - NEW DUPLICATES ===
+  - id: "D13"
+    severity: major
+    lens: duplicates
+    item: "Reward definitions overlap - sleep_in, restaurant appear in both REWARDS and FAMILY_REWARDS"
+    location: "js/gamification-manager.js REWARDS, js/family-unity.js FAMILY_REWARDS"
+    suggestion: "Create unified REWARDS registry"
+    found_in_iteration: 2
+    status: open
+
+  - id: "D14"
+    severity: major
+    lens: duplicates
+    item: "purchaseReward pattern duplicated in two managers"
+    location: "js/gamification-manager.js:1209-1227, js/family-unity.js:591-611"
+    suggestion: "Extract common purchase logic into shared RewardPurchaseService"
+    found_in_iteration: 2
+    status: open
+
+  - id: "D15"
+    severity: major
+    lens: duplicates
+    item: "Achievement/milestone structure repeated across 3 managers"
+    location: "js/gamification-manager.js ACHIEVEMENTS, js/engagement-manager.js STREAK_ACHIEVEMENTS, js/family-balance.js BALANCE_ACHIEVEMENTS"
+    suggestion: "Consolidate into single achievements registry with category tags"
+    found_in_iteration: 2
+    status: open
+
+  - id: "D16"
+    severity: major
+    lens: duplicates
+    item: "Couple streak tracking duplicated in different managers"
+    location: "js/engagement-manager.js (couple.sharedStreak), js/family-unity.js (TEAM_GOALS weekly_together)"
+    suggestion: "Consolidate couple tracking into one location"
+    found_in_iteration: 2
+    status: open
+
+  - id: "D17"
+    severity: major
+    lens: duplicates
+    item: "Level/tier system implemented twice with different structures"
+    location: "js/gamification-manager.js _calculateLevel (bronze/silver/gold), js/family-unity.js FAMILY_LEVELS (1-10)"
+    suggestion: "Unify leveling system"
+    found_in_iteration: 2
+    status: open
+
+  - id: "D18"
+    severity: minor
+    lens: duplicates
+    item: "_daysSince/_daysBetween date calculation pattern duplicated"
+    location: "js/engagement-manager.js:591-594, js/family-balance.js:671-675"
+    suggestion: "Extract to shared utils.js"
+    found_in_iteration: 2
+    status: open
+
+  # === ITERATION 2 - NEW STYLE ===
+  - id: "ST14"
+    severity: major
+    lens: style
+    item: "Duplicate object key 'double_income' in ACHIEVEMENTS object"
+    location: "js/gamification-manager.js:320,590"
+    suggestion: "Rename one of the duplicate keys"
+    found_in_iteration: 2
+    status: open
+
+  - id: "ST15"
+    severity: major
+    lens: style
+    item: "Implicit dependency on global 'dataManager' variable in AlertManager"
+    location: "js/alert-manager.js:9"
+    suggestion: "Pass dataManager as parameter or use constructor pattern"
+    found_in_iteration: 2
+    status: open
+
+  - id: "ST16"
+    severity: minor
+    lens: style
+    item: "Static class pattern used inconsistently - AlertManager is all static while others use instances"
+    location: "js/alert-manager.js:1-95"
+    suggestion: "Convert AlertManager to instance-based pattern for consistency"
+    found_in_iteration: 2
+    status: open
+
+  - id: "ST17"
+    severity: minor
+    lens: style
+    item: "Inconsistent return type patterns - some methods return null, others return {success: false}"
+    location: "js/family-balance.js:180-240, js/family-unity.js:260-290"
+    suggestion: "Standardize error returns"
+    found_in_iteration: 2
+    status: open
+
+  - id: "ST18"
+    severity: minor
+    lens: style
+    item: "Unused STREAK_ACHIEVEMENTS constant defined but not integrated"
+    location: "js/engagement-manager.js:486-573"
+    suggestion: "Merge into main achievements or document integration pattern"
+    found_in_iteration: 2
+    status: open
+
+  # === ITERATION 3 - NEW ISSUES ===
+  - id: "A1"
+    severity: major
+    lens: accessibility
+    item: "user-scalable=no prevents zoom for visually impaired users (WCAG violation)"
+    location: "index.html:5"
+    suggestion: "Remove user-scalable=no from viewport meta tag"
+    found_in_iteration: 3
+    status: open
+
+  - id: "A2"
+    severity: minor
+    lens: accessibility
+    item: "Modal close button inconsistent position in modal-categories"
+    location: "index.html:582"
+    suggestion: "Move close button after h2 for consistency with other modals"
+    found_in_iteration: 3
+    status: open
+
+  - id: "CSS1"
+    severity: minor
+    lens: style
+    item: "Undefined CSS variable --bg-secondary being used"
+    location: "css/main.css:286"
+    suggestion: "Use --bg-subtle or define --bg-secondary in :root"
+    found_in_iteration: 3
+    status: open
+
+  - id: "CSS2"
+    severity: minor
+    lens: style
+    item: "Undefined CSS variable --mint-dark being used"
+    location: "css/main.css:971"
+    suggestion: "Use --mint or define --mint-dark in :root"
+    found_in_iteration: 3
+    status: open
+
+  - id: "SW1"
+    severity: major
+    lens: bugs
+    item: "Background fetch response not cloned before consuming in stale-while-revalidate"
+    location: "sw.js:62"
+    suggestion: "Clone response before putting in cache: cache.put(event.request, response.clone())"
+    found_in_iteration: 3
+    status: open
+
+  - id: "SW2"
+    severity: minor
+    lens: bugs
+    item: "Non-existent /data/config.json in cache list causes SW install to fail"
+    location: "sw.js:19"
+    suggestion: "Remove non-existent files from ASSETS or create the file"
+    found_in_iteration: 3
+    status: open
+
+  - id: "S13"
+    severity: minor
+    lens: security
+    item: "Hardcoded default PIN '9890' exposed in fallback code"
+    location: "index.html:814-815"
+    suggestion: "Remove fallback PIN or use more secure default behavior"
+    found_in_iteration: 3
+    status: open
+
+  - id: "M1"
+    severity: minor
+    lens: style
+    item: "Empty iarc_rating_id field in manifest"
+    location: "manifest.json:17"
+    suggestion: "Remove iarc_rating_id or add valid rating ID"
+    found_in_iteration: 3
+    status: open
+
+  - id: "PKG1"
+    severity: minor
+    lens: style
+    item: "puppeteer-core version ^24.34.0 allows major version changes"
+    location: "package.json:14"
+    suggestion: "Consider pinning to exact version for stability"
+    found_in_iteration: 3
+    status: open
+
+iterations:
+  - number: 1
+    timestamp: "2026-01-26T13:40:00"
+    new_issues_found: 57
+    consensus: "0/5 no_new_issues"
+
+  - number: 2
+    timestamp: "2026-01-26T13:45:00"
+    new_issues_found: 24
+    consensus: "0/5 no_new_issues"
+
+  - number: 3
+    timestamp: "2026-01-26T13:50:00"
+    new_issues_found: 9
+    consensus: "0/5 no_new_issues"
+
+  - number: 4
+    timestamp: "2026-01-26T13:52:00"
+    new_issues_found: 4
+    consensus: "partial - mostly duplicates"
+
+  - number: 5
+    timestamp: "2026-01-26T13:55:00"
+    new_issues_found: 0
+    consensus: "5/5 no_new_issues - DONE"
+
+summary:
+  total: 90
+  critical: 3
+  major: 32
+  minor: 55
+  by_lens:
+    bugs: 22
+    security: 13
+    duplicates: 18
+    performance: 15
+    style: 20
+    accessibility: 2

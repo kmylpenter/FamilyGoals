@@ -315,7 +315,14 @@ class FamilyBalanceManager {
 
   _loadData() {
     const stored = localStorage.getItem(FamilyBalanceManager.STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('[FamilyBalanceManager] JSON parse error:', e);
+      }
+    }
+    return {
       husband: {
         timeActivities: [],
         balanceScore: 50, // 0-100, 50 = środek
@@ -669,6 +676,10 @@ class FamilyBalanceManager {
   }
 
   _daysSince(dateStr) {
+    // Use shared utility if available
+    if (window.FGUtils?.daysSince) {
+      return FGUtils.daysSince(dateStr);
+    }
     if (!dateStr) return 999;
     const then = new Date(dateStr);
     const now = new Date();

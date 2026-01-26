@@ -14,7 +14,6 @@
   "dir": "ltr",
   "prefer_related_applications": false,
   "categories": ["finance", "lifestyle", "productivity"],
-  "iarc_rating_id": "",
   "icons": [
     {
       "src": "icons/icon-192.png",
