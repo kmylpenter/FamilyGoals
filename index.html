@@ -11,6 +11,203 @@
 </head>
 <body>
 
+  <!-- DEVLOG + REFRESH BUTTONS -->
+  <style>
+    #devlog-btn {
+      position: fixed; bottom: 8px; right: 8px; z-index: 99999;
+      background: #222; color: #0f0; border: 1px solid #555; border-radius: 6px;
+      padding: 4px 10px; font-size: 11px; font-family: monospace; opacity: 0.7;
+      cursor: pointer;
+    }
+    #devlog-btn:active { opacity: 1; }
+    #devlog-btn.has-errors { color: #f44; border-color: #f44; opacity: 1; }
+    #refresh-btn {
+      position: fixed; bottom: 8px; right: 80px; z-index: 99999;
+      background: #222; color: #4af; border: 1px solid #555; border-radius: 6px;
+      padding: 4px 10px; font-size: 11px; font-family: monospace; opacity: 0.7;
+      cursor: pointer;
+    }
+    #refresh-btn:active { opacity: 1; }
+    #devlog-panel {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100000;
+      height: 45vh; background: #1a1a1a; color: #eee; font-family: monospace;
+      font-size: 11px; flex-direction: column; border-top: 2px solid #555;
+    }
+    #devlog-panel.open { display: flex; }
+    #devlog-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 8px; background: #333; border-bottom: 1px solid #555;
+    }
+    #devlog-header button {
+      background: #555; color: #fff; border: none; border-radius: 4px;
+      padding: 3px 10px; font-size: 11px; min-height: 26px; cursor: pointer; margin-left: 6px;
+    }
+    #devlog-entries {
+      flex: 1; overflow-y: auto; padding: 4px 8px; -webkit-overflow-scrolling: touch;
+    }
+    .devlog-line { padding: 2px 0; border-bottom: 1px solid #2a2a2a; white-space: pre-wrap; word-break: break-all; }
+    .devlog-line.log { color: #ccc; }
+    .devlog-line.warn { color: #fa0; }
+    .devlog-line.error { color: #f44; }
+    .devlog-line .devlog-ts { color: #888; margin-right: 6px; }
+    .devlog-line.hidden { display: none; }
+    #devlog-filters {
+      display: flex; gap: 4px; padding: 4px 8px; background: #2a2a2a;
+      align-items: center; border-bottom: 1px solid #444;
+    }
+    .df-type {
+      background: #444; color: #aaa; border: 1px solid #555; border-radius: 4px;
+      padding: 2px 8px; font-size: 10px; min-height: 24px; cursor: pointer; font-family: monospace;
+    }
+    .df-type.active { color: #fff; border-color: #888; background: #666; }
+    .df-err.active { color: #f44; border-color: #f44; }
+    .df-wrn.active { color: #fa0; border-color: #fa0; }
+    #devlog-search {
+      flex: 1; min-width: 60px; background: #333; color: #eee; border: 1px solid #555;
+      border-radius: 4px; padding: 2px 6px; font-size: 11px; font-family: monospace;
+      min-height: 24px; outline: none;
+    }
+    #devlog-search:focus { border-color: #888; }
+  </style>
+
+  <div id="devlog-btn" onclick="toggleDevlog()">DevLog</div>
+  <div id="refresh-btn" onclick="window.__reloading=true;location.reload(true)">&#x21bb;</div>
+
+  <div id="devlog-panel">
+    <div id="devlog-header">
+      <span>DevLog <span id="devlog-count">0</span></span>
+      <div>
+        <button onclick="copyDevlog()">Kopiuj</button>
+        <button onclick="clearDevlog()">Wyczysc</button>
+        <button onclick="toggleDevlog()">X</button>
+      </div>
+    </div>
+    <div id="devlog-filters">
+      <button class="df-type active" data-type="all" onclick="devlogFilterType('all')">Wszystko</button>
+      <button class="df-type df-err" data-type="error" onclick="devlogFilterType('error')">Errors</button>
+      <button class="df-type df-wrn" data-type="warn" onclick="devlogFilterType('warn')">Warn</button>
+      <input id="devlog-search" type="text" placeholder="Szukaj..." oninput="devlogApplyFilters()">
+    </div>
+    <div id="devlog-entries"></div>
+  </div>
+
+  <script>
+  (function() {
+    var MAX_LINES = 200;
+    var logs = [];
+    var origConsole = { log: console.log, warn: console.warn, error: console.error };
+    var errorCount = 0;
+
+    function ts() {
+      var d = new Date();
+      return [d.getHours(), d.getMinutes(), d.getSeconds()].map(function(n) { return String(n).padStart(2,'0'); }).join(':');
+    }
+
+    function addLine(type, args) {
+      var text = Array.from(args).map(function(a) {
+        if (a === null) return 'null';
+        if (a === undefined) return 'undefined';
+        if (typeof a === 'object') { try { return JSON.stringify(a, null, 0); } catch(e) { return String(a); } }
+        return String(a);
+      }).join(' ');
+      logs.push({ type: type, text: text, time: ts() });
+      if (logs.length > MAX_LINES) logs.shift();
+      if (type === 'error') {
+        errorCount++;
+        var btn = document.getElementById('devlog-btn');
+        if (btn) btn.classList.add('has-errors');
+      }
+      var panel = document.getElementById('devlog-entries');
+      if (panel) {
+        var el = document.createElement('div');
+        el.className = 'devlog-line ' + type;
+        el.dataset.type = type;
+        el.dataset.text = text.toLowerCase();
+        var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return s.replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+        el.innerHTML = '<span class="devlog-ts">' + esc(logs[logs.length-1].time) + '</span>' + esc(text);
+        applyFilterToLine(el);
+        panel.appendChild(el);
+        if (panel.children.length > MAX_LINES) panel.removeChild(panel.firstChild);
+        panel.scrollTop = panel.scrollHeight;
+      }
+      var cnt = document.getElementById('devlog-count');
+      if (cnt) cnt.textContent = logs.length;
+    }
+
+    console.log = function() { origConsole.log.apply(console, arguments); addLine('log', arguments); };
+    console.warn = function() { origConsole.warn.apply(console, arguments); addLine('warn', arguments); };
+    console.error = function() { origConsole.error.apply(console, arguments); addLine('error', arguments); };
+
+    window.addEventListener('error', function(e) {
+      addLine('error', ['UNCAUGHT: ' + e.message + ' @ ' + (e.filename||'') + ':' + (e.lineno||'')]);
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      addLine('error', ['UNHANDLED PROMISE: ' + (e.reason && e.reason.message || e.reason || 'unknown')]);
+    });
+
+    var activeFilter = 'all';
+
+    function applyFilterToLine(el) {
+      var search = (document.getElementById('devlog-search') || {}).value || '';
+      var searchLower = search.toLowerCase();
+      var show = true;
+      if (activeFilter === 'error') show = el.dataset.type === 'error';
+      else if (activeFilter === 'warn') show = el.dataset.type === 'warn';
+      if (show && searchLower) show = el.dataset.text.includes(searchLower);
+      el.classList.toggle('hidden', !show);
+    }
+
+    window.toggleDevlog = function() {
+      var p = document.getElementById('devlog-panel');
+      p.classList.toggle('open');
+      if (p.classList.contains('open')) {
+        document.getElementById('devlog-btn').classList.remove('has-errors');
+        errorCount = 0;
+        document.getElementById('devlog-entries').scrollTop = 99999;
+      }
+    };
+
+    window.devlogFilterType = function(type) {
+      activeFilter = type;
+      document.querySelectorAll('.df-type').forEach(function(b) { b.classList.toggle('active', b.dataset.type === type); });
+      devlogApplyFilters();
+    };
+
+    window.devlogApplyFilters = function() {
+      document.querySelectorAll('#devlog-entries .devlog-line').forEach(applyFilterToLine);
+      var visible = document.querySelectorAll('#devlog-entries .devlog-line:not(.hidden)').length;
+      document.getElementById('devlog-count').textContent = visible + '/' + logs.length;
+    };
+
+    window.clearDevlog = function() {
+      logs.length = 0;
+      document.getElementById('devlog-entries').innerHTML = '';
+      document.getElementById('devlog-count').textContent = '0';
+    };
+
+    window.copyDevlog = function() {
+      var visible = document.querySelectorAll('#devlog-entries .devlog-line:not(.hidden)');
+      var lines = Array.from(visible).map(function(el) {
+        var tsEl = el.querySelector('.devlog-ts');
+        var time = tsEl ? tsEl.textContent : '';
+        var type = el.dataset.type ? el.dataset.type.toUpperCase() : 'LOG';
+        var body = el.textContent.replace(time, '').trim();
+        return time + ' [' + type + '] ' + body;
+      });
+      var text = lines.join('\n');
+      var count = lines.length;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() { alert('Skopiowano ' + count + ' linii'); });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        alert('Skopiowano ' + count + ' linii');
+      }
+    };
+  })();
+  </script>
+
   <!-- Pull-to-Refresh Indicator -->
   <div id="pull-indicator" class="pull-indicator">
     <span class="pull-spinner">🔄</span>
@@ -70,41 +267,6 @@
       <div class="income-bar-text">
         <span>Zostało: 2 655 zł</span>
         <span>31%</span>
-      </div>
-    </div>
-
-    <!-- Goals breakdown -->
-    <h2 class="section-title">📋 Skąd ta kwota?</h2>
-    <div id="goals-list">
-      <div class="goal-card" onclick="showScreen('screen-goals')" tabindex="0" role="button" aria-label="Cel: Studia Kasi">
-        <div class="goal-header">
-          <span class="goal-name">🎓 Studia Kasi</span>
-          <span class="goal-amount monthly">1 500 zł/m</span>
-        </div>
-        <div class="goal-detail">
-          <span class="goal-type">Jednorazowy</span>
-          <span>32 000 / 50 000 zł</span>
-        </div>
-      </div>
-      <div class="goal-card" onclick="showScreen('screen-goals')" tabindex="0" role="button" aria-label="Cel: Remont kuchni">
-        <div class="goal-header">
-          <span class="goal-name">🏠 Remont kuchni</span>
-          <span class="goal-amount monthly">1 667 zł/m</span>
-        </div>
-        <div class="goal-detail">
-          <span class="goal-type">Jednorazowy</span>
-          <span>5 000 / 25 000 zł</span>
-        </div>
-      </div>
-      <div class="goal-card future" onclick="showScreen('screen-goals')" tabindex="0" role="button" aria-label="Cel: Rata kredytu">
-        <div class="goal-header">
-          <span class="goal-name">🏦 Rata kredytu</span>
-          <span class="goal-amount monthly warning">+5 000 zł/m</span>
-        </div>
-        <div class="goal-detail">
-          <span class="goal-type">Stały od 2027</span>
-          <span>⚠️ Podnieś zarobki!</span>
-        </div>
       </div>
     </div>
 
@@ -169,6 +331,7 @@
       <div class="list" id="income-sources-list">
         <!-- Renderowane dynamicznie przez JS -->
       </div>
+
     </div>
 
     <!-- Tab: Optymalizacja -->

@@ -298,30 +298,6 @@
     const percent = totalRequired > 0 ? Math.round((savedThisMonth / totalRequired) * 100) : 0;
     if (savingsBar) savingsBar.style.width = Math.min(100, percent) + '%';
 
-    // Update goals list on dashboard
-    const goalsListEl = $('goals-list');
-    if (goalsListEl) {
-      goalsListEl.innerHTML = goals.slice(0, 3).map(g => {
-        const monthly = g.monthlyContribution || dataManager.calculateRequiredMonthlySavings(
-          g.targetAmount, g.currentAmount || 0, g.targetDate
-        );
-        const isFuture = g.type === 'recurring';
-
-        return `
-          <div class="goal-card ${isFuture ? 'future' : ''}" onclick="showScreen('screen-goals')">
-            <div class="goal-header">
-              <span class="goal-name">${escapeHtml(g.icon) || '🎯'} ${escapeHtml(g.name)}</span>
-              <span class="goal-amount monthly ${isFuture ? 'warning' : ''}">${formatMoney(monthly).replace(' zł', '')}/m</span>
-            </div>
-            <div class="goal-detail">
-              <span class="goal-type">${g.type === 'recurring' ? 'Stały' : 'Jednorazowy'}</span>
-              <span>${formatMoney(g.currentAmount || 0)} / ${formatMoney(g.targetAmount)}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
     // Update income status - show same data as Income screen
     const incomeCard = document.querySelector('.income-status-card');
     if (incomeCard) {
@@ -339,6 +315,10 @@
         }
       });
 
+      const businessSavings = dataManager.calculateBusinessSavings();
+      const totalReceived = incomeSummary.totalReceived + businessSavings;
+      const totalExpected = incomeSummary.totalExpected + businessSavings;
+
       incomeCard.innerHTML = `
         <div class="income-status-row">
           <span>👩 Żona</span>
@@ -348,9 +328,13 @@
           <span>👨 Mąż</span>
           <span class="income-value ${husbandReceived > 0 ? 'positive' : ''}">${formatMoney(husbandReceived)} / ${formatMoney(husbandExpected)}</span>
         </div>
+        <div class="income-status-row">
+          <span>💼 Korzyści firmowe</span>
+          <span class="income-value ${businessSavings > 0 ? 'positive' : ''}">${formatMoney(businessSavings)}</span>
+        </div>
         <div class="income-status-row total">
           <span>Razem</span>
-          <span class="income-value ${incomeSummary.totalReceived >= incomeSummary.totalExpected ? 'positive' : ''}">${formatMoney(incomeSummary.totalReceived)} / ${formatMoney(incomeSummary.totalExpected)}</span>
+          <span class="income-value ${totalReceived >= totalExpected ? 'positive' : ''}">${formatMoney(totalReceived)} / ${formatMoney(totalExpected)}</span>
         </div>
       `;
     }
@@ -493,6 +477,7 @@
         renderEmptyState(list, 'Brak źródeł przychodów. Dodaj pierwsze!');
       }
     }
+
   }
 
   function renderGoals() {
@@ -701,9 +686,11 @@
         const owner = personChip?.textContent.includes('Żona') ? 'wife' : 'husband';
         const typeChip = document.querySelector('#income-type-chips .chip.active');
         const incomeType = typeChip?.dataset.value || 'recurring';
-        const date = form.querySelector('input[type="date"]').value;
-        const note = form.querySelector('input[type="text"]')?.value || '';
+        const dateInput = form.querySelector('input[type="date"]').value;
         const { year, month } = getYearMonth();
+        // If no date selected, default to 1st of currently viewed month
+        const date = dateInput || `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const note = form.querySelector('input[type="text"]')?.value || '';
         const forMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
 
         let source;
@@ -898,10 +885,14 @@
       const typeChip = $('payment-type-chips')?.querySelector('.chip.active');
       const type = typeChip?.dataset.type || 'transfer';
 
+      // Use currently viewed month for the payment date
+      const { year: payYear, month: payMonth } = getYearMonth();
+      const payDate = new Date(payYear, payMonth, 1).toISOString();
+
       dataManager.recordPayment(currentPaymentSourceId, {
         amount,
         type,
-        date: new Date().toISOString(),
+        date: payDate,
         note: `${type === 'cash' ? 'Gotówka' : 'Przelew'}: ${formatMoney(amount)}`
       });
 
@@ -942,6 +933,10 @@
     const source = dataManager.getIncomeSources().find(s => s.id === id);
     if (!source) return;
 
+    // Open modal FIRST (closeAllModals resets editingSourceId via resetEditState)
+    openModal('modal-income');
+
+    // Set edit state AFTER openModal so resetEditState doesn't clear it
     editingSourceId = id;
 
     const modal = $('modal-income');
@@ -982,8 +977,6 @@
 
     // Update modal title
     modal.querySelector('.modal-header h2').textContent = '💵 Edytuj źródło';
-
-    openModal('modal-income');
   }
 
   // Goals
@@ -1185,6 +1178,10 @@
     const goal = dataManager.getPlannedExpenses().find(g => g.id === id);
     if (!goal) return;
 
+    // Open modal FIRST (closeAllModals resets editingGoalId via resetEditState)
+    openModal('modal-goal');
+
+    // Set edit state AFTER openModal so resetEditState doesn't clear it
     editingGoalId = id;
 
     const modal = $('modal-goal');
@@ -1241,8 +1238,6 @@
 
     // Update modal title
     modal.querySelector('.modal-header h2').textContent = '🎯 Edytuj cel';
-
-    openModal('modal-goal');
   }
 
   // Expenses
@@ -1778,6 +1773,10 @@
     const cost = dataManager.getBusinessCosts().find(c => c.id === id);
     if (!cost) return;
 
+    // Open modal FIRST (closeAllModals resets editingCostId via resetEditState)
+    openModal('modal-business-cost');
+
+    // Set edit state AFTER openModal so resetEditState doesn't clear it
     editingCostId = id;
 
     // Fill form
@@ -1806,8 +1805,6 @@
 
     // Update modal title
     $('modal-business-cost').querySelector('.modal-header h2').textContent = '💼 Edytuj koszt';
-
-    openModal('modal-business-cost');
   }
 
   // ============ TODOS ============
@@ -1993,6 +1990,10 @@
     const todo = dataManager.getTodos().find(t => t.id === id);
     if (!todo) return;
 
+    // Open modal FIRST (closeAllModals resets editingTodoId via resetEditState)
+    openModal('modal-todo');
+
+    // Set edit state AFTER openModal so resetEditState doesn't clear it
     editingTodoId = id;
 
     // Fill form
@@ -2024,8 +2025,6 @@
 
     // Update modal title
     $('modal-todo').querySelector('.modal-header h2').textContent = '📋 Edytuj zadanie';
-
-    openModal('modal-todo');
   }
 
   // ============ RESET EDIT STATE ============
