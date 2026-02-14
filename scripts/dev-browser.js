@@ -1,7 +1,7 @@
 /**
  * Dev Browser - Opens Chrome window with Pixel 7 dimensions
  * Usage: node scripts/dev-browser.js [url]
- * Default URL: http://localhost:3000
+ * Default URL: http://localhost:7321
  */
 
 const puppeteer = require('puppeteer-core');
@@ -44,7 +44,7 @@ function getChromePath() {
 }
 
 async function openDevBrowser() {
-  const url = process.argv[2] || 'http://localhost:3000';
+  const url = process.argv[2] || 'http://localhost:7321';
 
   console.log(`Opening ${PIXEL_7.name} browser...`);
   console.log(`Viewport: ${PIXEL_7.viewport.width}x${PIXEL_7.viewport.height}`);

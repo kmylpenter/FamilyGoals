@@ -29,7 +29,7 @@ function getChromePath() {
 }
 
 async function testScreens() {
-  const url = process.argv[2] || 'http://localhost:3000';
+  const url = process.argv[2] || 'http://localhost:7321';
   const screenshotDir = path.join(__dirname, '..', 'logs', 'screenshots', 'test');
 
   if (!fs.existsSync(screenshotDir)) {
