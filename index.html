@@ -500,6 +500,14 @@
         </div>
         <div class="list-arrow">→</div>
       </div>
+      <div class="list-item" id="btn-sync" tabindex="0" role="button" aria-label="Synchronizacja rodzinna">
+        <div class="list-icon">🔄</div>
+        <div class="list-content">
+          <div class="list-title">Synchronizacja rodzinna</div>
+          <div class="list-subtitle muted" id="sync-item-status">nieskonfigurowana</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
     </div>
 
     <div class="app-info">
@@ -882,6 +890,29 @@
     </div>
   </div>
 
+  <!-- Modal: Synchronizacja rodzinna -->
+  <div id="modal-sync" class="modal" role="dialog" aria-label="Synchronizacja rodzinna" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
+        <h2>🔄 Synchronizacja rodzinna</h2>
+      </div>
+      <form class="form" id="sync-form">
+        <div class="form-group">
+          <label>Adres backendu (URL /exec)</label>
+          <input type="url" id="sync-url" placeholder="https://script.google.com/macros/s/…/exec" required>
+        </div>
+        <div class="form-group">
+          <label>Token rodziny (wspólny sekret)</label>
+          <input type="text" id="sync-token" placeholder="min. 8 znaków" required minlength="8">
+        </div>
+        <div class="muted" id="sync-status-line"></div>
+        <button type="submit" class="btn-primary">🔗 Połącz i synchronizuj</button>
+        <button type="button" class="btn-secondary" id="sync-disconnect" style="display:none;">Rozłącz (dane zostają na urządzeniu)</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ========== Bottom Navigation ========== -->
   <nav class="bottom-nav" id="bottom-nav" aria-label="Nawigacja główna">
     <button type="button" class="nav-item active" onclick="showScreen('screen-dashboard')" aria-label="Strona główna">
@@ -921,6 +952,7 @@
   <script src="js/pin-manager.js"></script>
   <script src="js/recurring-manager.js"></script>
   <script src="js/ai-advisor.js"></script>
+  <script src="js/sync-manager.js"></script>
   <script src="js/ui-features.js"></script>
   <script src="js/app.js"></script>
   <script>

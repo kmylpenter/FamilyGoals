@@ -20,6 +20,7 @@ const ALL_SCRIPTS = [
   'js/pin-manager.js',
   'js/recurring-manager.js',
   'js/ai-advisor.js',
+  'js/sync-manager.js',
   'js/ui-features.js',
   'js/app.js',
 ];

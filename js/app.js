@@ -32,6 +32,9 @@
 
   // ============ DEMO DATA ============
   function initDemoDataIfEmpty() {
+    // Przy skonfigurowanym sync dane przyjdą z arkusza rodzinnego — demo
+    // zaśmieciłoby wspólny backend przy pierwszym detectChanges
+    if (localStorage.getItem('familygoals_sync_config')) return;
     const hasData = localStorage.getItem('familygoals_income_sources') ||
                     localStorage.getItem('familygoals_planned_override');
     if (hasData) return;
@@ -144,6 +147,11 @@
       // Init AIAdvisor
       if (typeof AIAdvisor !== 'undefined') {
         aiAdvisor = new AIAdvisor(dataManager);
+      }
+
+      // Synchronizacja rodzinna: wystartuj jeśli skonfigurowana
+      if (typeof syncManager !== 'undefined' && syncManager.status().configured) {
+        syncManager.start();
       }
 
       // Setup UI event listeners
@@ -1373,6 +1381,100 @@
       items[2].onclick = exportData;
       items[3].onclick = importData;
       items[4].onclick = clearData;
+    }
+    const syncBtn = $('btn-sync');
+    if (syncBtn) syncBtn.onclick = openSyncModal;
+    setupSyncForm();
+  }
+
+  // ============ SYNCHRONIZACJA RODZINNA ============
+
+  function syncConfig_() {
+    return safeJsonParse(localStorage.getItem('familygoals_sync_config'), null);
+  }
+
+  function refreshSyncStatusUI() {
+    const cfg = syncConfig_();
+    const itemStatus = $('sync-item-status');
+    const line = $('sync-status-line');
+    const disconnectBtn = $('sync-disconnect');
+    if (itemStatus) itemStatus.textContent = cfg ? 'aktywna ✓' : 'nieskonfigurowana';
+    if (disconnectBtn) disconnectBtn.style.display = cfg ? '' : 'none';
+    if (line && typeof syncManager !== 'undefined') {
+      const s = syncManager.status();
+      line.textContent = cfg
+        ? `Kolejka: ${s.queueLength} • Ostatni sync: ${s.lastSync ? s.lastSync.slice(11, 19) : '—'}${s.lastError ? ' • Błąd: ' + s.lastError : ''}`
+        : 'Podaj URL backendu i wspólny token rodziny (te same na obu telefonach).';
+    }
+  }
+
+  function openSyncModal() {
+    const cfg = syncConfig_();
+    if (cfg) {
+      const urlInput = $('sync-url');
+      const tokenInput = $('sync-token');
+      if (urlInput) urlInput.value = cfg.url || '';
+      if (tokenInput) tokenInput.value = cfg.token || '';
+    }
+    refreshSyncStatusUI();
+    openModal('modal-sync');
+  }
+
+  /** Rekordy demo nie mogą zaśmiecić rodzinnego arkusza przy pierwszym połączeniu. */
+  function wipeDemoData() {
+    const demoKeys = ['familygoals_income_sources', 'familygoals_income', 'familygoals_planned_override'];
+    let removed = 0;
+    demoKeys.forEach(key => {
+      const arr = safeJsonParse(localStorage.getItem(key), []);
+      if (!Array.isArray(arr)) return;
+      const kept = arr.filter(r => !(r && typeof r.id === 'string' && r.id.startsWith('demo-')));
+      if (kept.length !== arr.length) {
+        removed += arr.length - kept.length;
+        localStorage.setItem(key, JSON.stringify(kept));
+        dataManager._invalidateCache(key);
+      }
+    });
+    return removed;
+  }
+
+  function setupSyncForm() {
+    const form = $('sync-form');
+    if (!form) return;
+    form.onsubmit = async e => {
+      e.preventDefault();
+      if (typeof syncManager === 'undefined') return;
+      const url = $('sync-url')?.value?.trim();
+      const token = $('sync-token')?.value?.trim();
+      if (!url || !token || token.length < 8) {
+        alert('Podaj URL backendu i token (min. 8 znaków)');
+        return;
+      }
+      const line = $('sync-status-line');
+      if (line) line.textContent = 'Łączenie…';
+      try {
+        const removed = wipeDemoData();
+        await syncManager.configure(url, token);
+        syncManager.start();
+        refreshSyncStatusUI();
+        renderAll();
+        Toast.success('Połączono!', removed
+          ? `Sync aktywny (usunięto ${removed} rekordów demo)`
+          : 'Synchronizacja rodzinna aktywna');
+      } catch (err) {
+        console.error('sync configure error:', err);
+        if (line) line.textContent = 'Błąd: ' + (err && err.message || err);
+        Toast.error('Nie połączono', String(err && err.message || err));
+      }
+    };
+    const disconnectBtn = $('sync-disconnect');
+    if (disconnectBtn) {
+      disconnectBtn.onclick = () => {
+        if (!confirm('Rozłączyć synchronizację? Dane zostają na urządzeniu.')) return;
+        if (typeof syncManager !== 'undefined') syncManager.stop();
+        localStorage.removeItem('familygoals_sync_config');
+        refreshSyncStatusUI();
+        Toast.info('Rozłączono', 'Synchronizacja wyłączona');
+      };
     }
   }
 

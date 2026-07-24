@@ -30,6 +30,17 @@
 - [x] AIAdvisor + AlertManager → **podpięte minimalnie** (porada dnia + alerty na dashboardzie)
 - [x] Osiągnięcia → **ukryte niezdobywalne + tanie warunki** (33 zdobywalne: streak/staż z danych engagement; licznik x/33)
 
+### Backend rodzinny (arkusz + sync) — ZBUDOWANY 2026-07-24
+
+- ✅ Backend GAS wdrożony (clasp @1), arkusz auto-tworzony przy 1. bootstrapie
+- ✅ sync-manager (kolejka offline, LWW, delta z kursorem) — 7 testów kontraktowych
+- ✅ UI: Ustawienia → „Synchronizacja rodzinna" (URL + token)
+- ✅ E2E dwa profile chromium na mock backendzie: 9/9 PASS
+- ⏳ **JEDEN KLIK KAMILA:** autoryzacja scope'ów skryptu (otwórz edytor →
+  Uruchom `doGet` → Zezwól): https://script.google.com/d/19U1BQNWbh5jvwxZHtZLENa4IcIR9FSGDTWSRmwgNBvyRuRI6ETjAuH77/edit
+  Po kliknięciu: roundtrip curl → wpisanie URL+tokena w apce na obu telefonach
+  (dane dostępowe lokalnie w `backend-gas/.local-config.json`, poza repo)
+
 **Pozostałe otwarte (fala 4, niska pilność — lista w AUDIT):**
 - [ ] Martwe ui-features (ExpenseChart/TimelineChart/Widget/Skeleton/Notifications): usunąć czy naprawiać?
 - [ ] Minors z audytu (polski przecinek w kwotach, deep-linki ?action=, unifikacja formatterów, itd.)

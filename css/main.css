@@ -1275,3 +1275,17 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   color: var(--text-muted);
   min-width: 32px;
 }
+
+/* ===== Synchronizacja (sesja 13) ===== */
+.btn-secondary {
+  width: 100%;
+  margin-top: var(--s1);
+  padding: 12px;
+  border: 1px solid var(--text-muted);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 15px;
+}
+.list-subtitle { font-size: 12px; }
+#sync-status-line { margin-bottom: var(--s2); font-size: 13px; min-height: 18px; }

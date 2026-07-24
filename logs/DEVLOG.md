@@ -30,6 +30,34 @@
 
 ## Daily Log
 
+### 2026-07-24 (cz. 2): Backend rodzinny — arkusz Google + sync urządzeń
+
+**Sytuacja:** Po stabilizacji Kamil chce danych wspólnych dla małżonków
+i widocznych w arkuszu — jak w KmylSales. Dotąd localStorage = każde
+urządzenie osobne.
+
+**Wyzwanie:** Dodać backend bez wyrzucania świeżo ustabilizowanego frontu
+(48 testów) i bez natywnego przepisywania.
+
+**Decyzja:** Przeniesienie wzorca KmylSales 1:1: koperta proxy_call → GAS →
+arkusz (karty per encja + kolumna Json), trwała kolejka offline z replayem,
+delta po updatedAt, LWW per rekord. Po stronie frontu silnik snapshot-diff
+localStorage (bez monkey-patchy — łapie DataManagera, gamification
+i engagement jednym mechanizmem); encje obiektowe dzielone per osoba, żeby
+małżonkowie się nie nadpisywali. Token first-writer-wins (repo publiczne —
+sekrety poza gitem).
+
+**Rezultat:** Backend wdrożony (clasp @1), sync-manager + UI ustawień,
+7 testów kontraktowych red→green, E2E dwóch profili chromium na mock
+backendzie 9/9 (bootstrap, delta, tombstone, auto-czyszczenie demo).
+Bramka całości: 55/55. Żywy GAS czeka na 1-klik autoryzacji scope'ów.
+
+**Files:** `backend-gas/*`, `js/sync-manager.js`, `js/app.js`,
+`index.html`, `sw.js`, `tests/sync-manager.test.js`,
+`thoughts/shared/plans/2026-07-24-backend-sheets-sync.md`
+
+---
+
 ### 2026-07-24: Pełny audyt i stabilizacja — sesja 13
 
 **Sytuacja:** Powrót do projektu po pół roku. App "połowicznie
