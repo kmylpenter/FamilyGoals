@@ -36,17 +36,36 @@
                     localStorage.getItem('familygoals_planned_override');
     if (hasData) return;
 
+    const now = new Date();
+
+    // B-M2: income[] MUSI być lustrem source.payments (jedno źródło prawdy) —
+    // wcześniej demo siało do income[] losowe kwoty bez odpowiedników we
+    // wpłatach źródeł i dashboard rozjeżdżał się z kartą przychodów od
+    // pierwszego uruchomienia
+    const wifePayments = [];
+    const husbandPayments = [];
+    const demoIncome = [];
+    const addDemoPayment = (list, sourceId, sourceName, amount, date) => {
+      const id = `demo-pay-${sourceId}-${date.getFullYear()}-${date.getMonth()}`;
+      list.push({ id, amount, date: date.toISOString(), note: '', type: 'transfer' });
+      demoIncome.push({ id: `demo-inc-${id}`, paymentId: id, sourceId, amount, source: sourceName, date: date.toISOString() });
+    };
+    for (let i = 5; i >= 1; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 10);
+      addDemoPayment(wifePayments, 'demo-salary-wife', 'Pensja', 5800 + (i % 3) * 200, d);
+      addDemoPayment(husbandPayments, 'demo-salary-husband', 'Pensja', 4500, d);
+    }
+    // Bieżący miesiąc: żona już otrzymała wypłatę, mąż jeszcze czeka
+    addDemoPayment(wifePayments, 'demo-salary-wife', 'Pensja', 6000, new Date(now.getFullYear(), now.getMonth(), 10));
+
     // Demo income sources
     const demoSources = [
-      { id: 'demo-salary-wife', name: 'Pensja', expectedAmount: 6000, owner: 'wife', icon: '💼', isActive: true, payments: [
-        { id: 'p1', amount: 6000, date: new Date().toISOString(), note: 'Grudzień' }
-      ]},
-      { id: 'demo-salary-husband', name: 'Pensja', expectedAmount: 4500, owner: 'husband', icon: '💼', isActive: true, payments: [] },
+      { id: 'demo-salary-wife', name: 'Pensja', expectedAmount: 6000, owner: 'wife', icon: '💼', isActive: true, payments: wifePayments },
+      { id: 'demo-salary-husband', name: 'Pensja', expectedAmount: 4500, owner: 'husband', icon: '💼', isActive: true, payments: husbandPayments },
       { id: 'demo-freelance', name: 'Freelance', expectedAmount: 1500, owner: 'husband', icon: '💻', isActive: true, payments: [] }
     ];
 
     // Demo goals
-    const now = new Date();
     const demoGoals = [
       { id: 'demo-goal-1', name: 'Studia Kasi', icon: '🎓', type: 'oneoff', targetAmount: 50000, currentAmount: 32000, targetDate: '2026-09-01' },
       { id: 'demo-goal-2', name: 'Remont kuchni', icon: '🏠', type: 'oneoff', targetAmount: 25000, currentAmount: 5000, targetDate: '2026-12-01' },
@@ -54,19 +73,6 @@
       { id: 'demo-goal-4', name: 'Leasing auta', icon: '🚗', type: 'recurring', monthlyContribution: 1200, startDate: '2024-01-01', endDate: '2028-07-01' },
       { id: 'demo-goal-5', name: 'Ubezpieczenie', icon: '🛡️', type: 'recurring', monthlyContribution: 350, startDate: '2025-01-01', endDate: '2025-12-01' }
     ];
-
-    // Demo income records (for chart)
-    const demoIncome = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 10);
-      const baseIncome = 8000 + Math.floor(Math.random() * 3000);
-      demoIncome.push({
-        id: `demo-inc-${i}`,
-        amount: baseIncome,
-        source: 'Pensja',
-        date: d.toISOString()
-      });
-    }
 
     localStorage.setItem('familygoals_income_sources', JSON.stringify(demoSources));
     localStorage.setItem('familygoals_planned_override', JSON.stringify(demoGoals));
@@ -103,7 +109,10 @@
       initDemoDataIfEmpty();
 
       // Init DataManager first
-      dataManager = new DataManager();
+      // B-M3: JEDNA instancja dla całej aplikacji (globalny singleton z
+      // data-manager.js) — druga instancja miała osobny cache i nie
+      // widziała naliczeń RecurringManagera
+      dataManager = window.dataManager || new DataManager();
       await dataManager.init();
 
       // Connect EventBus for reactivity
@@ -235,6 +244,10 @@
     renderGoals();
     renderAchievements();
     renderExpenseChart();
+    // C-M1: te ekrany też zależą od danych — bez nich zmiany kosztów/zadań
+    // nie odświeżały dashboardu i odwrotnie
+    renderOptimization();
+    renderTodos();
   }
 
   function renderExpenseChart() {
@@ -298,6 +311,13 @@
     const percent = totalRequired > 0 ? Math.round((savedThisMonth / totalRequired) * 100) : 0;
     if (savingsBar) savingsBar.style.width = Math.min(100, percent) + '%';
 
+    // A-M3: tekst pod paskiem był statycznym HTML — pasek się ruszał,
+    // liczby obok nie
+    const savingsLeftText = $('savings-left-text');
+    const savingsPercentText = $('savings-percent-text');
+    if (savingsLeftText) savingsLeftText.textContent = 'Zostało: ' + formatMoney(Math.max(0, totalRequired - savedThisMonth));
+    if (savingsPercentText) savingsPercentText.textContent = percent + '%';
+
     // Update income status - show same data as Income screen
     const incomeCard = document.querySelector('.income-status-card');
     if (incomeCard) {
@@ -315,7 +335,7 @@
         }
       });
 
-      const businessSavings = dataManager.calculateBusinessSavings();
+      const businessSavings = dataManager.calculateBusinessSavings(year, month);
       const totalReceived = incomeSummary.totalReceived + businessSavings;
       const totalExpected = incomeSummary.totalExpected + businessSavings;
 
@@ -594,6 +614,30 @@
     const husbandData = gamificationManager.getPlayerStats('husband');
     const wifeUnlocked = gamificationManager.unlockedAchievements?.wife?.unlocked || [];
     const husbandUnlocked = gamificationManager.unlockedAchievements?.husband?.unlocked || [];
+
+    // A-M2: "Ostatnio odblokowane" z realnych danych (wcześniej fałszywy
+    // zahardkodowany HTML pokazywał odznaki, których nikt nie zdobył)
+    const recentList = $('recent-achievements-list');
+    if (recentList) {
+      const recent = [
+        ...gamificationManager.getRecentUnlocks('wife', 3).filter(Boolean).map(a => ({ ...a, ownerIcon: '👩' })),
+        ...gamificationManager.getRecentUnlocks('husband', 3).filter(Boolean).map(a => ({ ...a, ownerIcon: '👨' }))
+      ];
+      if (recent.length === 0) {
+        recentList.innerHTML = '<div class="empty-state">Jeszcze żadnych odznak — działajcie! 💪</div>';
+      } else {
+        recentList.innerHTML = recent.slice(0, 6).map(a => `
+          <div class="achievement-item unlocked">
+            <div class="achievement-icon">${a.icon || '🏆'}</div>
+            <div class="achievement-content">
+              <div class="achievement-name">${escapeHtml(a.name || '')} ${a.ownerIcon}</div>
+              <div class="achievement-desc">${escapeHtml(a.description || '')}</div>
+            </div>
+            <div class="achievement-points">+${a.points || 0} pkt</div>
+          </div>
+        `).join('');
+      }
+    }
 
     // Stats cards - clickable to show person's achievements
     const statsCards = $$('#screen-achievements .stat-card');
@@ -1321,7 +1365,7 @@
       <div class="list-item category-item">
         <div class="list-icon">${cat.icon || '📁'}</div>
         <div class="list-content">
-          <div class="list-title">${cat.name}</div>
+          <div class="list-title">${escapeHtml(cat.name)}</div>
         </div>
         ${cat.isCustom || cat.id.startsWith('custom-') ? `<button class="delete-btn" onclick="window.deleteCategory('${cat.id}')">✕</button>` : ''}
       </div>
@@ -1355,18 +1399,24 @@
     Toast.info('Usunięto', 'Kategoria usunięta');
   };
 
-  function changePin() {
+  async function changePin() {
     const newPin = prompt('Nowy PIN (4 cyfry):');
     if (newPin && /^\d{4}$/.test(newPin)) {
       if (typeof PinManager !== 'undefined') {
-        PinManager.setPin(newPin);
-        PinManager.startSession();
-        alert('PIN zmieniony!');
+        // E-m1: await + obsługa błędu — bez tego "PIN zmieniony!"
+        // pokazywało się nawet gdy zapis się nie powiódł
+        try {
+          await PinManager.setPin(newPin);
+          PinManager.startSession();
+          alert('PIN zmieniony!');
+        } catch (err) {
+          console.error('changePin error:', err);
+          alert('Nie udało się zmienić PIN. Spróbuj ponownie.');
+        }
       } else {
-        // Fallback
-        const settings = safeJsonParse(localStorage.getItem('familygoals_settings'), {});
-        settings.pin = newPin;
-        localStorage.setItem('familygoals_settings', JSON.stringify(settings));
+        // Fallback (B-m3: przez API DataManagera, nie goły localStorage —
+        // goły zapis zostawiał stale cache ustawień)
+        dataManager.updateSettings({ pin: newPin });
         alert('PIN zmieniony!');
       }
     } else if (newPin) {
@@ -1381,6 +1431,9 @@
       incomeSources: dataManager.getIncomeSources(),
       goals: dataManager.getPlannedExpenses(),
       categories: dataManager.getCustomCategories(),
+      businessCosts: dataManager.getBusinessCosts(),
+      todos: dataManager.getTodos(),
+      settings: dataManager.getSettings(),
       achievements: gamificationManager ? {
         wife: gamificationManager.getPlayerStats('wife'),
         husband: gamificationManager.getPlayerStats('husband')
@@ -1429,19 +1482,19 @@
             return result;
           };
 
-          // Import each type with validation
-          if (imported.expenses && isValidArray(imported.expenses)) {
-            localStorage.setItem(DataManager.STORAGE_KEYS.expenses, JSON.stringify(sanitize(imported.expenses)));
-          }
-          if (imported.income && isValidArray(imported.income)) {
-            localStorage.setItem(DataManager.STORAGE_KEYS.income, JSON.stringify(sanitize(imported.income)));
-          }
-          if (imported.incomeSources && isValidArray(imported.incomeSources)) {
-            localStorage.setItem(DataManager.STORAGE_KEYS.incomeSources, JSON.stringify(sanitize(imported.incomeSources)));
-          }
-          if (imported.goals && isValidArray(imported.goals)) {
-            localStorage.setItem('familygoals_planned_override', JSON.stringify(sanitize(imported.goals)));
-          }
+          // Import each type with validation.
+          // B-C1: przez dataManager.importBackup (spójny cache), NIE gołe
+          // localStorage.setItem — te zostawiały stale cache, a pierwsza
+          // edycja po imporcie trwale nadpisywała zaimportowane dane.
+          const payload = {};
+          if (imported.expenses && isValidArray(imported.expenses)) payload.expenses = sanitize(imported.expenses);
+          if (imported.income && isValidArray(imported.income)) payload.income = sanitize(imported.income);
+          if (imported.incomeSources && isValidArray(imported.incomeSources)) payload.incomeSources = sanitize(imported.incomeSources);
+          if (imported.goals && isValidArray(imported.goals)) payload.goals = sanitize(imported.goals);
+          if (imported.categories && isValidArray(imported.categories)) payload.categories = sanitize(imported.categories);
+          if (imported.businessCosts && isValidArray(imported.businessCosts)) payload.businessCosts = sanitize(imported.businessCosts);
+          if (imported.todos && isValidArray(imported.todos)) payload.todos = sanitize(imported.todos);
+          dataManager.importBackup(payload);
 
           renderAll();
           alert('Dane zaimportowane!');
@@ -1673,8 +1726,8 @@
       <div class="cost-item" data-cost-id="${cost.id}">
         <div class="cost-icon">${icon}</div>
         <div class="cost-content">
-          <div class="cost-name">${cost.name}</div>
-          <div class="cost-meta">${recurring}${cost.note ? ' • ' + cost.note : ''}</div>
+          <div class="cost-name">${escapeHtml(cost.name)}</div>
+          <div class="cost-meta">${recurring}${cost.note ? ' • ' + escapeHtml(cost.note) : ''}</div>
         </div>
         <div class="cost-amount">${formatMoney(cost.amount)}</div>
         ${dueHtml}
@@ -1738,7 +1791,7 @@
       }
 
       closeAllModals();
-      renderOptimization();
+      renderAll();
       Toast.success('Zapisano!', 'Koszt firmowy został zapisany');
     });
 
@@ -1748,7 +1801,7 @@
       if (e.target.dataset.buyId) {
         e.stopPropagation();
         dataManager.markBusinessCostPurchased(e.target.dataset.buyId);
-        renderOptimization();
+        renderAll();
         Toast.success('Oznaczono!', 'Koszt oznaczony jako kupiony');
         return;
       }
@@ -1757,7 +1810,7 @@
       if (e.target.dataset.type === 'cost') {
         e.stopPropagation();
         dataManager.deleteBusinessCost(e.target.dataset.id);
-        renderOptimization();
+        renderAll();
         return;
       }
 

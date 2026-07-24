@@ -11,22 +11,52 @@
 
 ## Current Context
 
-**Last Updated:** 2025-12-28
+**Last Updated:** 2026-07-24
 
 ### Project State
 - **Project:** FamilyGoals
-- **Version:** v0.1.0-dev
-- **Phase:** Inicjalizacja
+- **Version:** v0.2.0-dev (po audycie stabilizacyjnym)
+- **Phase:** Stabilizacja → droga do wersji stabilnej
 
 ### Current Objectives (STRATEGICZNE - tydzień/sprint)
-- [x] Zdefiniować architekturę projektu
-- [x] Zaimplementować core functionality
-- [ ] Zainstalować frontend-design plugin
-- [ ] Wygenerować UI
+- [x] Pełny audyt projektu (raport: `logs/AUDIT-2026-07-24.md`)
+- [x] Bramka testowa (`npm test`, 43 testy)
+- [x] Naprawy fal 1-2 (integralność danych + spójność)
+- [ ] Decyzje o martwych modułach i osiągnięciach (Kamil — patrz AUDIT)
+- [ ] Fala 3 (porządki wg decyzji) + minors
+- [ ] Test na urządzeniu + APK przez PWABuilder
 
 ---
 
 ## Daily Log
+
+### 2026-07-24: Pełny audyt i stabilizacja — sesja 13
+
+**Sytuacja:** Powrót do projektu po pół roku. App "połowicznie
+funkcjonalna" — drobne błędy, brak testów, lista 90 problemów z sesji 11
+nieutrwalona w repo.
+
+**Wyzwanie:** Znaleźć wszystkie błędy w ~12,4k liniach bez zjadania
+limitów i bez regresji przy naprawach.
+
+**Decyzja:** Audyt 5 równoległymi agentami (per warstwa) + smoke runtime
+w headless chromium; każdy ciężki claim spot-checkowany w kodzie przed
+naprawą. Naprawy WYŁĄCZNIE za bramką: najpierw czerwony test, potem fix,
+potem kontrfaktyczna weryfikacja (oryginalny kod z gita musi oblewać).
+Bramka: node:test + harness vm ładujący window-globals z mockami
+przeglądarki (zero nowych zależności).
+
+**Rezultat:** ~50 findingów (9 klas CRITICAL), naprawione fale 1-2:
+korupcja celów cyklicznych, import niszczący dane, widmowe wpłaty,
+hardcoded daty 2025-12-28, martwy service worker na GitHub Pages,
+PIN-lockout poza HTTPS, streak w UTC, dwie instancje DataManagera,
+fabrykowany trend, alerty "Infinity". 43/43 testy zielone + probe'y
+przeglądarkowe. Otwarte: decyzje o ~3,2k liniach martwych modułów
+i 92 niezdobywalnych osiągnięciach.
+
+**Files:** `logs/AUDIT-2026-07-24.md`, `tests/*`, `js/data-manager.js`,
+`js/app.js`, `js/utils.js`, `js/pin-manager.js`,
+`js/engagement-manager.js`, `sw.js`, `index.html`
 
 ### 2025-12-28: Głęboka analiza i naprawa integracji
 

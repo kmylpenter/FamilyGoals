@@ -1,26 +1,30 @@
-const CACHE_NAME = 'familygoals-v9'; // Version bump for audit fixes
+const CACHE_NAME = 'familygoals-v10'; // v10: relative paths (fix E-C1)
+// E-C1: ścieżki MUSZĄ być relatywne — aplikacja żyje pod
+// https://kmylpenter.github.io/FamilyGoals/ (subpath); absolutne '/...'
+// dawały 404 i cache.addAll wywalał całą instalację service workera.
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/css/main.css',
-  '/js/utils.js',
-  '/js/app.js',
-  '/js/event-bus.js',
-  '/js/pin-manager.js',
-  '/js/data-manager.js',
-  '/js/recurring-manager.js',
-  '/js/alert-manager.js',
-  '/js/engagement-manager.js',
-  '/js/gamification-manager.js',
-  '/js/ui-features.js',
-  '/js/family-balance.js',
-  '/js/family-unity.js',
-  '/js/ai-advisor.js',
-  '/data/inflation.json',
-  '/data/planned.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  './',
+  './index.html',
+  './manifest.json',
+  './css/main.css',
+  './js/utils.js',
+  './js/app.js',
+  './js/event-bus.js',
+  './js/pin-manager.js',
+  './js/data-manager.js',
+  './js/recurring-manager.js',
+  './js/alert-manager.js',
+  './js/engagement-manager.js',
+  './js/gamification-manager.js',
+  './js/ui-features.js',
+  './js/family-balance.js',
+  './js/family-unity.js',
+  './js/ai-advisor.js',
+  './data/config.json',
+  './data/inflation.json',
+  './data/planned.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 // Install - cache assets

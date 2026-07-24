@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Rodzinna aplikacja do śledzenia celów finansowych",
   "scripts": {
+    "test": "TZ=Europe/Warsaw node --test tests/*.test.js",
     "start": "live-server --port=7321 --open=/index.html",
     "dev": "live-server --port=7321 --no-browser",
     "mobile": "live-server --port=7321 --host=0.0.0.0 --open=/index.html",

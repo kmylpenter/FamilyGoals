@@ -543,10 +543,13 @@ class EngagementManager {
         this.data.couple.sharedStreak++;
         this.data.couple.lastBothLogin = today;
 
-        // Bonus za wspólny streak
+        // Bonus za wspólny streak (D-M4: guard jak w recordLogin — gm może
+        // być null, streak liczy się dalej, tylko punkty pomijamy)
         const bonus = Math.round(10 * this._getMultiplier(this.data.couple.sharedStreak));
-        this.gm.unlockedAchievements.wife.points += bonus;
-        this.gm.unlockedAchievements.husband.points += bonus;
+        if (this.gm && this.gm.unlockedAchievements) {
+          this.gm.unlockedAchievements.wife.points += bonus;
+          this.gm.unlockedAchievements.husband.points += bonus;
+        }
 
         return {
           coupleStreak: this.data.couple.sharedStreak,

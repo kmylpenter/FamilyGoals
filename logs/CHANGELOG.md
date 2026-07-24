@@ -13,6 +13,40 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
+
+#### Added
+- Pełny audyt projektu (5 agentów + smoke runtime): raport z ~50 findingami. Files: `logs/AUDIT-2026-07-24.md`
+- Bramka testowa node:test (zero nowych zależności): harness vm + mocki przeglądarki, 43 testy (charakteryzujące + regresyjne red→green). Files: `tests/harness/browser-env.js`, `tests/harness/load-app.js`, `tests/*.test.js`, `package.json` (skrypt `npm test`)
+- `dataManager.importBackup()` — oficjalna ścieżka importu ze spójnym cache. Files: `js/data-manager.js`
+- Sekcja "Ostatnio odblokowane" renderowana z realnych danych + empty state (było: fałszywy hardcoded HTML). Files: `index.html`, `js/app.js`
+- Favicon (eliminacja jedynego 404). Files: `index.html`
+
+#### Fixed (fala 1 — integralność danych i produkcja)
+- Edycja celu cyklicznego niszczyła `monthlyContribution` (NaN→null). Files: `js/data-manager.js`
+- Import backupu omijał cache — dane niewidoczne, a pierwsza edycja trwale je nadpisywała. Files: `js/app.js`, `js/data-manager.js`
+- Usunięcie wpłaty zostawiało lustrzany wpis w `income[]` (widmowy przychód w statystykach); mirror ma teraz `paymentId` i jest kasowany (z fallbackiem dla starych danych). Files: `js/data-manager.js`
+- Wpłata bez daty dostawała `date: undefined` (niewidzialna w filtrach miesięcy). Files: `js/data-manager.js`
+- Zahardkodowana data `2025-12-28` w formularzach przychodu/wydatku — każdy wpis lądował w grudniu 2025. Files: `index.html`
+- Service worker nie instalował się na GitHub Pages (ścieżki absolutne); teraz relatywne + `data/config.json` w precache, cache v10. Files: `sw.js`
+- PIN zamrażał aplikację poza HTTPS/localhost (brak `crypto.subtle`) — fallback hash + try/catch. Files: `js/pin-manager.js`, `index.html`
+- Pozycje stałe z dniem 29-31 pomijane w krótkich miesiącach + przepadały bez otwarcia apki w dniu naliczenia (clamp + catch-up). Files: `js/data-manager.js`
+- Streak liczony wg UTC zamiast czasu lokalnego (`getDateString`). Files: `js/utils.js`
+
+#### Fixed (fala 2 — spójność)
+- Dwie instancje DataManagera (UI ↔ RecurringManager) — teraz jeden singleton `window.dataManager`. Files: `js/data-manager.js`, `js/app.js`
+- Wykres trendu fabrykował historię z `expectedAmount` dla pustych miesięcy. Files: `js/data-manager.js`
+- Alerty celów z "Infinity mies." + fałszywe alerty dla zobowiązań cyklicznych. Files: `js/data-manager.js`
+- Korzyści firmowe liczone zawsze dla "teraz" zamiast oglądanego miesiąca. Files: `js/data-manager.js`, `js/app.js`
+- Zmiany kosztów firmowych/todos nie odświeżały dashboardu (renderAll rozszerzony). Files: `js/app.js`
+- Modale todo/kosztu dziedziczyły tytuł i prefill z ostatniej edycji. Files: `index.html`
+- Hero dashboardu: statyczne "Zostało/31%" przy żywym pasku. Files: `index.html`, `js/app.js`
+- XSS gap: `cost.name/note`, `cat.name` bez escapeHtml. Files: `js/app.js`
+- Crash-kandydat `_checkCoupleStreak` bez guardu gm. Files: `js/engagement-manager.js`
+- `changePin` bez await (fałszywy sukces) + goły zapis localStorage. Files: `js/app.js`
+- Backup: import kategorii (były tracone), eksport+import todos/kosztów/ustawień. Files: `js/app.js`
+- Dane demo: `income[]` jako lustro wpłat źródeł (był wbudowany rozjazd dashboard↔przychody). Files: `js/app.js`
+
 ---
 
 ## [2026-01-26] Sesja 11 - Major Audit Fixes (75/90 issues)

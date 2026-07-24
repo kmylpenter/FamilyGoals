@@ -108,7 +108,9 @@ function getCurrentYearMonth() {
  * @returns {string} ISO date string
  */
 function getDateString(date) {
-  return date.toISOString().split('T')[0];
+  // D-M1: data LOKALNA, nie UTC — toISOString przed ~2:00 w nocy (PL)
+  // zwracało wczorajszy dzień i psuło liczenie streaka
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 /**

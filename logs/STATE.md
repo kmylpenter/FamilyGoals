@@ -1,7 +1,7 @@
 # Current State
 
-**Last Updated:** 2026-01-26 (EOS sesja 11)
-**Updated By:** Developer (main)
+**Last Updated:** 2026-07-24 (sesja 13 — pełny audyt + stabilizacja)
+**Updated By:** Claude (Fable 5) + Kamil
 
 ---
 
@@ -9,13 +9,27 @@
 
 - [CHANGELOG](./CHANGELOG.md) - Technical changes
 - [DEVLOG](./DEVLOG.md) - Development narrative
+- [AUDYT 2026-07-24](./AUDIT-2026-07-24.md) - Pełny raport audytu + status napraw
 - [ADRs](./adr/) - Architectural decisions
 
 ---
 
 ## Active Work
 
-Brak - sesja zamknięta
+### Sesja 13 - Pełny audyt + stabilizacja (2026-07-24)
+
+**Wykonano:**
+- ✅ Pełny audyt (5 agentów: wiring/dane/UI/gamifikacja/serwisy + smoke runtime) → `logs/AUDIT-2026-07-24.md` (~50 findingów, spot-checki, sekcja hipotez obalonych)
+- ✅ **Bramka testowa** (pierwsza w projekcie): `npm test` → node:test + harness vm z mockami przeglądarki, zero nowych zależności, **43 testy zielone**
+- ✅ Fala 1 (integralność danych): edycja celu cyklicznego (NaN), import/cache, lustro wpłat, hardcoded daty 2025-12-28, sw.js na GitHub Pages, PIN bez crypto.subtle, recurring 29-31, streak UTC
+- ✅ Fala 2 (spójność): jedna instancja DataManagera, trend bez fabrykacji, alerty bez Infinity, korzyści per miesiąc, renderAll rozszerzony, reset modali, hero z danych, escapy XSS, realne "Ostatnio odblokowane", backup pełniejszy, demo spójne
+- ✅ Weryfikacja: red→green na każdy bug logiczny + kontrfaktycznie (ORIG vs FIXED) + probe'y przeglądarkowe (hero/modale/demo/spójność)
+
+**Czeka na decyzje Kamila (szczegóły w AUDIT → "DECYZJE DO PODJĘCIA"):**
+- [ ] family-unity + family-balance (1510 linii martwe): archiwum czy podpiąć?
+- [ ] AIAdvisor + AlertManager (martwe): podpiąć minimalnie do dashboardu (rekomendacja) czy archiwum?
+- [ ] Osiągnięcia: 92/122 niezdobywalne — ukryć + doimplementować tanie (rekomendacja) czy pełna implementacja?
+- [ ] Martwe ui-features (wykresy/Widget/Skeleton/Notifications): usunąć czy naprawiać?
 
 ### Sesja 11 - Major Audit Fixes (2026-01-26)
 

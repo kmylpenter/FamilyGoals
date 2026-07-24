@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>FamilyGoals</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -265,8 +266,8 @@
         <div class="income-bar-fill" id="savings-bar" style="width: 31%"></div>
       </div>
       <div class="income-bar-text">
-        <span>Zostało: 2 655 zł</span>
-        <span>31%</span>
+        <span id="savings-left-text">Zostało: —</span>
+        <span id="savings-percent-text">0%</span>
       </div>
     </div>
 
@@ -425,24 +426,8 @@
     </div>
 
     <h2 class="section-title">Ostatnio odblokowane</h2>
-    <div class="list">
-      <div class="achievement-item unlocked">
-        <div class="achievement-icon">💰</div>
-        <div class="achievement-content">
-          <div class="achievement-name">Tysiącznik</div>
-          <div class="achievement-desc">Zaoszczędź 1000 zł</div>
-        </div>
-        <div class="achievement-points">+50 pkt</div>
-      </div>
-      <div class="achievement-item unlocked">
-        <div class="achievement-icon">🔥</div>
-        <div class="achievement-content">
-          <div class="achievement-name">Tydzień w akcji</div>
-          <div class="achievement-desc">7 dni streak</div>
-        </div>
-        <div class="achievement-points">+35 pkt</div>
-      </div>
-    </div>
+    <!-- A-M2: renderowane z realnych danych w renderAchievements() -->
+    <div class="list" id="recent-achievements-list"></div>
 
     <h2 class="section-title">Kategorie</h2>
     <div class="list">
@@ -579,7 +564,7 @@
         </div>
         <div class="form-group">
           <label>Data</label>
-          <input type="date" value="2025-12-28">
+          <input type="date">
         </div>
         <div class="form-group">
           <label>Notatka (opcjonalnie)</label>
@@ -625,7 +610,7 @@
         </div>
         <div class="form-group">
           <label>Data</label>
-          <input type="date" value="2025-12-28">
+          <input type="date">
         </div>
         <button type="submit" class="btn-primary sticky">💾 Zapisz</button>
       </form>
@@ -979,7 +964,14 @@
               dots.forEach(function(d) { d.classList.remove('filled'); });
               return;
             }
-            var result = await PinManager.verify(pinInput);
+            var result;
+            try {
+              result = await PinManager.verify(pinInput);
+            } catch (err) {
+              // E-C2: awaria hashowania nie może zamrozić ekranu PIN
+              console.error('PIN verify error:', err);
+              result = { success: false };
+            }
             if (result.success) {
               isValid = true;
               PinManager.startSession();
@@ -1100,6 +1092,38 @@
         // Reset income form
         var form = incomeModal.querySelector('form');
         if (form) form.reset();
+      }
+      // C-M2: modale todo i kosztu firmowego też muszą wracać do stanu
+      // "dodaj" — wcześniej dziedziczyły tytuł i prefill z ostatniej edycji
+      function resetChips(id, activeIndex) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.querySelectorAll('.chip').forEach(function(c, i) {
+          c.classList.toggle('active', i === activeIndex);
+        });
+      }
+      var costModal = document.getElementById('modal-business-cost');
+      if (costModal) {
+        costModal.querySelector('.modal-header h2').textContent = '💼 Koszt firmowy';
+        var costForm = costModal.querySelector('form');
+        if (costForm) costForm.reset();
+        resetChips('cost-category-chips', 0);
+        resetChips('cost-type-chips', 0);
+        resetChips('cost-months-chips', 0);
+        var costRec = document.getElementById('cost-recurring-options');
+        if (costRec) costRec.style.display = 'none';
+      }
+      var todoModal = document.getElementById('modal-todo');
+      if (todoModal) {
+        todoModal.querySelector('.modal-header h2').textContent = '📋 Nowe zadanie';
+        var todoForm = todoModal.querySelector('form');
+        if (todoForm) todoForm.reset();
+        resetChips('todo-owner-chips', 2);
+        resetChips('todo-type-chips', 0);
+        resetChips('todo-days-chips', 0);
+        resetChips('todo-priority-chips', 1);
+        var todoRec = document.getElementById('todo-recurring-options');
+        if (todoRec) todoRec.style.display = 'none';
       }
     }
 

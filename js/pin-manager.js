@@ -163,10 +163,20 @@ class PinManager {
    */
   static async _hash(pin) {
     const salt = 'familygoals_2025';
-    const data = new TextEncoder().encode(pin + salt);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // E-C2: crypto.subtle istnieje tylko w secure context (https/localhost).
+    // Poza nim (http po LAN, file://) fallback na hash synchroniczny,
+    // żeby PIN nie zamrażał aplikacji.
+    if (typeof crypto === 'undefined' || !crypto.subtle || !crypto.subtle.digest) {
+      return this._hashSync(pin);
+    }
+    try {
+      const data = new TextEncoder().encode(pin + salt);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      return this._hashSync(pin);
+    }
   }
 
   /**

@@ -183,6 +183,8 @@ class DataManager {
       date: new Date().toISOString(),
       ...expense
     };
+    // OWN-8: spread mógł nadpisać datę wartością undefined/pustą
+    if (!newExpense.date) newExpense.date = new Date().toISOString();
     expenses.push(newExpense);
     this._saveExpenses(expenses);
     return newExpense;
@@ -222,6 +224,8 @@ class DataManager {
       date: new Date().toISOString(),
       ...income
     };
+    // OWN-8: spread mógł nadpisać datę wartością undefined/pustą
+    if (!newIncome.date) newIncome.date = new Date().toISOString();
     incomes.push(newIncome);
     this._setCached(this.constructor.STORAGE_KEYS.income, incomes);
     return newIncome;
@@ -303,13 +307,15 @@ class DataManager {
     source.payments.push(newPayment);
     this._saveIncomeSources(sources);
 
-    // Opcjonalnie dodaj też do ogólnych przychodów
+    // Lustrzany wpis w ogólnych przychodach — paymentId pozwala go
+    // usunąć razem z wpłatą (B-M1), data z fallbackiem jak w newPayment (OWN-8)
     this.addIncome({
       amount: payment.amount,
       source: source.name,
       sourceId: sourceId,
+      paymentId: newPayment.id,
       description: payment.note,
-      date: payment.date
+      date: newPayment.date
     });
 
     return newPayment;
@@ -336,12 +342,17 @@ class DataManager {
     const source = sources.find(s => s.id === sourceId);
     if (!source || !source.payments) return;
 
+    const removed = source.payments.filter(p => {
+      const d = new Date(p.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
     source.payments = source.payments.filter(p => {
       const d = new Date(p.date);
       return !(d.getFullYear() === year && d.getMonth() === month);
     });
 
     this._saveIncomeSources(sources);
+    removed.forEach(p => this._removePaymentMirror(sourceId, p));
     if (typeof EventBus !== 'undefined') EventBus.emit('income:updated');
   }
 
@@ -356,10 +367,32 @@ class DataManager {
     const idx = source.payments.findIndex(p => p.id === paymentId);
     if (idx === -1) return false;
 
-    source.payments.splice(idx, 1);
+    const [removed] = source.payments.splice(idx, 1);
     this._saveIncomeSources(sources);
+    this._removePaymentMirror(sourceId, removed);
     if (typeof EventBus !== 'undefined') EventBus.emit('income:updated');
     return true;
+  }
+
+  /**
+   * B-M1: usuń lustrzany wpis wpłaty z ogólnej tablicy income.
+   * Nowe mirrory mają paymentId; stare (legacy) dopasowujemy po
+   * sourceId + data + kwota, żeby nie zostawić widmowego przychodu.
+   */
+  _removePaymentMirror(sourceId, payment) {
+    if (!payment) return;
+    const incomes = this.getIncome();
+    let idx = incomes.findIndex(i => i.paymentId === payment.id);
+    if (idx === -1) {
+      idx = incomes.findIndex(i =>
+        !i.paymentId && i.sourceId === sourceId &&
+        i.date === payment.date && i.amount === payment.amount
+      );
+    }
+    if (idx !== -1) {
+      incomes.splice(idx, 1);
+      this._setCached(this.constructor.STORAGE_KEYS.income, incomes);
+    }
   }
 
   /**
@@ -600,18 +633,9 @@ class DataManager {
         }
       });
 
-      // Jeśli brak płatności, użyj expected amounts
-      if (wifeIncome === 0 && husbandIncome === 0) {
-        sources.forEach(source => {
-          if (source.isActive) {
-            if (source.owner === 'wife') {
-              wifeIncome += source.expectedAmount || 0;
-            } else if (source.owner === 'husband') {
-              husbandIncome += source.expectedAmount || 0;
-            }
-          }
-        });
-      }
+      // B-M5: miesiące bez wpłat pokazują 0 — bez fabrykowania historii
+      // z expectedAmount (fałszowało wykres, także wstecz przed
+      // istnieniem źródła)
 
       trend.push({
         year,
@@ -643,9 +667,19 @@ class DataManager {
     const month = today.getMonth();
     const processed = [];
 
+    // B-M4: dzień naliczenia przycięty do długości miesiąca (29-31 działa
+    // w krótkich miesiącach), a warunek >= dogania pominięte dni w miesiącu.
+    // Idempotencję per miesiąc zapewnia check recurringSourceId poniżej.
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const dueDate = (recurringDay) => {
+      const effDay = Math.min(recurringDay || 1, daysInMonth);
+      return { due: day >= effDay, date: new Date(year, month, effDay).toISOString() };
+    };
+
     // Process recurring expenses
     this.getRecurringExpenses().forEach(exp => {
-      if (exp.recurringDay === day) {
+      const { due, date } = dueDate(exp.recurringDay);
+      if (due) {
         // Check if already added this month
         const exists = this.getExpensesByMonth(year, month).some(e =>
           e.recurringSourceId === exp.id
@@ -656,7 +690,8 @@ class DataManager {
             categoryId: exp.categoryId,
             description: exp.description || 'Wydatek stały',
             isRecurring: false,
-            recurringSourceId: exp.id
+            recurringSourceId: exp.id,
+            date
           });
           processed.push(newExp);
         }
@@ -665,7 +700,8 @@ class DataManager {
 
     // Process recurring income
     this.getRecurringIncome().forEach(inc => {
-      if (inc.recurringDay === day) {
+      const { due, date } = dueDate(inc.recurringDay);
+      if (due) {
         const exists = this.getIncomeByMonth(year, month).some(i =>
           i.recurringSourceId === inc.id
         );
@@ -675,7 +711,8 @@ class DataManager {
             source: inc.source,
             description: inc.description || 'Przychód stały',
             isRecurring: false,
-            recurringSourceId: inc.id
+            recurringSourceId: inc.id,
+            date
           });
           processed.push(newInc);
         }
@@ -724,15 +761,20 @@ class DataManager {
     const months = Math.ceil(remaining / monthly);
     const targetDate = new Date(item.targetDate);
     const now = new Date();
-    const monthsUntilDeadline = (targetDate.getFullYear() - now.getFullYear()) * 12
-      + (targetDate.getMonth() - now.getMonth());
+    // B-M7: bez ważnego terminu nie da się ocenić "czy zdążymy" —
+    // onTrack=null zamiast porównania z NaN (dawało false i fałszywy alert)
+    const hasDeadline = item.targetDate && !isNaN(targetDate.getTime());
+    const monthsUntilDeadline = hasDeadline
+      ? (targetDate.getFullYear() - now.getFullYear()) * 12
+        + (targetDate.getMonth() - now.getMonth())
+      : null;
 
     return {
       months,
       remaining,
       monthly,
       complete: false,
-      onTrack: months <= monthsUntilDeadline,
+      onTrack: hasDeadline ? months <= monthsUntilDeadline : null,
       targetDate: item.targetDate
     };
   }
@@ -773,8 +815,13 @@ class DataManager {
 
     const updated = { ...planned[index], ...updates };
 
-    // Recalculate monthly contribution when deadline changes
-    if (updates.targetDate || updates.targetAmount) {
+    // Recalculate monthly contribution when deadline changes.
+    // C-C1: NIE dla celów cyklicznych (nie mają targetDate — przeliczenie
+    // dawało NaN i niszczyło monthlyContribution) ani bez ważnego terminu.
+    const hasValidTargetDate =
+      updated.targetDate && !isNaN(new Date(updated.targetDate).getTime());
+    if ((updates.targetDate || updates.targetAmount) &&
+        updated.type !== 'recurring' && hasValidTargetDate) {
       updated.monthlyContribution = this.calculateRequiredMonthlySavings(
         updated.targetAmount,
         updated.currentAmount || 0,
@@ -800,11 +847,14 @@ class DataManager {
    * Oblicz wymagane oszczędności miesięczne
    */
   calculateRequiredMonthlySavings(targetAmount, currentAmount, targetDate) {
-    const remaining = targetAmount - (currentAmount || 0);
+    const remaining = (targetAmount || 0) - (currentAmount || 0);
     if (remaining <= 0) return 0;
 
     const now = new Date();
     const target = new Date(targetDate);
+    // B-M7/C-M4: bez ważnego terminu nie ma z czego liczyć — 0 zamiast NaN,
+    // żeby nie zatruwać sum i nie zapisywać null do danych
+    if (!targetDate || isNaN(target.getTime())) return 0;
     const monthsLeft = Math.max(1,
       (target.getFullYear() - now.getFullYear()) * 12 +
       (target.getMonth() - now.getMonth())
@@ -1002,9 +1052,12 @@ class DataManager {
     }
 
     // Planned expenses goals
+    // B-M7: cele cykliczne to zobowiązania (bez "deadline'u") — bez alertów;
+    // alert tylko przy jednoznacznym onTrack === false (nie null/undefined)
     this.getPlannedExpenses().forEach(goal => {
+      if (goal.type === 'recurring') return;
       const progress = this.calculateTimeToGoal(goal.id);
-      if (progress && !progress.complete && !progress.onTrack) {
+      if (progress && !progress.complete && progress.onTrack === false) {
         alerts.push({
           type: 'warning',
           goalType: 'planned',
@@ -1111,21 +1164,27 @@ class DataManager {
   /**
    * Calculate monthly savings from business costs
    */
-  calculateBusinessSavings() {
+  calculateBusinessSavings(year, month) {
     const costs = this.getBusinessCosts();
     let monthlySavings = 0;
+
+    // C-M5: liczone dla wskazanego miesiąca (spójnie z resztą dashboardu),
+    // domyślnie bieżący — wcześniej zawsze "teraz", co psuło sumy przy
+    // przewijaniu miesięcy
+    const now = new Date();
+    const refYear = year ?? now.getFullYear();
+    const refMonth = month ?? now.getMonth();
 
     costs.forEach(cost => {
       if (cost.isRecurring && cost.recurringMonths && cost.recurringMonths > 0) {
         // Distribute cost over recurring period
         monthlySavings += cost.amount / cost.recurringMonths;
       } else {
-        // One-time costs count for this month only if purchased this month
+        // One-time costs count only in the month they were purchased
         if (cost.lastPurchaseDate) {
           const purchaseDate = new Date(cost.lastPurchaseDate);
-          const now = new Date();
-          if (purchaseDate.getMonth() === now.getMonth() &&
-              purchaseDate.getFullYear() === now.getFullYear()) {
+          if (purchaseDate.getMonth() === refMonth &&
+              purchaseDate.getFullYear() === refYear) {
             monthlySavings += cost.amount;
           }
         }
@@ -1324,6 +1383,37 @@ class DataManager {
     };
   }
 
+  /**
+   * B-C1: oficjalna ścieżka importu backupu — pisze przez _setCached
+   * (spójnie cache+localStorage), cele przez override, na końcu pełna
+   * invalidacja. app.js/importData MUSI używać tej metody zamiast
+   * gołych localStorage.setItem (które zostawiały stale cache, a kolejna
+   * edycja trwale nadpisywała zaimportowane dane).
+   */
+  importBackup(data) {
+    if (!data || typeof data !== 'object') return false;
+    const K = this.constructor.STORAGE_KEYS;
+    const fieldToKey = {
+      expenses: K.expenses,
+      income: K.income,
+      incomeSources: K.incomeSources,
+      categories: K.categories,
+      settings: K.settings,
+      businessCosts: K.businessCosts,
+      todos: K.todos
+    };
+    for (const [field, key] of Object.entries(fieldToKey)) {
+      if (data[field] !== undefined && data[field] !== null) {
+        this._setCached(key, data[field]);
+      }
+    }
+    if (Array.isArray(data.goals)) {
+      localStorage.setItem('familygoals_planned_override', JSON.stringify(data.goals));
+    }
+    this._invalidateAllCache();
+    return true;
+  }
+
   importData(data) {
     if (data.expenses) {
       this._setCached(this.constructor.STORAGE_KEYS.expenses, data.expenses);
@@ -1373,5 +1463,8 @@ class DataManager {
   }
 }
 
-// Singleton
+// Singleton — wystawiony też na window (B-M3): app.js i wszystkie moduły
+// MUSZĄ używać tej jednej instancji; druga instancja = osobny cache
+// i niewidoczne naliczenia recurring
 const dataManager = new DataManager();
+window.dataManager = dataManager;
