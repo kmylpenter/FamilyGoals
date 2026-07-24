@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
     // Bez WebChromeClient JS-owe alert/confirm/prompt są CICHO połykane
     web.setWebChromeClient(new WebChromeClient());
     web.setWebViewClient(new AppWebViewClient(this));
-    web.addJavascriptInterface(new Updater(), "FGUpdater");
+    web.addJavascriptInterface(new Updater(this), "FGUpdater");
 
     if (savedInstanceState != null) {
       web.restoreState(savedInstanceState);
@@ -82,6 +82,20 @@ public class MainActivity extends Activity {
     File[] kids = f.listFiles();
     if (kids != null) for (File k : kids) deleteRecursive(k);
     f.delete();
+  }
+
+  /** Nazwana klasa zamiast anonimowego Runnable — d8 (Termux) NPE na $1. */
+  private static class ReloadRunnable implements Runnable {
+    private final MainActivity activity;
+
+    ReloadRunnable(MainActivity activity) {
+      this.activity = activity;
+    }
+
+    @Override
+    public void run() {
+      activity.web.loadUrl(activity.startUrl());
+    }
   }
 
   /** Nazwana klasa zamiast anonimowej — d8 (Termux) wywala się NPE na $1. */
@@ -111,18 +125,23 @@ public class MainActivity extends Activity {
     }
   }
 
-  /** Mostek JS (window.FGUpdater) — metody wołane z update-manager.js. */
-  private class Updater {
+  /** Mostek JS (window.FGUpdater) — statyczna: d8 (Termux) NPE na non-static inner. */
+  private static class Updater {
+    private final MainActivity a;
+
+    Updater(MainActivity a) {
+      this.a = a;
+    }
 
     /** {versionCode, versionName, webBundleVersion|null, source} */
     @JavascriptInterface
     public String getInfo() {
       try {
-        PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+        PackageInfo pi = a.getPackageManager().getPackageInfo(a.getPackageName(), 0);
         JSONObject o = new JSONObject();
         o.put("versionCode", pi.versionCode);
         o.put("versionName", pi.versionName);
-        File marker = new File(liveDir(MainActivity.this), ".version");
+        File marker = new File(liveDir(a), ".version");
         String webVer = null;
         if (marker.isFile()) {
           Scanner sc = new Scanner(marker, "UTF-8");
@@ -130,7 +149,7 @@ public class MainActivity extends Activity {
           sc.close();
         }
         o.put("webBundleVersion", webVer == null ? JSONObject.NULL : webVer);
-        o.put("source", new File(liveDir(MainActivity.this), "index.html").isFile() ? "live" : "assets");
+        o.put("source", new File(liveDir(a), "index.html").isFile() ? "live" : "assets");
         return o.toString();
       } catch (Exception e) {
         return "{\"error\":\"" + e.getMessage() + "\"}";
@@ -143,7 +162,7 @@ public class MainActivity extends Activity {
      */
     @JavascriptInterface
     public String applyBundle(String bundleJson) {
-      File tmp = new File(getFilesDir(), "www-live-tmp");
+      File tmp = new File(a.getFilesDir(), "www-live-tmp");
       try {
         JSONObject bundle = new JSONObject(bundleJson);
         String version = bundle.getString("version");
@@ -169,7 +188,7 @@ public class MainActivity extends Activity {
         m.write(version);
         m.close();
 
-        File live = liveDir(MainActivity.this);
+        File live = liveDir(a);
         deleteRecursive(live);
         if (!tmp.renameTo(live)) return "err:rename_failed";
         return "ok:" + version;
@@ -182,19 +201,14 @@ public class MainActivity extends Activity {
     /** Powrót do wersji wbudowanej w APK. */
     @JavascriptInterface
     public String clearBundle() {
-      deleteRecursive(liveDir(MainActivity.this));
+      deleteRecursive(liveDir(a));
       return "ok";
     }
 
     /** Przeładowanie aplikacji (po applyBundle). */
     @JavascriptInterface
     public void restart() {
-      runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          web.loadUrl(startUrl());
-        }
-      });
+      a.runOnUiThread(new ReloadRunnable(a));
     }
 
     /** Zapis APK (base64) i systemowy instalator. */
@@ -203,7 +217,7 @@ public class MainActivity extends Activity {
       try {
         byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
         if (bytes.length < 20000) return "err:apk_too_small";
-        File dir = new File(getFilesDir(), "apk");
+        File dir = new File(a.getFilesDir(), "apk");
         dir.mkdirs();
         File apk = new File(dir, "update.apk");
         FileOutputStream fo = new FileOutputStream(apk);
@@ -214,7 +228,7 @@ public class MainActivity extends Activity {
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setDataAndType(uri, "application/vnd.android.package-archive");
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivity(i);
+        a.startActivity(i);
         return "ok";
       } catch (Exception e) {
         return "err:" + e.getMessage();
