@@ -36,10 +36,11 @@
 - ✅ sync-manager (kolejka offline, LWW, delta z kursorem) — 7 testów kontraktowych
 - ✅ UI: Ustawienia → „Synchronizacja rodzinna" (URL + token)
 - ✅ E2E dwa profile chromium na mock backendzie: 9/9 PASS
-- ⏳ **JEDEN KLIK KAMILA:** autoryzacja scope'ów skryptu (otwórz edytor →
-  Uruchom `doGet` → Zezwól): https://script.google.com/d/19U1BQNWbh5jvwxZHtZLENa4IcIR9FSGDTWSRmwgNBvyRuRI6ETjAuH77/edit
-  Po kliknięciu: roundtrip curl → wpisanie URL+tokena w apce na obu telefonach
-  (dane dostępowe lokalnie w `backend-gas/.local-config.json`, poza repo)
+- ✅ Autoryzacja scope'ów wykonana (Kamil, 2026-07-24) — żywy roundtrip
+  zaliczony: claim tokena, bootstrap utworzył arkusz, push/delta/tombstone OK,
+  zły token odbijany. Arkusz: https://docs.google.com/spreadsheets/d/1Cl70yiMDDcfiB4yQDgU-I3Axl_adSRWVCTpwTHqju5w/edit
+- ⏳ Do zrobienia na telefonach: Ustawienia → Synchronizacja rodzinna →
+  wkleić URL `/exec` + token (lokalnie w `backend-gas/.local-config.json`, poza repo)
 
 **Pozostałe otwarte (fala 4, niska pilność — lista w AUDIT):**
 - [ ] Martwe ui-features (ExpenseChart/TimelineChart/Widget/Skeleton/Notifications): usunąć czy naprawiać?
