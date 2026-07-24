@@ -47,6 +47,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Backup: import kategorii (były tracone), eksport+import todos/kosztów/ustawień. Files: `js/app.js`
 - Dane demo: `income[]` jako lustro wpłat źródeł (był wbudowany rozjazd dashboard↔przychody). Files: `js/app.js`
 
+#### Changed (porządki UI + dane dostępowe)
+- DevLog przeniesiony na górę po prawej; przycisk odświeżania ↻ usunięty (relikt debugowania z sesji 12 — w APK reload zastępuje OTA). Wydane OTA `2026-07-24T19:20:47Z`. Files: `index.html`
+- `DANE-LOGOWANIA.md` (gitignored) + kopia w Pobranych: URL backendu, token rodziny, arkusz, checklist konfiguracji telefonu. Files: `.gitignore`
+
 #### Added (profile urządzeń — pierwsza aktualizacja dostarczona przez OTA)
 - Profil urządzenia (`familygoals_device_profile`, lokalny/niesynchronizowany): picker „Kto korzysta z tego telefonu?" przy 1. uruchomieniu + zmiana w Ustawieniach; `currentPerson` z profilu (wcześniej hardcoded 'wife' — oba telefony nabijały streak żonie). Files: `js/app.js`, `index.html`
 - Domyślny właściciel nowego przychodu = osoba telefonu (chipy pozycyjnie — 2. grupa .chips); miękka ochrona: edycja/kasowanie pozycji współmałżonka wymaga potwierdzenia (źródła + zadania). Files: `js/app.js`
