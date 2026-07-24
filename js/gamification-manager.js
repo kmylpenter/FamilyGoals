@@ -1043,12 +1043,46 @@ class GamificationManager {
   /**
    * Sprawdź i odblokuj osiągnięcia na podstawie aktualnych danych
    */
+  /**
+   * Sesja 13 (D-C2): TYLKO te osiągnięcia mają zaimplementowane warunki
+   * w _checkCondition — UI pokazuje i sprawdza wyłącznie je (pozostałe
+   * ~90 definicji w rejestrze wpadało w default:false = obietnice bez
+   * pokrycia). Dodajesz osiągnięcie? Dopisz case w _checkCondition ORAZ
+   * id tutaj.
+   * Celowo poza listą: osiągnięcia wydatkowe (feature wydatków
+   * zarchiwizowany w sesji 6) i kategorie couple/consistency/special
+   * (wymagają martwych dziś podsystemów).
+   */
+  static EARNABLE_IDS = [
+    // start / staż
+    'first_income', 'first_goal', 'first_category', 'setup_sources',
+    'week_user', 'month_user',
+    // oszczędności
+    'save_100', 'save_500', 'save_1000', 'save_2000', 'save_5000', 'save_10000',
+    // cele
+    'goal_25', 'goal_50', 'goal_75', 'goal_complete', 'goal_collector',
+    // przychody
+    'all_sources_paid', 'new_income_source', 'side_hustle', 'diversified',
+    // streak (dane z EngagementManagera)
+    'streak_3', 'streak_7', 'streak_14', 'streak_30', 'streak_60', 'streak_90', 'streak_365',
+    // poziomy
+    'level_bronze', 'level_silver', 'level_gold', 'level_platinum', 'level_diamond'
+  ];
+
+  static getEarnableAchievements() {
+    return GamificationManager.EARNABLE_IDS
+      .map(id => GamificationManager.ACHIEVEMENTS[id])
+      .filter(Boolean);
+  }
+
   checkAchievements(owner = 'wife') {
     const newUnlocks = [];
     const userAchievements = this.unlockedAchievements[owner];
 
-    // Sprawdź każde osiągnięcie
-    for (const [id, achievement] of Object.entries(GamificationManager.ACHIEVEMENTS)) {
+    // Sprawdzaj wyłącznie osiągnięcia z zaimplementowanymi warunkami
+    for (const id of GamificationManager.EARNABLE_IDS) {
+      const achievement = GamificationManager.ACHIEVEMENTS[id];
+      if (!achievement) continue;
       if (userAchievements.unlocked.includes(id)) continue;
 
       if (this._checkCondition(id, owner)) {
@@ -1149,6 +1183,29 @@ class GamificationManager {
       case 'level_diamond':
         return this.unlockedAchievements[owner].points >= 25000;
 
+      // STREAK I STAŻ (sesja 13, D-C2/D-C4) — dane EngagementManagera;
+      // longestStreak jest monotoniczny, więc odznaka nie "cofa się"
+      case 'streak_3':
+        return this._getEngagementStat(owner, 'longestStreak') >= 3;
+      case 'streak_7':
+        return this._getEngagementStat(owner, 'longestStreak') >= 7;
+      case 'streak_14':
+        return this._getEngagementStat(owner, 'longestStreak') >= 14;
+      case 'streak_30':
+        return this._getEngagementStat(owner, 'longestStreak') >= 30;
+      case 'streak_60':
+        return this._getEngagementStat(owner, 'longestStreak') >= 60;
+      case 'streak_90':
+        return this._getEngagementStat(owner, 'longestStreak') >= 90;
+      case 'streak_365':
+        return this._getEngagementStat(owner, 'longestStreak') >= 365;
+      // totalLogins rośnie raz na dzień (recordLogin ma early-return),
+      // więc totalLogins = liczba różnych dni używania aplikacji
+      case 'week_user':
+        return this._getEngagementStat(owner, 'totalLogins') >= 7;
+      case 'month_user':
+        return this._getEngagementStat(owner, 'totalLogins') >= 30;
+
       default:
         return false;
     }
@@ -1179,9 +1236,26 @@ class GamificationManager {
   /**
    * Pobierz statystyki gracza
    */
+  /**
+   * Odczyt statystyki użytkownika z danych EngagementManagera.
+   * Literal klucza (== EngagementManager.STORAGE_KEY) — bez zależności
+   * od kolejności ładowania klas.
+   */
+  _getEngagementStat(owner, field) {
+    try {
+      const raw = localStorage.getItem('familygoals_engagement');
+      if (!raw) return 0;
+      const data = JSON.parse(raw);
+      return (data && data[owner] && data[owner][field]) || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   getPlayerStats(owner = 'wife') {
     const data = this.unlockedAchievements[owner];
-    const total = Object.keys(GamificationManager.ACHIEVEMENTS).length;
+    // Sesja 13: licznik "x/y" pokazuje tylko realnie zdobywalne
+    const total = GamificationManager.EARNABLE_IDS.length;
 
     return {
       points: data.points,

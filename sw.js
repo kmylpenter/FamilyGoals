@@ -1,4 +1,4 @@
-const CACHE_NAME = 'familygoals-v10'; // v10: relative paths (fix E-C1)
+const CACHE_NAME = 'familygoals-v11'; // v11: family-* zarchiwizowane; v10: relative paths (fix E-C1)
 // E-C1: ścieżki MUSZĄ być relatywne — aplikacja żyje pod
 // https://kmylpenter.github.io/FamilyGoals/ (subpath); absolutne '/...'
 // dawały 404 i cache.addAll wywalał całą instalację service workera.
@@ -17,8 +17,6 @@ const ASSETS = [
   './js/engagement-manager.js',
   './js/gamification-manager.js',
   './js/ui-features.js',
-  './js/family-balance.js',
-  './js/family-unity.js',
   './js/ai-advisor.js',
   './data/config.json',
   './data/inflation.json',

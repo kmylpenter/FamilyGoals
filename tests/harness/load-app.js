@@ -20,11 +20,10 @@ const ALL_SCRIPTS = [
   'js/pin-manager.js',
   'js/recurring-manager.js',
   'js/ai-advisor.js',
-  'js/family-unity.js',
-  'js/family-balance.js',
   'js/ui-features.js',
   'js/app.js',
 ];
+// family-unity/family-balance: zarchiwizowane w js/archive/ (2026-07-24)
 
 // Moduły logiki (domyślny zestaw do testów jednostkowych — bez app.js,
 // który buduje UI i wymaga realnego DOM)

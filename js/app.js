@@ -10,8 +10,8 @@
   let gamificationManager = null;
   let engagementManager = null;
   let aiAdvisor = null;
-  let familyUnity = null;
-  let familyBalance = null;
+  // family-unity/family-balance: zarchiwizowane w js/archive/ (audyt 2026-07-24,
+  // D-C1 — 1510 linii bez żadnego podpięcia do UI; wrócą razem z wizją UI)
 
   // Current state
   let currentMonth = new Date();
@@ -134,21 +134,16 @@
       if (typeof EngagementManager !== 'undefined') {
         engagementManager = new EngagementManager(dataManager, gamificationManager);
         engagementManager.recordLogin(currentPerson);
+        // D-C4: odznaki streak/stażu sprawdzane od razu po zalogowaniu
+        // (wcześniej streak dawał punkty, ale odznaki nigdy nie zapadały)
+        if (gamificationManager) {
+          gamificationManager.checkAchievements(currentPerson);
+        }
       }
 
       // Init AIAdvisor
       if (typeof AIAdvisor !== 'undefined') {
         aiAdvisor = new AIAdvisor(dataManager);
-      }
-
-      // Init FamilyUnityManager
-      if (typeof FamilyUnityManager !== 'undefined') {
-        familyUnity = new FamilyUnityManager(dataManager);
-      }
-
-      // Init FamilyBalanceManager
-      if (typeof FamilyBalanceManager !== 'undefined') {
-        familyBalance = new FamilyBalanceManager(dataManager);
       }
 
       // Setup UI event listeners
@@ -250,6 +245,44 @@
     renderTodos();
   }
 
+  // E-M1/E-M2: porada dnia (AIAdvisor) + alerty (AlertManager) na dashboardzie
+  // — moduły istniały od dawna, ale nic ich nie wołało
+  function renderAdviceAndAlerts() {
+    const card = $('advice-alerts-card');
+    if (!card) return;
+
+    let html = '';
+    if (aiAdvisor) {
+      const tip = aiAdvisor.getDailyTip();
+      html += `
+        <div class="advice-card">
+          <span class="advice-icon">${tip.icon}</span>
+          <span class="advice-text">${escapeHtml(tip.text)}</span>
+        </div>`;
+    }
+    if (typeof AlertManager !== 'undefined') {
+      const alerts = AlertManager.getFormattedAlerts().slice(0, 3);
+      html += alerts.map((a, i) => `
+        <div class="alert-card alert-${a.type}">
+          <span class="alert-icon">${a.icon}</span>
+          <span class="alert-msg">${escapeHtml(a.message || '')}</span>
+          ${a.dismissable ? `<button type="button" class="alert-dismiss" data-alert-idx="${i}" aria-label="Zamknij alert">✕</button>` : ''}
+        </div>`).join('');
+    }
+    card.innerHTML = html;
+
+    card.querySelectorAll('.alert-dismiss').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const alerts = AlertManager.getFormattedAlerts();
+        const alert = alerts[parseInt(btn.dataset.alertIdx, 10)];
+        if (alert) {
+          AlertManager.dismiss(alert);
+          renderDashboard();
+        }
+      });
+    });
+  }
+
   function renderExpenseChart() {
     // Render expense pie chart if available
     if (typeof ExpenseChart !== 'undefined') {
@@ -317,6 +350,8 @@
     const savingsPercentText = $('savings-percent-text');
     if (savingsLeftText) savingsLeftText.textContent = 'Zostało: ' + formatMoney(Math.max(0, totalRequired - savedThisMonth));
     if (savingsPercentText) savingsPercentText.textContent = percent + '%';
+
+    renderAdviceAndAlerts();
 
     // Update income status - show same data as Income screen
     const incomeCard = document.querySelector('.income-status-card');
@@ -679,10 +714,12 @@
     // Categories progress
     const catList = document.querySelector('#screen-achievements .list:last-of-type');
     if (catList) {
-      const allAchievements = GamificationManager.ACHIEVEMENTS;
+      // D-C2: lista kategorii liczona z realnie zdobywalnych — puste
+      // kategorie (couple/special/consistency) znikają same
+      const allAchievements = GamificationManager.getEarnableAchievements();
       const catCounts = {};
 
-      Object.values(allAchievements).forEach(a => {
+      allAchievements.forEach(a => {
         if (!catCounts[a.category]) {
           catCounts[a.category] = { total: 0, unlocked: 0 };
         }
@@ -1524,8 +1561,8 @@
   function showAchievementCategory(category) {
     if (!gamificationManager) return;
 
-    const allAchievements = GamificationManager.ACHIEVEMENTS;
-    const achievements = Object.values(allAchievements).filter(a => a.category === category);
+    // D-C2: pokazujemy tylko realnie zdobywalne osiągnięcia
+    const achievements = GamificationManager.getEarnableAchievements().filter(a => a.category === category);
     const wifeUnlocked = gamificationManager.unlockedAchievements?.wife?.unlocked || [];
     const husbandUnlocked = gamificationManager.unlockedAchievements?.husband?.unlocked || [];
 

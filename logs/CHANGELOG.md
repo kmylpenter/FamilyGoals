@@ -47,6 +47,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Backup: import kategorii (były tracone), eksport+import todos/kosztów/ustawień. Files: `js/app.js`
 - Dane demo: `income[]` jako lustro wpłat źródeł (był wbudowany rozjazd dashboard↔przychody). Files: `js/app.js`
 
+#### Changed (fala 3 — decyzje Kamila po audycie)
+- family-unity + family-balance (1510 linii, 100% martwe) zarchiwizowane. Files: `js/archive/`, `index.html`, `sw.js` (v11), `js/app.js`, `tests/harness/load-app.js`
+- AIAdvisor + AlertManager podpięte do dashboardu: porada dnia + max 3 alerty z dismissem. Files: `js/app.js`, `index.html`, `css/main.css`
+- Osiągnięcia: UI pokazuje tylko 33 realnie zdobywalne (`EARNABLE_IDS`); nowe warunki streak_3..365 + week_user/month_user z danych EngagementManagera; check odznak przy logowaniu. Files: `js/gamification-manager.js`, `js/app.js`
+
 ---
 
 ## [2026-01-26] Sesja 11 - Major Audit Fixes (75/90 issues)

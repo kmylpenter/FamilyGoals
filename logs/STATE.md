@@ -25,11 +25,15 @@
 - ✅ Fala 2 (spójność): jedna instancja DataManagera, trend bez fabrykacji, alerty bez Infinity, korzyści per miesiąc, renderAll rozszerzony, reset modali, hero z danych, escapy XSS, realne "Ostatnio odblokowane", backup pełniejszy, demo spójne
 - ✅ Weryfikacja: red→green na każdy bug logiczny + kontrfaktycznie (ORIG vs FIXED) + probe'y przeglądarkowe (hero/modale/demo/spójność)
 
-**Czeka na decyzje Kamila (szczegóły w AUDIT → "DECYZJE DO PODJĘCIA"):**
-- [ ] family-unity + family-balance (1510 linii martwe): archiwum czy podpiąć?
-- [ ] AIAdvisor + AlertManager (martwe): podpiąć minimalnie do dashboardu (rekomendacja) czy archiwum?
-- [ ] Osiągnięcia: 92/122 niezdobywalne — ukryć + doimplementować tanie (rekomendacja) czy pełna implementacja?
-- [ ] Martwe ui-features (wykresy/Widget/Skeleton/Notifications): usunąć czy naprawiać?
+**Decyzje Kamila (2026-07-24) — WYKONANE w fali 3:**
+- [x] family-unity + family-balance → **zarchiwizowane** w `js/archive/` (wrócą z wizją UI)
+- [x] AIAdvisor + AlertManager → **podpięte minimalnie** (porada dnia + alerty na dashboardzie)
+- [x] Osiągnięcia → **ukryte niezdobywalne + tanie warunki** (33 zdobywalne: streak/staż z danych engagement; licznik x/33)
+
+**Pozostałe otwarte (fala 4, niska pilność — lista w AUDIT):**
+- [ ] Martwe ui-features (ExpenseChart/TimelineChart/Widget/Skeleton/Notifications): usunąć czy naprawiać?
+- [ ] Minors z audytu (polski przecinek w kwotach, deep-linki ?action=, unifikacja formatterów, itd.)
+- [ ] Test pełnego flow na urządzeniu + APK przez PWABuilder
 
 ### Sesja 11 - Major Audit Fixes (2026-01-26)
 
