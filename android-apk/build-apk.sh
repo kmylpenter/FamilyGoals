@@ -17,7 +17,12 @@ echo "[1/8] assets: kopiuję web-aplikację do APK"
 cp "$ROOT/index.html" "$ROOT/manifest.json" "$ROOT/sw.js" "$O/assets/www/"
 cp -r "$ROOT/css" "$ROOT/js" "$ROOT/data" "$ROOT/icons" "$O/assets/www/"
 rm -rf "$O/assets/www/js/archive"
-echo "    $(find "$O/assets/www" -type f | wc -l) plików"
+# Stempel wersji paczki web wbudowanej w APK (FG_STAMP z release.sh
+# = ta sama wersja co opublikowana paczka OTA → świeży APK bez fałszywego
+# "dostępna aktualizacja")
+STAMP="${FG_STAMP:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+sed -i "s/FG_WEB_VERSION = '[^']*'/FG_WEB_VERSION = '$STAMP'/" "$O/assets/www/js/app-version.js"
+echo "    $(find "$O/assets/www" -type f | wc -l) plików, wersja web: $STAMP"
 
 echo "[2/8] aapt2 compile (res)"
 aapt2 compile --dir "$P/res" -o "$O/res.zip"

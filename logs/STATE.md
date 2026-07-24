@@ -50,6 +50,16 @@
 - ⏳ Po potwierdzeniu działania na obu telefonach: repo → PRIVATE (Pages gaśnie),
   skasować zbędne /root/projekty/kmylpenter.github.io (za zgodą)
 
+### OTA — aktualizacje z aplikacji (2026-07-24)
+
+- ✅ Backend Releases (Dysk, ADMIN_TOKEN), mostek FGUpdater w APK 1.2.0
+  (hot-swap web + instalator APK, safe-mode), update-manager + baner,
+  pipeline `android-apk/release.sh` (62 testy zielone)
+- ⏳ KLIK KAMILA (autoryzacja scope Dysku — jak poprzednio): edytor skryptu →
+  Uruchom `doGet` → Zezwól → potem `release.sh` robi pierwsze wydanie
+- Flow żony: JEDNORAZOWO zainstalować 1.2.0 (pierwsza wersja z mostkiem),
+  dalej wszystko z banera „Aktualizuj" w aplikacji
+
 **Pozostałe otwarte (fala 4, niska pilność — lista w AUDIT):**
 - [ ] Martwe ui-features (ExpenseChart/TimelineChart/Widget/Skeleton/Notifications): usunąć czy naprawiać?
 - [ ] Minors z audytu (polski przecinek w kwotach, deep-linki ?action=, unifikacja formatterów, itd.)

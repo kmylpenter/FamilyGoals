@@ -11,6 +11,7 @@ const { createBrowserEnv, PROJECT_ROOT } = require('./browser-env');
 
 // Pełna kolejność z index.html
 const ALL_SCRIPTS = [
+  'js/app-version.js',
   'js/utils.js',
   'js/data-manager.js',
   'js/event-bus.js',
@@ -21,6 +22,7 @@ const ALL_SCRIPTS = [
   'js/recurring-manager.js',
   'js/ai-advisor.js',
   'js/sync-manager.js',
+  'js/update-manager.js',
   'js/ui-features.js',
   'js/app.js',
 ];

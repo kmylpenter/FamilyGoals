@@ -15,7 +15,14 @@ var METHODS = {
   claimToken: { fn: claimToken_, auth: false, arity: 1 },
   getFamilyBootstrap: { fn: getFamilyBootstrap, auth: true, arity: 0 },
   getFamilyBootstrapDelta: { fn: getFamilyBootstrapDelta, auth: true, arity: 1 },
-  pushChanges: { fn: pushChanges, auth: true, arity: 1 }
+  pushChanges: { fn: pushChanges, auth: true, arity: 1 },
+  // OTA (Releases.gs): rodzina pobiera; upload wymaga ADMIN_TOKEN w args
+  claimAdminToken: { fn: claimAdminToken_, auth: false, arity: 1 },
+  getAppInfo: { fn: getAppInfo, auth: true, arity: 0 },
+  getWebBundle: { fn: getWebBundle, auth: true, arity: 0 },
+  uploadWebBundle: { fn: uploadWebBundle, auth: true, arity: 2 },
+  getApk: { fn: getApk, auth: true, arity: 0 },
+  uploadApk: { fn: uploadApk, auth: true, arity: 4 }
 };
 
 function doPost(e) {

@@ -152,6 +152,8 @@
       // Synchronizacja rodzinna: wystartuj jeśli skonfigurowana
       if (typeof syncManager !== 'undefined' && syncManager.status().configured) {
         syncManager.start();
+        // Ciche sprawdzenie aktualizacji chwilę po starcie (baner na dashboardzie)
+        setTimeout(() => checkForUpdatesUI(false), 5000);
       }
 
       // Setup UI event listeners
@@ -1385,6 +1387,66 @@
     const syncBtn = $('btn-sync');
     if (syncBtn) syncBtn.onclick = openSyncModal;
     setupSyncForm();
+    const updatesBtn = $('btn-updates');
+    if (updatesBtn) updatesBtn.onclick = () => checkForUpdatesUI(true);
+  }
+
+  // ============ AKTUALIZACJE (OTA) ============
+
+  async function checkForUpdatesUI(interactive) {
+    if (typeof updateManager === 'undefined') return;
+    const banner = $('update-banner');
+    const itemStatus = $('update-item-status');
+    try {
+      const r = await updateManager.check();
+      if (r.reason === 'no_bridge') {
+        if (itemStatus) itemStatus.textContent = 'dostępne w aplikacji na telefonie';
+        if (interactive) Toast.info('Aktualizacje', 'Działają w zainstalowanej aplikacji');
+        return;
+      }
+      if (!r.available) {
+        if (banner) banner.innerHTML = '';
+        if (itemStatus) itemStatus.textContent = `masz najnowszą wersję (${r.local.versionName || r.local.web})`;
+        if (interactive) Toast.success('Aktualizacje', 'Masz najnowszą wersję');
+        return;
+      }
+      const label = r.apkUpdate
+        ? `Nowa wersja aplikacji ${r.remote.apkVersionName || ''}`.trim()
+        : 'Nowa wersja dostępna';
+      if (itemStatus) itemStatus.textContent = 'dostępna aktualizacja!';
+      if (banner) {
+        banner.innerHTML = `
+          <div class="update-banner">
+            <span>🔄 ${escapeHtml(label)}!</span>
+            <button type="button" class="btn-primary btn-update" id="btn-do-update">Aktualizuj</button>
+          </div>`;
+        const btn = $('btn-do-update');
+        if (btn) btn.onclick = doUpdate;
+      }
+    } catch (err) {
+      console.error('checkForUpdates error:', err);
+      if (interactive) Toast.error('Aktualizacje', 'Nie udało się sprawdzić: ' + (err.message || err));
+    }
+  }
+
+  async function doUpdate() {
+    const btn = $('btn-do-update');
+    if (btn) { btn.disabled = true; btn.textContent = 'Pobieranie…'; }
+    try {
+      const r = await updateManager.check();
+      if (r.apkUpdate) {
+        // Nowe opakowanie: pobierz APK i odpal systemowy instalator
+        await updateManager.applyApkUpdate();
+        Toast.info('Instalator', 'Potwierdź instalację w oknie systemowym');
+      } else if (r.webUpdate) {
+        // Nowe pliki aplikacji: hot-swap + przeładowanie (bez instalatora)
+        await updateManager.applyWebUpdate();
+      }
+    } catch (err) {
+      console.error('doUpdate error:', err);
+      Toast.error('Aktualizacja nieudana', String(err.message || err));
+      if (btn) { btn.disabled = false; btn.textContent = 'Aktualizuj'; }
+    }
   }
 
   // ============ SYNCHRONIZACJA RODZINNA ============

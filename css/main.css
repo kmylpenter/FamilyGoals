@@ -1289,3 +1289,24 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
 }
 .list-subtitle { font-size: 12px; }
 #sync-status-line { margin-bottom: var(--s2); font-size: 13px; min-height: 18px; }
+
+/* ===== Baner aktualizacji OTA ===== */
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--mint-light);
+  border: 1px solid var(--mint);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: var(--s2);
+  font-size: 14px;
+  color: var(--text);
+}
+.update-banner .btn-update {
+  width: auto;
+  padding: 8px 16px;
+  margin: 0;
+  font-size: 14px;
+}

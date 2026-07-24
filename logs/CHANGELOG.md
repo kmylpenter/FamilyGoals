@@ -47,6 +47,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Backup: import kategorii (były tracone), eksport+import todos/kosztów/ustawień. Files: `js/app.js`
 - Dane demo: `income[]` jako lustro wpłat źródeł (był wbudowany rozjazd dashboard↔przychody). Files: `js/app.js`
 
+#### Added (OTA — aktualizacje z wnętrza aplikacji, zero GitHuba)
+- Backend `Releases.gs`: paczka web + APK prywatnie na Dysku (folder FamilyGoals-Releases); metody getAppInfo/getWebBundle/uploadWebBundle/getApk/uploadApk; upload chroniony osobnym ADMIN_TOKEN (first-writer-wins); redeploy tego samego ID (@2/@3 — URL bez zmian). Files: `backend-gas/Releases.gs`, `backend-gas/Code.gs`, `backend-gas/appsscript.json` (scope drive)
+- Mostek natywny `window.FGUpdater` (v1.2.0, versionCode 3): hot-swap paczki web do `filesDir/www-live` (atomowo, safe-mode przy błędzie ładowania → powrót do assets), instalacja APK przez własny ContentProvider + systemowy instalator (REQUEST_INSTALL_PACKAGES). Files: `android-apk/src/.../MainActivity.java`, `android-apk/src/.../ApkProvider.java`, `android-apk/AndroidManifest.xml`
+- `js/update-manager.js` + UI: baner „🔄 Nowa wersja — Aktualizuj" na dashboardzie (ciche sprawdzenie po starcie), „Sprawdź aktualizacje" w Ustawieniach; wersja web stemplowana (`js/app-version.js`); 7 testów (decyzje wersji, przepływ apply). Files: `js/update-manager.js`, `js/app-version.js`, `js/app.js`, `js/sync-manager.js` (_apiCall), `index.html`, `css/main.css`, `tests/update-manager.test.js`
+- Pipeline wydań jedną komendą: `android-apk/release.sh` (bramka testowa → publikacja paczki web → build APK z tym samym stemplem → upload APK → kopia do Pobranych); codzienny fix = `release.sh --web-only`. Files: `android-apk/release.sh`, `android-apk/publish-web.sh`, `android-apk/build-apk.sh`
+
 #### Added (natywne APK — decyzja: koniec z publicznym hostingiem)
 - `android-apk/`: natywne opakowanie w stylu KmylSales (aapt2+javac+d8+apksigner, bez Gradle) — WebView ładujący aplikację Z PLIKÓW WEWNĄTRZ APK (`assets/www`), zero hostingu i paska przeglądarki; sync do GAS działa z originu `file://` (probe: gasFetch OK); podpis kluczem rodzinnym z `apk/` (versionCode 2 = update po TWA). Wynik: `apk/FamilyGoals-1.1.0.apk` (110 KB). Files: `android-apk/AndroidManifest.xml`, `android-apk/src/.../MainActivity.java`, `android-apk/build-apk.sh`, `android-apk/res/*`
 - Kierunek: po potwierdzeniu działania repo przechodzi na PRYWATNE (Pages/TWA wygaszone); wariant TWA + assetlinks porzucony.

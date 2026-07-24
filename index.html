@@ -271,6 +271,9 @@
       </div>
     </div>
 
+    <!-- Baner aktualizacji (OTA) -->
+    <div id="update-banner"></div>
+
     <!-- Porada dnia + alerty (renderowane w renderDashboard) -->
     <div id="advice-alerts-card"></div>
 
@@ -505,6 +508,14 @@
         <div class="list-content">
           <div class="list-title">Synchronizacja rodzinna</div>
           <div class="list-subtitle muted" id="sync-item-status">nieskonfigurowana</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
+      <div class="list-item" id="btn-updates" tabindex="0" role="button" aria-label="Sprawdź aktualizacje">
+        <div class="list-icon">⬆️</div>
+        <div class="list-content">
+          <div class="list-title">Sprawdź aktualizacje</div>
+          <div class="list-subtitle muted" id="update-item-status"></div>
         </div>
         <div class="list-arrow">→</div>
       </div>
@@ -942,6 +953,7 @@
   </nav>
 
   <!-- Load shared utilities first -->
+  <script src="js/app-version.js"></script>
   <script src="js/utils.js"></script>
   <!-- Load managers -->
   <script src="js/data-manager.js"></script>
@@ -953,6 +965,7 @@
   <script src="js/recurring-manager.js"></script>
   <script src="js/ai-advisor.js"></script>
   <script src="js/sync-manager.js"></script>
+  <script src="js/update-manager.js"></script>
   <script src="js/ui-features.js"></script>
   <script src="js/app.js"></script>
   <script>

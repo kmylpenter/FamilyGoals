@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kmylpenter.familygoals"
-    android:versionCode="2"
-    android:versionName="1.1.0">
+    android:versionCode="3"
+    android:versionName="1.2.0">
 
-  <!-- Tylko sieć — do synchronizacji z backendem GAS (arkusz rodzinny) -->
+  <!-- Sieć: synchronizacja z backendem GAS (arkusz rodzinny) + OTA -->
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <!-- Aktualizacja APK z wnętrza aplikacji (systemowy instalator) -->
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
   <application
       android:label="@string/app_name"
@@ -24,5 +26,12 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
+
+    <!-- Serwuje pobrany update.apk instalatorowi systemowemu -->
+    <provider
+        android:name=".ApkProvider"
+        android:authorities="com.kmylpenter.familygoals.apk"
+        android:exported="false"
+        android:grantUriPermissions="true"/>
   </application>
 </manifest>

@@ -403,6 +403,7 @@
     stop: stop,
     configure: configure,
     status: status,
-    _ENTITIES: ENTITIES
+    _ENTITIES: ENTITIES,
+    _apiCall: apiCall // reużywane przez update-manager (OTA)
   };
 })();
