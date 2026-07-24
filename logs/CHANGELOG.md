@@ -47,6 +47,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Backup: import kategorii (były tracone), eksport+import todos/kosztów/ustawień. Files: `js/app.js`
 - Dane demo: `income[]` jako lustro wpłat źródeł (był wbudowany rozjazd dashboard↔przychody). Files: `js/app.js`
 
+#### Added (natywne APK — decyzja: koniec z publicznym hostingiem)
+- `android-apk/`: natywne opakowanie w stylu KmylSales (aapt2+javac+d8+apksigner, bez Gradle) — WebView ładujący aplikację Z PLIKÓW WEWNĄTRZ APK (`assets/www`), zero hostingu i paska przeglądarki; sync do GAS działa z originu `file://` (probe: gasFetch OK); podpis kluczem rodzinnym z `apk/` (versionCode 2 = update po TWA). Wynik: `apk/FamilyGoals-1.1.0.apk` (110 KB). Files: `android-apk/AndroidManifest.xml`, `android-apk/src/.../MainActivity.java`, `android-apk/build-apk.sh`, `android-apk/res/*`
+- Kierunek: po potwierdzeniu działania repo przechodzi na PRYWATNE (Pages/TWA wygaszone); wariant TWA + assetlinks porzucony.
+
 #### Added (backend rodzinny — arkusz Google + sync między urządzeniami)
 - Backend GAS (wzorzec proxy_call z KmylSales): `getFamilyBootstrap`/`Delta`, `pushChanges` (LWW po updatedAt), `claimToken` (first-writer-wins), arkusz „FamilyGoals-Data" auto-tworzony z kartami per encja + kolumną Json. Files: `backend-gas/Code.gs`, `backend-gas/FamilyBackend.gs`, `backend-gas/appsscript.json`. Deploy clasp @1.
 - `js/sync-manager.js`: silnik snapshot-diff localStorage (łapie każdego writera bez monkey-patchy), trwała kolejka offline z replayem, stemplowanie updatedAt, pull delta z kursorem, merge LWW per rekord, tombstony, encje obiektowe dzielone per osoba (achievements/engagement). Files: `js/sync-manager.js`, `index.html`, `sw.js` (v12)

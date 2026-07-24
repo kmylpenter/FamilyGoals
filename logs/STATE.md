@@ -42,6 +42,14 @@
 - ⏳ Do zrobienia na telefonach: Ustawienia → Synchronizacja rodzinna →
   wkleić URL `/exec` + token (lokalnie w `backend-gas/.local-config.json`, poza repo)
 
+### Natywne APK (2026-07-24, po uwadze Kamila o publicznym hostingu)
+
+- ✅ Decyzja: aplikacja NIE może być publicznie hostowana → web-UI zapakowany
+  DO APK (WebView, `android-apk/`, toolchain KmylSales na tym tablecie);
+  `apk/FamilyGoals-1.1.0.apk` w Pobranych (update po TWA, ten sam klucz)
+- ⏳ Po potwierdzeniu działania na obu telefonach: repo → PRIVATE (Pages gaśnie),
+  skasować zbędne /root/projekty/kmylpenter.github.io (za zgodą)
+
 **Pozostałe otwarte (fala 4, niska pilność — lista w AUDIT):**
 - [ ] Martwe ui-features (ExpenseChart/TimelineChart/Widget/Skeleton/Notifications): usunąć czy naprawiać?
 - [ ] Minors z audytu (polski przecinek w kwotach, deep-linki ?action=, unifikacja formatterów, itd.)

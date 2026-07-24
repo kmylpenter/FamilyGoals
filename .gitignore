@@ -2,3 +2,4 @@ logs/archive/
 node_modules/
 apk/
 backend-gas/.local-config.json
+android-apk/build/
