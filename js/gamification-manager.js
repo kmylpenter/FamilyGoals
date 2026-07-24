@@ -1078,6 +1078,7 @@ class GamificationManager {
   checkAchievements(owner = 'wife') {
     const newUnlocks = [];
     const userAchievements = this.unlockedAchievements[owner];
+    if (!userAchievements) return newUnlocks; // null/nieznany owner — no-op
 
     // Sprawdzaj wyłącznie osiągnięcia z zaimplementowanymi warunkami
     for (const id of GamificationManager.EARNABLE_IDS) {

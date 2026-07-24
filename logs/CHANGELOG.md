@@ -47,6 +47,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Backup: import kategorii (były tracone), eksport+import todos/kosztów/ustawień. Files: `js/app.js`
 - Dane demo: `income[]` jako lustro wpłat źródeł (był wbudowany rozjazd dashboard↔przychody). Files: `js/app.js`
 
+#### Added (profile urządzeń — pierwsza aktualizacja dostarczona przez OTA)
+- Profil urządzenia (`familygoals_device_profile`, lokalny/niesynchronizowany): picker „Kto korzysta z tego telefonu?" przy 1. uruchomieniu + zmiana w Ustawieniach; `currentPerson` z profilu (wcześniej hardcoded 'wife' — oba telefony nabijały streak żonie). Files: `js/app.js`, `index.html`
+- Domyślny właściciel nowego przychodu = osoba telefonu (chipy pozycyjnie — 2. grupa .chips); miękka ochrona: edycja/kasowanie pozycji współmałżonka wymaga potwierdzenia (źródła + zadania). Files: `js/app.js`
+- Guardy null-ownera w managerach (getStreakStats/recordLogin/checkAchievements — default parametru nie łapie null). Files: `js/engagement-manager.js`, `js/gamification-manager.js`
+- Fix mignięcia ekranu PIN na starcie (active nadawane przez JS, nie statycznie). Files: `index.html`
+- Wydane jako paczka OTA `2026-07-24T18:24:35Z` — bez nowego APK.
+
 #### Added (OTA — aktualizacje z wnętrza aplikacji, zero GitHuba)
 - Backend `Releases.gs`: paczka web + APK prywatnie na Dysku (folder FamilyGoals-Releases); metody getAppInfo/getWebBundle/uploadWebBundle/getApk/uploadApk; upload chroniony osobnym ADMIN_TOKEN (first-writer-wins); redeploy tego samego ID (@2/@3 — URL bez zmian). Files: `backend-gas/Releases.gs`, `backend-gas/Code.gs`, `backend-gas/appsscript.json` (scope drive)
 - Mostek natywny `window.FGUpdater` (v1.2.0, versionCode 3): hot-swap paczki web do `filesDir/www-live` (atomowo, safe-mode przy błędzie ładowania → powrót do assets), instalacja APK przez własny ContentProvider + systemowy instalator (REQUEST_INSTALL_PACKAGES). Files: `android-apk/src/.../MainActivity.java`, `android-apk/src/.../ApkProvider.java`, `android-apk/AndroidManifest.xml`

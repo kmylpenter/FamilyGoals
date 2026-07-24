@@ -15,7 +15,10 @@
 
   // Current state
   let currentMonth = new Date();
-  let currentPerson = 'wife'; // 'wife' lub 'husband'
+  // Profil URZĄDZENIA (lokalny, celowo niesynchronizowany): komu przypisywać
+  // streak/odznaki/nowe wpisy na TYM telefonie. null = jeszcze nie wybrano
+  // (pierwsze uruchomienie pokaże picker).
+  let currentPerson = localStorage.getItem('familygoals_device_profile') || null;
   let editingGoalId = null;
   let editingSourceId = null;
 
@@ -136,11 +139,13 @@
       // Init EngagementManager (requires dataManager and gamificationManager)
       if (typeof EngagementManager !== 'undefined') {
         engagementManager = new EngagementManager(dataManager, gamificationManager);
-        engagementManager.recordLogin(currentPerson);
-        // D-C4: odznaki streak/stażu sprawdzane od razu po zalogowaniu
-        // (wcześniej streak dawał punkty, ale odznaki nigdy nie zapadały)
-        if (gamificationManager) {
-          gamificationManager.checkAchievements(currentPerson);
+        // Login/odznaki dopiero gdy wiadomo KTO korzysta z telefonu —
+        // bez profilu picker (niżej) zrobi to po wyborze
+        if (currentPerson) {
+          engagementManager.recordLogin(currentPerson);
+          if (gamificationManager) {
+            gamificationManager.checkAchievements(currentPerson);
+          }
         }
       }
 
@@ -174,6 +179,12 @@
 
       // Handle URL params for deep linking
       handleUrlParams();
+
+      // Pierwsze uruchomienie: wybór, czyj to telefon (atrybucja streak/wpisów).
+      // Re-check w callbacku: gdyby user zdążył wybrać zanim timer odpali
+      if (!currentPerson) {
+        setTimeout(() => { if (!currentPerson) openProfilePicker(); }, 600);
+      }
 
       // FamilyGoals App initialized with all managers
     } catch (err) {
@@ -702,9 +713,9 @@
       statsCards[1].onclick = () => showPersonAchievements('husband');
     }
 
-    // Streak
+    // Streak (fallback wife tylko do WYŚWIETLENIA przed wyborem profilu)
     if (engagementManager) {
-      const streakStats = engagementManager.getStreakStats(currentPerson);
+      const streakStats = engagementManager.getStreakStats(currentPerson || 'wife');
       const streak = streakStats?.currentStreak || 0;
       const mult = streakStats?.multiplier || 1;
       const streakCard = document.querySelector('.streak-card');
@@ -1012,6 +1023,8 @@
   }
 
   function deleteIncomeSource(id) {
+    const src = dataManager.getIncomeSources().find(s => s.id === id);
+    if (src && !confirmOtherOwner(src.owner, 'usunąć')) return;
     if (!confirm('Usunąć to źródło przychodu?')) return;
     dataManager.deleteIncomeSource(id);
     renderAll();
@@ -1023,6 +1036,7 @@
   function editIncomeSource(id) {
     const source = dataManager.getIncomeSources().find(s => s.id === id);
     if (!source) return;
+    if (!confirmOtherOwner(source.owner, 'edytować')) return;
 
     // Open modal FIRST (closeAllModals resets editingSourceId via resetEditState)
     openModal('modal-income');
@@ -1389,6 +1403,65 @@
     setupSyncForm();
     const updatesBtn = $('btn-updates');
     if (updatesBtn) updatesBtn.onclick = () => checkForUpdatesUI(true);
+    const profileBtn = $('btn-profile');
+    if (profileBtn) profileBtn.onclick = openProfilePicker;
+    setupProfilePicker();
+    refreshProfileUI();
+  }
+
+  // ============ PROFIL URZĄDZENIA ============
+
+  const PERSON_LABEL = { wife: '👩 Żona', husband: '👨 Mąż' };
+
+  function refreshProfileUI() {
+    const status = $('profile-item-status');
+    if (status) status.textContent = currentPerson ? PERSON_LABEL[currentPerson] : 'nie wybrano';
+  }
+
+  function openProfilePicker() {
+    // openModal to funkcja inline z index.html — w harnessie testowym jej nie ma
+    if (typeof openModal === 'undefined') return;
+    openModal('modal-profile');
+  }
+
+  function setupProfilePicker() {
+    $$('#modal-profile .profile-choice').forEach(btn => {
+      btn.onclick = () => setDeviceProfile(btn.dataset.person);
+    });
+  }
+
+  function setDeviceProfile(person) {
+    if (person !== 'wife' && person !== 'husband') return;
+    const first = !currentPerson;
+    currentPerson = person;
+    localStorage.setItem('familygoals_device_profile', person);
+    closeAllModals();
+    refreshProfileUI();
+    // Atrybucja od razu: login/streak/odznaki dla właściwej osoby
+    if (engagementManager) engagementManager.recordLogin(person);
+    if (gamificationManager) gamificationManager.checkAchievements(person);
+    renderAll();
+    Toast.success('Profil ustawiony', `Ten telefon: ${PERSON_LABEL[person]}`);
+    if (first && typeof syncManager !== 'undefined') syncManager.syncNow?.();
+  }
+
+  /** Domyślny właściciel nowego wpisu = osoba tego telefonu (wołane z openModal). */
+  function applyProfileDefaults() {
+    if (!currentPerson || editingSourceId) return;
+    // Chipy osoby = DRUGA grupa .chips w formularzu przychodu (jak w submit
+    // handlerze — pozycyjnie, brak id w HTML)
+    const form = document.querySelector('#modal-income form');
+    const chips = form?.querySelectorAll('.chips')[1]?.querySelectorAll('.chip');
+    if (!chips) return;
+    chips.forEach(c => c.classList.toggle('active',
+      (c.textContent.includes('Żona') ? 'wife' : 'husband') === currentPerson));
+  }
+
+  /** Miękka ochrona: zmiana/kasowanie pozycji WSPÓŁMAŁŻONKA wymaga potwierdzenia. */
+  function confirmOtherOwner(owner, action) {
+    if (!currentPerson || !owner || owner === 'both' || owner === currentPerson) return true;
+    const label = owner === 'wife' ? 'Żony' : 'Męża';
+    return confirm(`To pozycja ${label}. Na pewno ${action}?`);
   }
 
   // ============ AKTUALIZACJE (OTA) ============
@@ -2227,6 +2300,8 @@
       // Delete todo
       if (e.target.dataset.type === 'todo') {
         e.stopPropagation();
+        const todo = dataManager.getTodos().find(t => t.id === e.target.dataset.id);
+        if (todo && !confirmOtherOwner(todo.owner, 'usunąć to zadanie')) return;
         dataManager.deleteTodo(e.target.dataset.id);
         renderTodos();
         return;
@@ -2305,7 +2380,8 @@
     resetEditState,
     renderOptimization,
     renderTodos,
-    switchIncomeTab
+    switchIncomeTab,
+    applyProfileDefaults
   };
 
   // ============ START ============

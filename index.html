@@ -218,7 +218,9 @@
   <div id="toast-container" class="toast-container"></div>
 
   <!-- ========== PIN Screen ========== -->
-  <div id="pin-screen" class="screen pin-screen active">
+  <!-- active nadaje checkPinRequired() — statyczne active powodowało
+       mignięcie ekranu PIN przy każdym starcie bez PIN-u -->
+  <div id="pin-screen" class="screen pin-screen">
     <div class="pin-logo">👨‍👩‍👧‍👦</div>
     <h1 class="pin-title">Wprowadź PIN</h1>
     <div class="pin-container" id="pin-container">
@@ -508,6 +510,14 @@
         <div class="list-content">
           <div class="list-title">Synchronizacja rodzinna</div>
           <div class="list-subtitle muted" id="sync-item-status">nieskonfigurowana</div>
+        </div>
+        <div class="list-arrow">→</div>
+      </div>
+      <div class="list-item" id="btn-profile" tabindex="0" role="button" aria-label="Profil urządzenia">
+        <div class="list-icon">👤</div>
+        <div class="list-content">
+          <div class="list-title">Ten telefon należy do</div>
+          <div class="list-subtitle muted" id="profile-item-status">nie wybrano</div>
         </div>
         <div class="list-arrow">→</div>
       </div>
@@ -901,6 +911,23 @@
     </div>
   </div>
 
+  <!-- Modal: Profil urządzenia (kto korzysta z TEGO telefonu) -->
+  <div id="modal-profile" class="modal" role="dialog" aria-label="Profil urządzenia">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>👋 Kto korzysta z tego telefonu?</h2>
+      </div>
+      <div class="form">
+        <p class="muted" style="margin-bottom: 16px;">
+          Dzięki temu streak, odznaki i nowe wpisy będą przypisywane właściwej
+          osobie. Można zmienić w Ustawieniach.
+        </p>
+        <button type="button" class="btn-primary profile-choice" data-person="wife">👩 Żona</button>
+        <button type="button" class="btn-primary profile-choice" data-person="husband" style="margin-top: 10px;">👨 Mąż</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Synchronizacja rodzinna -->
   <div id="modal-sync" class="modal" role="dialog" aria-label="Synchronizacja rodzinna" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -974,20 +1001,16 @@
     var dots = document.querySelectorAll('.pin-dot');
     var container = document.getElementById('pin-container');
 
-    // Check if PIN is enabled, if not - skip to dashboard
+    // Ekran PIN pokazujemy TYLKO gdy jest wymagany (HTML startuje bez active
+    // — wcześniej PIN migał na każdym starcie zanim JS go schował)
     (function checkPinRequired() {
-      if (typeof PinManager !== 'undefined') {
-        if (!PinManager.isEnabled()) {
-          // No PIN set - go directly to dashboard
-          document.getElementById('pin-screen').classList.remove('active');
-          document.getElementById('screen-dashboard').classList.add('active');
-          document.getElementById('bottom-nav').classList.add('visible');
-        } else if (PinManager.isSessionActive()) {
-          // Session still active - go directly to dashboard
-          document.getElementById('pin-screen').classList.remove('active');
-          document.getElementById('screen-dashboard').classList.add('active');
-          document.getElementById('bottom-nav').classList.add('visible');
-        }
+      var pinNeeded = typeof PinManager !== 'undefined' &&
+        PinManager.isEnabled() && !PinManager.isSessionActive();
+      if (pinNeeded) {
+        document.getElementById('pin-screen').classList.add('active');
+      } else {
+        document.getElementById('screen-dashboard').classList.add('active');
+        document.getElementById('bottom-nav').classList.add('visible');
       }
     })();
 
@@ -1069,6 +1092,10 @@
     function openModal(id) {
       closeAllModals();
       document.getElementById(id).classList.add('active');
+      // Domyślny właściciel nowego wpisu = osoba tego telefonu
+      if (id === 'modal-income' && typeof app !== 'undefined' && app.applyProfileDefaults) {
+        app.applyProfileDefaults();
+      }
     }
     function closeModal(e) {
       // Handle both event-based calls and direct calls without event

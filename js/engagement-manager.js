@@ -273,6 +273,7 @@ class EngagementManager {
    */
   recordLogin(owner = 'wife') {
     const user = this.data[owner];
+    if (!user) return null; // profil jeszcze nie wybrany — nic nie przypisujemy
     const now = new Date();
     const today = this._getDateString(now);
     const yesterday = this._getDateString(new Date(now - 86400000));
@@ -585,7 +586,9 @@ class EngagementManager {
   // ==========================================
 
   getStreakStats(owner = 'wife') {
-    const user = this.data[owner];
+    // Guard: null/nieznany owner (np. telefon przed wyborem profilu)
+    // — default parametru nie łapie null, tylko undefined
+    const user = this.data[owner] || this._createUserData();
     const multiplier = this._getMultiplier(user.currentStreak);
     const nextMilestone = this._getNextMilestone(user.currentStreak);
 
