@@ -36,6 +36,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - „Nadchodzące zakupy" pokazywały cykliczne korzyści poza zakresem od–do (przyszły leasing dostawał „za 31 dni ✓ Kupione" przed startem) — filtr zakresu w `getUpcomingBusinessCosts`. Files: `js/data-manager.js`
 - Cykliczna korzyść BEZ activeFrom fabrykowała się wstecz na wykresie (liczyła się w miesiącach sprzed dodania — złapane na realnych danych: abonament 300 zł świeciłby od 2023) — liczy się od miesiąca dodania (createdAt), spójnie z naliczeniami w historii; test zaktualizowany do nowej semantyki. Files: `js/data-manager.js`, `tests/business-cost-range.test.js`
 - Kolizja dwóch ostatnich etykiet osi wykresu („majlip") gdy krokowa etykieta wypada tuż przed ostatnią — krokowa odpada przy kolizji. Files: `js/app.js`
+- Baner aktualizacji „czasami się nie pokazywał": check był JEDNORAZOWY (5 s po zimnym starcie), a apka na telefonie żyje w pamięci dniami — publikacja przy otwartej apce lub jeden nieudany check = brak banera do restartu. Teraz: ponawianie co 30 min + przy powrocie apki na pierwszy plan (throttle 5 min); obie ścieżki zweryfikowane headless licznikiem wywołań. Files: `js/app.js`
 
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza

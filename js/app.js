@@ -162,7 +162,17 @@
       if (typeof syncManager !== 'undefined' && syncManager.status().configured) {
         syncManager.start();
         // Ciche sprawdzenie aktualizacji chwilę po starcie (baner na dashboardzie)
-        setTimeout(() => checkForUpdatesUI(false), 5000);
+        // Telefon rzadko robi zimny start apki, a check był jednorazowy —
+        // baner potrafił nie pojawić się godzinami (publikacja przy otwartej
+        // apce / jeden nieudany check). Ponawiamy: co 30 min + przy powrocie
+        // apki na pierwszy plan (throttle 5 min).
+        let lastUpdateCheck = 0;
+        const recheckUpdates = () => { lastUpdateCheck = Date.now(); checkForUpdatesUI(false); };
+        setTimeout(recheckUpdates, 5000);
+        setInterval(recheckUpdates, 30 * 60 * 1000);
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && Date.now() - lastUpdateCheck > 5 * 60 * 1000) recheckUpdates();
+        });
       }
 
       // Setup UI event listeners
