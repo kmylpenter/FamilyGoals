@@ -41,6 +41,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Kolizja dwóch ostatnich etykiet osi wykresu („majlip") gdy krokowa etykieta wypada tuż przed ostatnią — krokowa odpada przy kolizji. Files: `js/app.js`
 - Baner aktualizacji „czasami się nie pokazywał": check był JEDNORAZOWY (5 s po zimnym starcie), a apka na telefonie żyje w pamięci dniami — publikacja przy otwartej apce lub jeden nieudany check = brak banera do restartu. Teraz: ponawianie co 30 min + przy powrocie apki na pierwszy plan (throttle 5 min); obie ścieżki zweryfikowane headless licznikiem wywołań. Files: `js/app.js`
 - Widmowe „Do odłożenia w tym miesiącu" (np. 2700 zł) mimo braku celów: `getPlannedExpenses`/`_getPlannedFromStorage` przy braku danych usera spadały do DOMYŚLNYCH celów demo z `data/planned.json` (Edukacja 500 + Remont 1500), a pierwszy `addPlannedGoal` zatrzaskiwał te widma do danych. Fallback usunięty: bez celów = 0 zł (demo dalej działa — seed pisze override wprost). Files: `js/data-manager.js`
+- Dashboard bez pionowego scrolla: padding dolny ekranu 100→68 px (nav ma 61 px; pomiar na realnych danych: przerost całego ekranu wynosił dokładnie 16 px → po zmianie 0). Files: `css/main.css`
 
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza

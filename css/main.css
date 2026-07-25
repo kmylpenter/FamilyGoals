@@ -83,6 +83,9 @@ body {
 
 /* Dashboard & List Screens */
 .dashboard, .list-screen { padding: var(--s1) var(--s2); padding-bottom: 100px; gap: var(--s1); }
+/* Dashboard mieści się bez pionowego scrolla: nav ma ~61px, a 100px paddingu
+   było zapasem w ciemno (pomiar 2026-07-25: przerost ekranu = 16px) */
+#screen-dashboard { padding-bottom: 68px; }
 .header {
   display: flex; justify-content: space-between; align-items: center;
   padding: var(--s1) 0; min-height: 48px;
