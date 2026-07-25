@@ -97,6 +97,9 @@ test('getIncomeByMonth / getMonthlyStats: agregacja per miesiąc', () => {
   run('dataManager.addIncome({ amount: 2000, source: "B", date: "2026-05-20" })');
   run('dataManager.addIncome({ amount: 999, source: "C", date: "2026-06-01" })');
   assert.equal(run('dataManager.getIncomeByMonth(2026, 4).length'), 2, 'maj = month 4');
-  const stats = run('dataManager.getMonthlyStats(2026, 4)');
-  assert.equal(stats.totalIncome, 3000);
+  // Zmiana semantyki 2026-07-25 (wyrównanie „odłożone", zgoda Kamila):
+  // getMonthlyStats liczy z WPŁAT ŹRÓDEŁ + korzyści firmowych (prawda kasowa,
+  // jak wykres i karta przychodów), NIE z luster income[] — surowe lustra bez
+  // wpłat w źródłach nie wchodzą do statystyk (pełny pin: stats-alignment).
+  assert.equal(run('dataManager.getMonthlyStats(2026, 4).totalIncome'), 0, 'lustra bez wpłat źródeł nie liczą się');
 });

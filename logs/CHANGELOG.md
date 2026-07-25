@@ -42,6 +42,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Baner aktualizacji „czasami się nie pokazywał": check był JEDNORAZOWY (5 s po zimnym starcie), a apka na telefonie żyje w pamięci dniami — publikacja przy otwartej apce lub jeden nieudany check = brak banera do restartu. Teraz: ponawianie co 30 min + przy powrocie apki na pierwszy plan (throttle 5 min); obie ścieżki zweryfikowane headless licznikiem wywołań. Files: `js/app.js`
 - Widmowe „Do odłożenia w tym miesiącu" (np. 2700 zł) mimo braku celów: `getPlannedExpenses`/`_getPlannedFromStorage` przy braku danych usera spadały do DOMYŚLNYCH celów demo z `data/planned.json` (Edukacja 500 + Remont 1500), a pierwszy `addPlannedGoal` zatrzaskiwał te widma do danych. Fallback usunięty: bez celów = 0 zł (demo dalej działa — seed pisze override wprost). Files: `js/data-manager.js`
 - Dashboard bez pionowego scrolla: padding dolny ekranu 100→68 px (nav ma 61 px; pomiar na realnych danych: przerost całego ekranu wynosił dokładnie 16 px → po zmianie 0). Files: `css/main.css`
+- Wyrównanie „odłożone" i celu miesiąca (SSOT): `getMonthlyStats` liczy przychód DOKŁADNIE formułą karty „Wasze przychody" (summary modelu puli + korzyści firmowe; było: lustra income[] — 2700 vs 3600, bo 600 zł wpłat bez lustra i korzyści nieliczone), a `savingsTarget` z realnych celów usera przez nowy helper `getMonthlySavingsTarget()` (używany też przez kafel — było: widmowe 2000 z config.json w ocenie miesiąca). Test agregacji zaktualizowany do nowej semantyki. Files: `js/data-manager.js`, `js/app.js`, `tests/data-manager.test.js`
 
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
@@ -51,6 +52,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - +2 (income-categories: filtr kind, legacy=wydatkowe, red→green) — razem 89; E2E headless: kategoria „Wynajem mieszkania" → chip → źródło z pełną nazwą i ikoną w historii
 - +1 (income-categories: kind=business osobny od income/expense) — razem 90; E2E headless pełny scenariusz zgłoszenia: Bayon 📱 → nowa kategoria 🚗 → przepięcie z historii → 🚗 w historii i na liście
 - +2 (planned-defaults-leak: plik demo nie przecieka, add nie zatrzaskuje widm, red→green) — razem 92; smoke headless: hero „Do odłożenia 0 zł" bez celów
+- +3 (stats-alignment: odłożone = wpłaty+korzyści, wpłata bez lustra liczona, target z celów, red→green) — razem 95; na realnych danych: stats 3600 = hero = karta przychodów
 
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 

@@ -597,12 +597,37 @@ class DataManager {
 
   // === STATS ===
 
+  /**
+   * Cel oszczędzania = suma z REALNYCH celów usera (jak kafel "Do odłożenia").
+   * Bez celów: 0 — koniec widma 2000 z config.json.
+   */
+  getMonthlySavingsTarget() {
+    return this.getPlannedExpenses().reduce((sum, g) => {
+      if (g.monthlyContribution) return sum + g.monthlyContribution;
+      if (g.targetAmount && g.targetDate) {
+        return sum + this.calculateRequiredMonthlySavings(g.targetAmount, g.currentAmount || 0, g.targetDate);
+      }
+      return sum;
+    }, 0);
+  }
+
   getMonthlyStats(year, month) {
     const expenses = this.getExpensesByMonth(year, month);
-    const income = this.getIncomeByMonth(year, month);
+
+    // Wyrównanie 2026-07-25 (2700 vs 3600): "odłożone" = DOKŁADNIE ta sama
+    // formuła co karta "Wasze przychody" — summary (model puli) + korzyści
+    // firmowe. NIE lustra income[] (bywały niekompletne, korzyści ich nie mają)
+    const summary = this.getMonthlyIncomeSummary(year, month);
+    const totalIncome = (summary.totalReceived || 0) + this.calculateBusinessSavings(year, month);
+    let incomeCount = 0;
+    this.getIncomeSources().forEach(s => {
+      (s.payments || []).forEach(p => {
+        const d = new Date(p.date);
+        if (d.getFullYear() === year && d.getMonth() === month) incomeCount++;
+      });
+    });
 
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
     const savings = totalIncome - totalExpenses;
 
     const byCategory = {};
@@ -614,10 +639,10 @@ class DataManager {
       totalExpenses,
       totalIncome,
       savings,
-      savingsTarget: this.config?.goals?.monthlySavingsTarget || 0,
+      savingsTarget: this.getMonthlySavingsTarget(),
       byCategory,
       expenseCount: expenses.length,
-      incomeCount: income.length
+      incomeCount
     };
   }
 

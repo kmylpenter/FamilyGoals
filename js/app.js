@@ -362,20 +362,8 @@
     const badge = $('month-badge');
     if (badge) badge.textContent = formatMonth(currentMonth);
 
-    // Get goals and calculate required savings
-    const goals = dataManager.getPlannedExpenses();
-    let totalRequired = 0;
-
-    goals.forEach(g => {
-      if (g.monthlyContribution) {
-        totalRequired += g.monthlyContribution;
-      } else if (g.targetAmount && g.targetDate) {
-        const required = dataManager.calculateRequiredMonthlySavings(
-          g.targetAmount, g.currentAmount || 0, g.targetDate
-        );
-        totalRequired += required;
-      }
-    });
+    // Cel miesiąca z realnych celów usera (SSOT: ten sam helper co statystyki)
+    const totalRequired = dataManager.getMonthlySavingsTarget();
 
     // Get income summary
     const incomeSummary = dataManager.getMonthlyIncomeSummary(year, month);
