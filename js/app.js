@@ -674,6 +674,20 @@
       return;
     }
     entries.sort((a, b) => b.date.localeCompare(a.date));
+    // Liczniki na chipach — filtr "działa w oczach" nawet gdy lista wygląda
+    // tak samo (np. wszystkie wpisy i tak są Męża)
+    const counts = {
+      all: entries.length,
+      wife: entries.filter(e => e.ownerIcon === '👩').length,
+      husband: entries.filter(e => e.ownerIcon === '👨').length,
+      business: entries.filter(e => !!e.benefit).length
+    };
+    document.querySelectorAll('#history-filter .chip').forEach(c => {
+      if (!c.dataset.label) c.dataset.label = c.textContent.trim();
+      const n = counts[c.dataset.filter];
+      c.textContent = n === undefined ? c.dataset.label : `${c.dataset.label} (${n})`;
+    });
+
     // Filtr osoby/rodzaju (chipy nad listą); PEŁNA historia bez ucinania
     // (decyzja Kamila 2026-07-26: "chcę móc zobaczyć całą historię")
     const shown = entries.filter(e => {

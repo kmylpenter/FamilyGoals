@@ -50,6 +50,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Średnie zarobki 12 mies. + wzrost rok do roku pod wykresem: „Śr. 12 mies.: 👩 X (—/±%) · 👨 Y (±%) · ∑ Z (±%)" — średnia miesięczna z ostatnich 12 mies. vs poprzednie 12 (mies. 13–24), per osoba i razem; wpłaty wg dat + korzyści u Męża (spójnie z wykresem); okna liczone od pierwszego REGULARNEGO śledzenia (pierwsza wpłata / start cyklicznej korzyści — jednorazowa z 2023 nie rozwadnia średnich zerami), zielony wzrost / czerwony spadek / (—) bez danych porównawczych; wykres 190→170 px, dashboard dalej bez scrolla. Files: `js/data-manager.js` (`getYearOverYear`), `js/app.js`, `css/main.css`
 
 - Historia wpłat: PEŁNA (koniec „…i N starszych" — było ucinanie do 80 wpisów) + chipy filtrowania Wszystkie / 👩 Żona / 👨 Mąż / 💼 Firmowe (Mąż zawiera korzyści — to jego przychody; Firmowe = tylko korzyści). Files: `index.html`, `js/app.js`
+- Liczniki wpisów na chipach filtra historii, np. „Wszystkie (133) · Żona (0) · Mąż (133) · Firmowe (77)" — filtr „działa w oczach" nawet gdy lista wygląda identycznie (zgłoszenie „nie filtruje nic": u Kamila WSZYSTKIE wpisy należą do Męża, więc Wszystkie↔Mąż niczego nie zmieniało; potrójna weryfikacja: kod repo + paczka na backendzie + tap dotykiem na realnych danych 133→77→0). Files: `js/app.js`
 
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
