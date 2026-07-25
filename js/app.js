@@ -494,7 +494,9 @@
     const multiYear = trend.length > 12;
     const labels = trend
       .map((t, i) => ({ t, i }))
-      .filter(({ i }) => i % step === 0 || i === trend.length - 1)
+      // ostatnia etykieta zawsze; krokowa odpada, gdy koliduje z ostatnią
+      .filter(({ i }) => i === trend.length - 1 ||
+        (i % step === 0 && trend.length - 1 - i >= Math.ceil(step / 2)))
       .map(({ t, i }) => ({
         x: getX(i),
         text: multiYear && (t.month === 0 || i === 0)

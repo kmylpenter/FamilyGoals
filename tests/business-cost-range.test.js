@@ -26,11 +26,15 @@ test('od–do: puste "do" = bezterminowo od activeFrom', () => {
   assert.equal(run('dataManager.calculateBusinessSavings(2027, 8)'), 120, 'wrzesień 2027: bezterminowo');
 });
 
-test('od–do: korzyść bez pól zakresu liczy się jak dotąd (zawsze)', () => {
-  const { run } = fresh();
+// Zmiana semantyki 2026-07-25 (zasada Kamila: wpłaty = datowane fakty, zero
+// fabrykacji wstecz): cykliczna BEZ activeFrom liczy się od miesiąca DODANIA
+// (createdAt), nie od zawsze — spójnie z naliczeniami w historii wpłat.
+test('od–do: korzyść bez pól zakresu liczy się od miesiąca dodania (bez fabrykacji wstecz)', () => {
+  const { run } = loadApp({ scripts: ['js/utils.js', 'js/data-manager.js'], now: '2026-07-15T12:00:00' });
   run(`dataManager.addBusinessCost({ name: 'Stary abonament', amount: 90, isRecurring: true, recurringMonths: 1 })`);
-  assert.equal(run('dataManager.calculateBusinessSavings(2024, 0)'), 90, 'daleko wstecz: liczona');
-  assert.equal(run('dataManager.calculateBusinessSavings(2028, 11)'), 90, 'daleko w przód: liczona');
+  assert.equal(run('dataManager.calculateBusinessSavings(2024, 0)'), 0, 'przed dodaniem: nie liczona');
+  assert.equal(run('dataManager.calculateBusinessSavings(2026, 6)'), 90, 'miesiąc dodania: liczona');
+  assert.equal(run('dataManager.calculateBusinessSavings(2028, 11)'), 90, 'w przód: liczona (bez końca zakresu)');
 });
 
 test('od–do: Nadchodzące zakupy nie pokazują cyklicznej przed startem ani po końcu zakresu', () => {

@@ -1235,8 +1235,10 @@ class DataManager {
     costs.forEach(cost => {
       if (cost.isRecurring && cost.recurringMonths && cost.recurringMonths > 0) {
         // Zakres od–do (YYYY-MM, opcjonalny) — poza nim korzyść się nie liczy
-        // (np. leasing); brak pól = bezterminowo (stare wpisy bez zmian)
-        if (cost.activeFrom && refYM < cost.activeFrom) return;
+        // (np. leasing). Bez activeFrom: od miesiąca DODANIA (zero fabrykacji
+        // wstecz — wpłaty to datowane fakty), bez activeTo: bezterminowo
+        const startYM = cost.activeFrom || String(cost.createdAt || '').slice(0, 7);
+        if (startYM && refYM < startYM) return;
         if (cost.activeTo && refYM > cost.activeTo) return;
         // Distribute cost over recurring period
         monthlySavings += cost.amount / cost.recurringMonths;

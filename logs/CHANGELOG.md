@@ -34,6 +34,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Inputy od–do (`type=month`) wystawały poza ekran telefonu (wewnętrzny min-width Chromium; „do" ucięte 18px za krawędzią) — `min-width:0` w formularzu przychodu i korzyści. Files: `index.html`
 - Karta kosztu firmowego: badge „za X dni" + przyciski ściskały nazwę/meta do pionowej kolumny liter — rząd łamie się (`flex-wrap`), treść ma min 140px, akcje spadają do prawej w drugim rzędzie. Files: `css/main.css`
 - „Nadchodzące zakupy" pokazywały cykliczne korzyści poza zakresem od–do (przyszły leasing dostawał „za 31 dni ✓ Kupione" przed startem) — filtr zakresu w `getUpcomingBusinessCosts`. Files: `js/data-manager.js`
+- Cykliczna korzyść BEZ activeFrom fabrykowała się wstecz na wykresie (liczyła się w miesiącach sprzed dodania — złapane na realnych danych: abonament 300 zł świeciłby od 2023) — liczy się od miesiąca dodania (createdAt), spójnie z naliczeniami w historii; test zaktualizowany do nowej semantyki. Files: `js/data-manager.js`, `tests/business-cost-range.test.js`
+- Kolizja dwóch ostatnich etykiet osi wykresu („majlip") gdy krokowa etykieta wypada tuż przed ostatnią — krokowa odpada przy kolizji. Files: `js/app.js`
 
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
