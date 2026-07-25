@@ -1310,3 +1310,9 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   margin: 0;
   font-size: 14px;
 }
+
+/* Chip współmałżonka zablokowany — każdy dodaje za siebie */
+.chip.chip-locked {
+  opacity: 0.35;
+  pointer-events: none;
+}

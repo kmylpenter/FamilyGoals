@@ -186,6 +186,13 @@
         setTimeout(() => { if (!currentPerson) openProfilePicker(); }, 600);
       }
 
+      // Domknięcie pętli aktualizacji: potwierdzenie po udanym hot-swapie
+      const justUpdated = localStorage.getItem('familygoals_just_updated');
+      if (justUpdated) {
+        localStorage.removeItem('familygoals_just_updated');
+        setTimeout(() => Toast.success('Zaktualizowano ✓', 'Masz najnowszą wersję aplikacji'), 800);
+      }
+
       // FamilyGoals App initialized with all managers
     } catch (err) {
       console.error('Init error:', err);
@@ -785,7 +792,10 @@
         const sourceChip = form.querySelector('.chips .chip.active');
         const sourceName = sourceChip?.textContent.trim().split(' ').pop() || 'Inne';
         const personChip = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active');
-        const owner = personChip?.textContent.includes('Żona') ? 'wife' : 'husband';
+        let owner = personChip?.textContent.includes('Żona') ? 'wife' : 'husband';
+        // Twarda zasada: NOWY wpis zawsze za siebie (obrona w głąb —
+        // chipy współmałżonka są już zablokowane w applyProfileDefaults)
+        if (!editingSourceId && currentPerson) owner = currentPerson;
         const typeChip = document.querySelector('#income-type-chips .chip.active');
         const incomeType = typeChip?.dataset.value || 'recurring';
         const dateInput = form.querySelector('input[type="date"]').value;
@@ -1449,12 +1459,19 @@
   function applyProfileDefaults() {
     if (!currentPerson || editingSourceId) return;
     // Chipy osoby = DRUGA grupa .chips w formularzu przychodu (jak w submit
-    // handlerze — pozycyjnie, brak id w HTML)
+    // handlerze — pozycyjnie, brak id w HTML).
+    // Zasada Kamila (2026-07-24): każdy DODAJE wyłącznie za siebie —
+    // chip współmałżonka zablokowany (wydatki dostaną to samo po powrocie
+    // z archiwum). Edycja cudzych: osobna ścieżka za confirmem.
     const form = document.querySelector('#modal-income form');
     const chips = form?.querySelectorAll('.chips')[1]?.querySelectorAll('.chip');
     if (!chips) return;
-    chips.forEach(c => c.classList.toggle('active',
-      (c.textContent.includes('Żona') ? 'wife' : 'husband') === currentPerson));
+    chips.forEach(c => {
+      const mine = (c.textContent.includes('Żona') ? 'wife' : 'husband') === currentPerson;
+      c.classList.toggle('active', mine);
+      c.disabled = !mine;
+      c.classList.toggle('chip-locked', !mine);
+    });
   }
 
   /** Miękka ochrona: zmiana/kasowanie pozycji WSPÓŁMAŁŻONKA wymaga potwierdzenia. */
@@ -1496,6 +1513,11 @@
         const btn = $('btn-do-update');
         if (btn) btn.onclick = doUpdate;
       }
+      // Klik z Ustawień: nie odsyłamy usera do banera na Starcie —
+      // proponujemy aktualizację OD RAZU (luka UX zgłoszona przez Kamila)
+      if (interactive && confirm(`${label}. Zaktualizować teraz?`)) {
+        await doUpdate();
+      }
     } catch (err) {
       console.error('checkForUpdates error:', err);
       if (interactive) Toast.error('Aktualizacje', 'Nie udało się sprawdzić: ' + (err.message || err));
@@ -1505,6 +1527,7 @@
   async function doUpdate() {
     const btn = $('btn-do-update');
     if (btn) { btn.disabled = true; btn.textContent = 'Pobieranie…'; }
+    Toast.info('Aktualizacja', 'Pobieranie nowej wersji…');
     try {
       const r = await updateManager.check();
       if (r.apkUpdate) {
@@ -1512,11 +1535,14 @@
         await updateManager.applyApkUpdate();
         Toast.info('Instalator', 'Potwierdź instalację w oknie systemowym');
       } else if (r.webUpdate) {
-        // Nowe pliki aplikacji: hot-swap + przeładowanie (bez instalatora)
+        // Nowe pliki aplikacji: hot-swap + przeładowanie (bez instalatora).
+        // Flaga -> po restarcie pokazujemy "Zaktualizowano ✓" (domknięcie UX)
+        localStorage.setItem('familygoals_just_updated', String(r.remote.webVersion || ''));
         await updateManager.applyWebUpdate();
       }
     } catch (err) {
       console.error('doUpdate error:', err);
+      localStorage.removeItem('familygoals_just_updated');
       Toast.error('Aktualizacja nieudana', String(err.message || err));
       if (btn) { btn.disabled = false; btn.textContent = 'Aktualizuj'; }
     }
