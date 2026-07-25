@@ -26,6 +26,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Zakres od–do cyklicznych korzyści firmowych (wzorzec ze źródeł: `activeFrom`/`activeTo`, pola w formularzu przy typie Cykliczny, filtr w `calculateBusinessSavings`, zakres na liście Koszty firmowe; puste = bezterminowo, stare wpisy bez zmian; case: leasing auta). Files: `index.html`, `js/app.js`, `js/data-manager.js`
 - Korzyści firmowe = przychód Męża (decyzja Kamila: firma Męża — bez niej tych przychodów by nie było): wykres dolicza korzyści do linii Męża (jednorazowe w miesiącu realizacji, cykliczne jako naliczenie), okno „auto" sięga najwcześniejszej korzyści (case: zakup z 2023), historia wpłat pokazuje korzyści z 💼 (jednorazowe pod datą, cykliczne jako naliczenie mies. w zakresie do dziś). Files: `js/data-manager.js`, `js/app.js`
 - Edycja wpisów z historii wpłat: klik we wpłatę → modal (kwota/data/nazwa + Usuń), zapis aktualizuje też lustro w `income` (po `paymentId`, legacy po dacie+kwocie — sync-safe jak B-M1); klik w korzyść/naliczenie → istniejący modal korzyści (edycja definicji). Files: `js/data-manager.js` (`updatePayment`), `js/app.js`, `index.html`
+- Własne kategorie przychodów: modal Kategorie z przełącznikiem 💵 Przychody / 💸 Wydatki (wbudowane read-only, własne usuwalne; legacy bez `kind` = wydatkowe), nowa kategoria przychodów staje się chipem Źródła w formularzu przychodu; pełna nazwa i ikona przez dataset (koniec ucinania nazw wielowyrazowych do ostatniego słowa). Files: `js/data-manager.js`, `js/app.js`, `index.html`
 
 #### Fixed
 - deleteIncomeSource nie sprzątał luster wpłat źródła (widmowe 6000 po skasowaniu testowej Pensji — złapane weryfikacją importu). Files: `js/data-manager.js`
@@ -44,6 +45,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
 - +3 (business-benefit-income: korzyści w przychodach Męża na wykresie, okno auto od 2023, red→green) — razem 83; zrzuty `korzysc-wykres-2023.png`, `korzysc-historia.png`
 - +4 (payment-edit: updatePayment źródło+lustro, legacy domknięcie, wykres po edycji, red→green) — razem 87; E2E headless: modal z historii, zapis 6000→6100 spójny w historii/wykresie/lustrze
+- +2 (income-categories: filtr kind, legacy=wydatkowe, red→green) — razem 89; E2E headless: kategoria „Wynajem mieszkania" → chip → źródło z pełną nazwą i ikoną w historii
 
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 
