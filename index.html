@@ -14,16 +14,19 @@
 
   <!-- DEVLOG + REFRESH BUTTONS -->
   <style>
-    /* DevLog na górze po prawej (decyzja Kamila 2026-07-24); refresh-btn
-       usunięty — w APK reload nie ma sensu, aktualizacje robi OTA */
+    /* DevLog: góra, WYŚRODKOWANY, kolory palety (dyskretny), TYLKO profil
+       Mąż — pokazuje go JS (domyślnie ukryty). Decyzje Kamila 2026-07-25.
+       refresh-btn usunięty — w APK reload nie ma sensu, aktualizacje robi OTA */
     #devlog-btn {
-      position: fixed; top: 8px; right: 8px; z-index: 99999;
-      background: #222; color: #0f0; border: 1px solid #555; border-radius: 6px;
-      padding: 4px 10px; font-size: 11px; font-family: monospace; opacity: 0.7;
+      display: none;
+      position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 99999;
+      background: var(--bg-subtle, #f5f0eb); color: var(--text-muted, #9a8c7f);
+      border: 1px solid var(--bg-secondary, #f0ebe5); border-radius: 10px;
+      padding: 3px 12px; font-size: 11px; font-family: monospace; opacity: 0.55;
       cursor: pointer;
     }
     #devlog-btn:active { opacity: 1; }
-    #devlog-btn.has-errors { color: #f44; border-color: #f44; opacity: 1; }
+    #devlog-btn.has-errors { color: var(--danger, #e07878); border-color: var(--danger, #e07878); opacity: 0.9; }
     #devlog-panel {
       display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100000;
       height: 45vh; background: #1a1a1a; color: #eee; font-family: monospace;
@@ -102,6 +105,7 @@
       var text = Array.from(args).map(function(a) {
         if (a === null) return 'null';
         if (a === undefined) return 'undefined';
+        if (a instanceof Error) { return a.message + (a.stack ? ' | ' + String(a.stack).split('\n')[1] : ''); } // Error -> treść, nie "{}"
         if (typeof a === 'object') { try { return JSON.stringify(a, null, 0); } catch(e) { return String(a); } }
         return String(a);
       }).join(' ');
@@ -1209,7 +1213,8 @@
     document.getElementById('month-badge').textContent = (window.FGUtils ? FGUtils.MONTHS : ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'])[now.getMonth()] + ' ' + now.getFullYear();
 
     // Service Worker Registration
-    if ('serviceWorker' in navigator) {
+    // SW tylko na http(s) — w APK (file://) rejestracja zawsze pada i śmieci w DevLogu
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('sw.js')
         .then(function(reg) { console.log('SW registered'); })
         .catch(function(err) { console.log('SW error:', err); });

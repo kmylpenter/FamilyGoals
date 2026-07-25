@@ -90,7 +90,11 @@ class DataManager {
     try {
       await this._loadRepoData();
     } catch (e) {
-      console.warn('Nie udało się pobrać danych z repo, używam cache');
+      // W APK (file://) fetch lokalnych JSON-ów nie działa z definicji —
+      // cache/defaulty to normalna ścieżka, nie ostrzeżenie
+      if (typeof location === 'undefined' || location.protocol !== 'file:') {
+        console.warn('Nie udało się pobrać danych z repo, używam cache');
+      }
     }
     return this._mergeData();
   }

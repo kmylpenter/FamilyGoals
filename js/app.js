@@ -1426,6 +1426,9 @@
   function refreshProfileUI() {
     const status = $('profile-item-status');
     if (status) status.textContent = currentPerson ? PERSON_LABEL[currentPerson] : 'nie wybrano';
+    // DevLog = narzędzie deweloperskie: widoczny wyłącznie na profilu Męża
+    const devlogBtn = document.getElementById('devlog-btn');
+    if (devlogBtn) devlogBtn.style.display = currentPerson === 'husband' ? 'block' : 'none';
   }
 
   function openProfilePicker() {
@@ -1485,6 +1488,12 @@
 
   async function checkForUpdatesUI(interactive) {
     if (typeof updateManager === 'undefined') return;
+    // Cichy auto-check bez skonfigurowanego sync = gwarantowany błąd w logu;
+    // interaktywnie mówimy userowi, czego brakuje
+    if (typeof syncManager === 'undefined' || !syncManager.status().configured) {
+      if (interactive) Toast.info('Aktualizacje', 'Najpierw skonfiguruj Synchronizację rodzinną');
+      return;
+    }
     const banner = $('update-banner');
     const itemStatus = $('update-item-status');
     try {
@@ -1519,7 +1528,9 @@
         await doUpdate();
       }
     } catch (err) {
-      console.error('checkForUpdates error:', err);
+      // Offline/timeout przy cichym auto-checku to normalność, nie błąd
+      if (interactive) console.error('checkForUpdates:', err && err.message || err);
+      else console.warn('checkForUpdates (cichy):', err && err.message || err);
       if (interactive) Toast.error('Aktualizacje', 'Nie udało się sprawdzić: ' + (err.message || err));
     }
   }
