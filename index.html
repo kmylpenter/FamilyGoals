@@ -137,6 +137,23 @@
     console.warn = function() { origConsole.warn.apply(console, arguments); addLine('warn', arguments); };
     console.error = function() { origConsole.error.apply(console, arguments); addLine('error', arguments); };
 
+    // Widoczność przycisku NIEZALEŻNA od initu aplikacji (init może paść
+    // zanim app.js pokaże przycisk — a DevLog jest właśnie do oglądania
+    // takich awarii). Profil czytany wprost z localStorage.
+    function devlogSyncVisibility() {
+      var btn = document.getElementById('devlog-btn');
+      if (!btn) return;
+      var isDev = false;
+      try { isDev = localStorage.getItem('familygoals_device_profile') === 'husband'; } catch (e) {}
+      btn.style.display = isDev ? 'block' : 'none';
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', devlogSyncVisibility);
+    } else {
+      devlogSyncVisibility();
+    }
+    window.devlogSyncVisibility = devlogSyncVisibility;
+
     window.addEventListener('error', function(e) {
       addLine('error', ['UNCAUGHT: ' + e.message + ' @ ' + (e.filename||'') + ':' + (e.lineno||'')]);
     });
@@ -339,6 +356,16 @@
         <!-- Renderowane dynamicznie przez JS -->
       </div>
 
+      <h2 class="section-title">📇 Wszystkie źródła i zakresy</h2>
+      <div class="list" id="all-sources-list">
+        <!-- Renderowane dynamicznie przez JS (niezależnie od miesiąca) -->
+      </div>
+
+      <h2 class="section-title">🧾 Historia wpłat</h2>
+      <div class="list" id="global-history-list">
+        <!-- Wszystkie wpłaty obojga, najnowsze na górze -->
+      </div>
+
     </div>
 
     <!-- Tab: Optymalizacja -->
@@ -530,7 +557,7 @@
     </div>
 
     <div class="app-info">
-      <div>FamilyGoals v2.1</div>
+      <div id="app-version-line">FamilyGoals</div>
       <div class="muted" id="last-sync-time">Ostatnia aktualizacja: teraz</div>
     </div>
   </div>
@@ -540,13 +567,17 @@
   <!-- Add Menu Modal -->
   <div id="modal-add" class="modal" role="dialog" aria-label="Menu dodawania" onclick="closeModal(event)">
     <div class="modal-menu" role="menu">
-      <button type="button" class="modal-menu-item" onclick="openModal('modal-income')" role="menuitem">
-        <span class="modal-menu-icon" aria-hidden="true">💵</span>
-        <span>Dodaj przychód</span>
+      <button type="button" class="modal-menu-item" onclick="app.openAddPayment()" role="menuitem">
+        <span class="modal-menu-icon" aria-hidden="true">💸</span>
+        <span>Dodaj wpłatę</span>
       </button>
       <button type="button" class="modal-menu-item" onclick="openModal('modal-goal')" role="menuitem">
         <span class="modal-menu-icon" aria-hidden="true">🎯</span>
         <span>Dodaj cel</span>
+      </button>
+      <button type="button" class="modal-menu-item" onclick="openModal('modal-business-cost')" role="menuitem">
+        <span class="modal-menu-icon" aria-hidden="true">💼</span>
+        <span>Dodaj korzyść firmową</span>
       </button>
       <!-- ARCHIVED: Wydatki usunięte z głównej funkcjonalności
       <button type="button" class="modal-menu-item" onclick="openModal('modal-expense')" role="menuitem">
@@ -591,6 +622,14 @@
             <button type="button" class="chip active" data-value="recurring">🔄 Cykliczny</button>
             <button type="button" class="chip" data-value="oneoff">1️⃣ Jednorazowy</button>
           </div>
+        </div>
+        <div class="form-group" id="income-range-group">
+          <label>Obowiązuje w miesiącach (od – do)</label>
+          <div style="display:flex; gap:8px;">
+            <input type="month" id="income-active-from" style="flex:1;" aria-label="Od miesiąca">
+            <input type="month" id="income-active-to" style="flex:1;" aria-label="Do miesiąca">
+          </div>
+          <div class="muted" style="font-size:12px; margin-top:4px;">Puste „od" = bieżący miesiąc; puste „do" = bezterminowo</div>
         </div>
         <div class="form-group">
           <label>Data</label>
@@ -748,6 +787,16 @@
             </div>
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="payment-date">
+          </div>
+          <div class="form-group">
+            <label>Nazwa (opcjonalnie)</label>
+            <input type="text" id="payment-note" placeholder="np. Bonus za projekt">
+          </div>
+        </div>
         <button type="submit" class="btn-primary">💾 Dodaj wpłatę</button>
       </form>
     </div>
@@ -849,9 +898,14 @@
             <button type="button" class="chip" data-value="12">12</button>
           </div>
         </div>
+        <div class="form-group" id="cost-date-group">
+          <label>Data korzyści</label>
+          <input type="date" id="cost-date">
+          <div class="muted" style="font-size:12px; margin-top:4px;">Z datą = zrealizowana (liczy się w tym miesiącu); puste = planowany zakup</div>
+        </div>
         <div class="form-group">
           <label>Notatka (opcjonalnie)</label>
-          <input type="text" id="cost-note" placeholder="np. Play - telefon służbowy">
+          <input type="text" id="cost-note" placeholder="np. Tankowanie auta żony">
         </div>
         <button type="submit" class="btn-primary">💾 Zapisz</button>
       </form>
@@ -1183,6 +1237,8 @@
         resetChips('cost-months-chips', 0);
         var costRec = document.getElementById('cost-recurring-options');
         if (costRec) costRec.style.display = 'none';
+        var costDateGroup = document.getElementById('cost-date-group');
+        if (costDateGroup) costDateGroup.style.display = ''; // domyślny typ = jednorazowy
       }
       var todoModal = document.getElementById('modal-todo');
       if (todoModal) {

@@ -13,6 +13,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 14 (2026-07-25) - Przychody: pula, zakresy, import historii, UX wpłat (wydawane OTA na bieżąco)
+
+#### Added
+- Zakresy od–do źródeł cyklicznych (`activeFrom`/`activeTo`, form + filtr + katalog "Wszystkie źródła i zakresy" na ekranie Przychody). Files: `js/data-manager.js`, `js/app.js`, `index.html`
+- Model PULI: wpłaty sumują się jak saldo i pokrywają kolejne miesiące od `activeFrom` (statusy/oczekiwane; nadpłata w przód, historia wstecz). Files: `js/data-manager.js`
+- Import historii z arkusza Kamila: 5 źródeł, 54+3 wpłaty, 258 000 zł (zweryfikowane co do złotówki, lustra spójne; segmenty gotówki 3k/6k/10k wg narracji — trafienie ±600 zł). Wykonane przez backend (pushChanges)
+- Historia wpłat (wszyscy, nagłówki miesięcy, nazwy wpłat) + pola Data (kalendarz) i Nazwa w oknie wpłaty. Files: `index.html`, `js/app.js`, `css/main.css`
+- Plusik: "Dodaj wpłatę" (wybór źródła z brakami z puli; 1 źródło = od razu; wszystko per profil) i "Dodaj korzyść firmową"; korzyść jednorazowa z datą realizacji (liczy się w miesiącu daty). Files: `index.html`, `js/app.js`
+- Wykres: okno od najwcześniejszych danych ('auto', roczniki przy styczniach), oś kwot po lewej, wysokość 190, linie trendu (regresja) per osoba, wartości = FAKTYCZNE wpłaty wg dat. Files: `js/data-manager.js`, `js/app.js`
+- Stopka wersji w Ustawieniach (APK + web) i stempel wersji w DevLogu na starcie. Files: `index.html`, `js/app.js`
+
+#### Fixed
+- deleteIncomeSource nie sprzątał luster wpłat źródła (widmowe 6000 po skasowaniu testowej Pensji — złapane weryfikacją importu). Files: `js/data-manager.js`
+- Widmowy alert "Zostało 1300 zł do celu" z domyślnego configu (target 2000 przy braku celów) — blok config-celu usunięty. Files: `js/data-manager.js`
+- Timeout pobrań dużych odpowiedzi 30s→120s (paczki OTA ~0,5 MB cicho padały na wolnym wifi) + wydanie ratunkowe APK 1.3.0 (versionCode 4). Files: `js/sync-manager.js`, `android-apk/AndroidManifest.xml`
+- Zwrot pożyczki przemodelowany na 2 wpisy jednorazowe (cykliczne @0 świeciło zerem w każdym miesiącu)
+
+#### Testy
+- +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
+
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 
 #### Added

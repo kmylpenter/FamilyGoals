@@ -118,6 +118,10 @@
       // B-M3: JEDNA instancja dla całej aplikacji (globalny singleton z
       // data-manager.js) — druga instancja miała osobny cache i nie
       // widziała naliczeń RecurringManagera
+      // Stempel do DevLoga: która paczka web realnie działa
+      console.log('FamilyGoals boot: web', window.FG_WEB_VERSION || 'dev',
+        typeof FGUpdater !== 'undefined' ? 'APK ' + (JSON.parse(FGUpdater.getInfo()).versionName || '?') : 'przeglądarka');
+
       dataManager = window.dataManager || new DataManager();
       await dataManager.init();
 
@@ -430,7 +434,8 @@
     const container = document.querySelector('#timeline-chart-container');
     if (!container) return;
 
-    const trend = dataManager.getTrendByOwner(12);
+    // Okno od najwcześniejszych wpłat/źródeł do dziś (decyzja Kamila 2026-07-25)
+    const trend = dataManager.getTrendByOwner('auto');
     if (!trend || trend.length === 0) {
       renderEmptyState(container, 'Brak danych o przychodach');
       return;
@@ -438,8 +443,10 @@
 
     // Chart dimensions
     const width = 320;
-    const height = 120;
-    const padding = { top: 15, right: 10, bottom: 25, left: 10 };
+    // Wyższy wykres (120→190): przy skali do ~39 tys. różnice 6–16 tys.
+    // zlewały się w płaską linię
+    const height = 190;
+    const padding = { top: 15, right: 10, bottom: 25, left: 38 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
@@ -464,12 +471,36 @@
     const wifeLine = `M ${trend.map((t, i) => `${getX(i)},${getY(t.wifeIncome || 0)}`).join(' L ')}`;
     const husbandLine = `M ${trend.map((t, i) => `${getX(i)},${getY(t.husbandIncome || 0)}`).join(' L ')}`;
 
-    // Month labels (show every 2nd or 3rd for space)
-    const step = trend.length > 6 ? 2 : 1;
-    const labels = trend.filter((t, i) => i % step === 0 || i === trend.length - 1).map((t, idx) => {
-      const origIdx = trend.indexOf(t);
-      return { x: getX(origIdx), text: t.monthName };
-    });
+    // Linie TRENDU (regresja liniowa najmniejszych kwadratów) per osoba
+    const linReg = (values) => {
+      const n = values.length;
+      if (n < 2) return null;
+      let sx = 0, sy = 0, sxy = 0, sxx = 0;
+      values.forEach((y, x) => { sx += x; sy += y; sxy += x * y; sxx += x * x; });
+      const denom = n * sxx - sx * sx;
+      if (!denom) return null;
+      const b = (n * sxy - sx * sy) / denom;
+      return { a: (sy - b * sx) / n, b };
+    };
+    const clampVal = (v) => Math.max(0, Math.min(maxIncome, v));
+    const trendPath = (reg) => reg
+      ? `M ${getX(0)},${getY(clampVal(reg.a))} L ${getX(trend.length - 1)},${getY(clampVal(reg.a + reg.b * (trend.length - 1)))}`
+      : '';
+    const wifeTrendPath = trendPath(linReg(trend.map(t => t.wifeIncome || 0)));
+    const husbandTrendPath = trendPath(linReg(trend.map(t => t.husbandIncome || 0)));
+
+    // Etykiety: adaptacyjne przerzedzenie (max ~7) + rok przy oknie >12 mies.
+    const step = Math.max(1, Math.ceil(trend.length / 7));
+    const multiYear = trend.length > 12;
+    const labels = trend
+      .map((t, i) => ({ t, i }))
+      .filter(({ i }) => i % step === 0 || i === trend.length - 1)
+      .map(({ t, i }) => ({
+        x: getX(i),
+        text: multiYear && (t.month === 0 || i === 0)
+          ? `${t.monthName} '${String(t.year).slice(2)}`
+          : t.monthName
+      }));
 
     // Build SVG - simple line chart
     container.innerHTML = `
@@ -482,6 +513,17 @@
                 stroke="var(--bg-subtle)" stroke-width="1"/>
           <line x1="${padding.left}" y1="${getY(0)}" x2="${width - padding.right}" y2="${getY(0)}"
                 stroke="var(--bg-subtle)" stroke-width="1"/>
+
+          <!-- Oś kwot -->
+          ${[maxIncome, maxIncome / 2, 0].map(v => `
+            <text x="${padding.left - 5}" y="${getY(v) + 3}" text-anchor="end" class="chart-label">${
+              v >= 1000 ? Math.round(v / 1000).toLocaleString('pl-PL') + ' tys.' : Math.round(v)
+            }</text>
+          `).join('')}
+
+          <!-- Linie trendu (przerywane) -->
+          ${wifeTrendPath ? `<path d="${wifeTrendPath}" fill="none" stroke="var(--peach)" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.65"/>` : ''}
+          ${husbandTrendPath ? `<path d="${husbandTrendPath}" fill="none" stroke="var(--mint-dark)" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.65"/>` : ''}
 
           <!-- Wife line -->
           <path d="${wifeLine}" fill="none" stroke="var(--peach)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -561,6 +603,100 @@
       }
     }
 
+    renderAllSources();
+    renderGlobalHistory();
+  }
+
+  /**
+   * Historia WSZYSTKICH wpłat (oboje, wszystkie źródła), najnowsze na górze,
+   * z nagłówkami miesięcy — nazwy wpłat widoczne wprost.
+   */
+  function renderGlobalHistory() {
+    const list = $('global-history-list');
+    if (!list) return;
+    const entries = [];
+    dataManager.getIncomeSources().forEach(src => {
+      (src.payments || []).forEach(p => {
+        entries.push({
+          date: String(p.date || '').slice(0, 10),
+          amount: p.amount || 0,
+          note: p.note || '',
+          type: p.type,
+          srcName: src.name,
+          icon: src.icon || '💵',
+          ownerIcon: src.owner === 'wife' ? '👩' : '👨'
+        });
+      });
+    });
+    if (entries.length === 0) {
+      renderEmptyState(list, 'Jeszcze żadnych wpłat');
+      return;
+    }
+    entries.sort((a, b) => b.date.localeCompare(a.date));
+    const shown = entries.slice(0, 80);
+    let lastMonth = null;
+    list.innerHTML = shown.map(e => {
+      const ym = e.date.slice(0, 7);
+      let header = '';
+      if (ym !== lastMonth) {
+        lastMonth = ym;
+        const [y, m] = ym.split('-').map(Number);
+        header = `<div class="history-month-header">${FGUtils.MONTHS[m - 1]} ${y}</div>`;
+      }
+      const day = e.date.slice(8, 10);
+      const title = e.note && !/^(Przelew|Gotówka|import z arkusza)$/.test(e.note) ? e.note : e.srcName;
+      const sub = title === e.srcName
+        ? `${day}.${e.date.slice(5, 7)}${e.type === 'cash' ? ' • gotówka' : ''}`
+        : `${e.srcName} • ${day}.${e.date.slice(5, 7)}${e.type === 'cash' ? ' • gotówka' : ''}`;
+      return `${header}
+        <div class="list-item">
+          <div class="list-icon">${e.icon}</div>
+          <div class="list-content">
+            <div class="list-title">${e.ownerIcon} ${escapeHtml(title)}</div>
+            <div class="list-subtitle">${escapeHtml(sub)}</div>
+          </div>
+          <div class="list-amount positive">${formatMoney(e.amount)}</div>
+        </div>`;
+    }).join('') + (entries.length > shown.length
+      ? `<div class="muted" style="text-align:center; padding:8px; font-size:12px;">…i ${entries.length - shown.length} starszych</div>` : '');
+  }
+
+  /**
+   * Katalog WSZYSTKICH źródeł z zakresami — niezależny od wybranego
+   * miesiąca (edycja zakresów bez cofania się po miesiącach).
+   */
+  function renderAllSources() {
+    const list = $('all-sources-list');
+    if (!list) return;
+    const sources = dataManager.getIncomeSources()
+      .slice()
+      .sort((a, b) => (a.owner || '').localeCompare(b.owner || '') ||
+                      String(a.activeFrom || a.forMonth || '').localeCompare(String(b.activeFrom || b.forMonth || '')));
+    if (sources.length === 0) {
+      renderEmptyState(list, 'Brak źródeł');
+      return;
+    }
+    list.innerHTML = sources.map(src => {
+      const ownerIcon = src.owner === 'wife' ? '👩' : '👨';
+      let range;
+      if (src.incomeType === 'oneoff') {
+        range = `jednorazowy • ${src.forMonth || '—'}`;
+      } else {
+        const od = src.activeFrom || 'zawsze';
+        const doo = src.activeTo || 'bezterminowo';
+        range = `od ${od} do ${doo} • ${formatMoney(src.expectedAmount || 0)}/mies.`;
+      }
+      return `
+        <div class="list-item" onclick="app.editIncomeSource('${src.id}')" role="button" tabindex="0">
+          <div class="list-icon">${src.icon || '💵'}</div>
+          <div class="list-content">
+            <div class="list-title">${ownerIcon} ${escapeHtml(src.name)}</div>
+            <div class="list-subtitle">${escapeHtml(range)}</div>
+          </div>
+          <div class="list-arrow">→</div>
+        </div>
+      `;
+    }).join('');
   }
 
   function renderGoals() {
@@ -779,6 +915,13 @@
     const form = document.querySelector('#modal-income form');
     if (!form) return;
 
+    // Pola od–do chowają się dla typu jednorazowego (globalny handler chipów
+    // ustawia .active w tym samym kliknięciu — odczyt po zakończeniu eventu)
+    const typeChipsBox = $('income-type-chips');
+    if (typeChipsBox) {
+      typeChipsBox.addEventListener('click', () => setTimeout(updateIncomeRangeVisibility, 0));
+    }
+
     form.onsubmit = e => {
       e.preventDefault();
 
@@ -804,6 +947,13 @@
         const date = dateInput || `${year}-${String(month + 1).padStart(2, '0')}-01`;
         const note = form.querySelector('input[type="text"]')?.value || '';
         const forMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
+        // Zakres obowiązywania cyklicznych (od–do); puste od = oglądany miesiąc
+        const activeFrom = incomeType === 'oneoff' ? null : ($('income-active-from')?.value || forMonth);
+        const activeTo = incomeType === 'oneoff' ? null : ($('income-active-to')?.value || null);
+        if (activeFrom && activeTo && activeTo < activeFrom) {
+          alert('„Do" nie może być wcześniejsze niż „od"');
+          return;
+        }
 
         let source;
 
@@ -817,6 +967,8 @@
               owner,
               incomeType,
               forMonth: incomeType === 'oneoff' ? forMonth : null,
+              activeFrom,
+              activeTo,
               icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
             });
           }
@@ -836,6 +988,8 @@
               owner,
               incomeType,
               forMonth: incomeType === 'oneoff' ? forMonth : null,
+              activeFrom,
+              activeTo,
               icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
             });
           }
@@ -883,6 +1037,48 @@
     openPaymentModal(sourceId);
   }
 
+  /**
+   * "Dodaj wpłatę" z plusika na dashboardzie (decyzja Kamila 2026-07-25:
+   * wpłata = akcja codzienna; źródła zmienia się rzadko, z ekranu Przychody).
+   * 1 własne źródło -> od razu okno wpłaty; kilka -> wybór; 0 -> formularz źródła.
+   */
+  function openAddPayment() {
+    try {
+      openAddPaymentInner_();
+    } catch (err) {
+      // Cichy fail na urządzeniu = niediagnozowalny; głośny = zrzut z DevLoga
+      console.error('openAddPayment:', err);
+      Toast.error('Błąd "Dodaj wpłatę"', String(err && err.message || err));
+    }
+  }
+
+  function openAddPaymentInner_() {
+    closeAllModals();
+    const { year, month } = getYearMonth();
+    const own = dataManager.getIncomeSourcesStatus(year, month)
+      .filter(s => !currentPerson || s.owner === currentPerson);
+    if (own.length === 0) {
+      Toast.info('Brak źródeł', 'Najpierw dodaj swoje źródło przychodu');
+      openModal('modal-income');
+      return;
+    }
+    if (own.length === 1) {
+      openPaymentModal(own[0].id);
+      return;
+    }
+    const modal = createDynamicModal('modal-pick-source', '💸 Do którego źródła?', own.map(s => `
+      <button type="button" class="modal-menu-item" onclick="app.pickPaymentSource('${s.id}')">
+        <span class="modal-menu-icon">${s.icon || '💵'}</span>
+        <span>${escapeHtml(s.name)}${s.remaining > 0 ? ' • brakuje ' + formatMoney(s.remaining) : ' • ✓ komplet'}</span>
+      </button>`).join(''));
+    modal.classList.add('active');
+  }
+
+  function pickPaymentSource(sourceId) {
+    closeAllModals();
+    openPaymentModal(sourceId);
+  }
+
   function openPaymentModal(sourceId) {
     const { year, month } = getYearMonth();
     const summary = dataManager.getMonthlyIncomeSummary(year, month);
@@ -891,6 +1087,15 @@
     if (!source) return;
 
     currentPaymentSourceId = sourceId;
+
+    // Domyślna data: dziś (bieżący miesiąc) albo 15. oglądanego miesiąca
+    const dateEl = $('payment-date');
+    if (dateEl) {
+      const now = new Date();
+      dateEl.value = (year === now.getFullYear() && month === now.getMonth())
+        ? `${year}-${String(month + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+        : `${year}-${String(month + 1).padStart(2, '0')}-15`;
+    }
 
     // Update modal header info
     const sourceInfo = $('payment-source-info');
@@ -997,16 +1202,21 @@
       const typeChip = $('payment-type-chips')?.querySelector('.chip.active');
       const type = typeChip?.dataset.type || 'transfer';
 
-      // Use currently viewed month for the payment date
+      // Data z kalendarza (decyzja Kamila 2026-07-25); fallback: 1. dzień
+      // oglądanego miesiąca. Nazwa od usera; fallback: typ wpłaty.
       const { year: payYear, month: payMonth } = getYearMonth();
-      const payDate = new Date(payYear, payMonth, 1).toISOString();
+      const dateInput = $('payment-date')?.value;
+      const payDate = dateInput || new Date(payYear, payMonth, 1).toISOString();
+      const noteInput = $('payment-note')?.value?.trim();
 
       dataManager.recordPayment(currentPaymentSourceId, {
         amount,
         type,
         date: payDate,
-        note: `${type === 'cash' ? 'Gotówka' : 'Przelew'}: ${formatMoney(amount)}`
+        note: noteInput || (type === 'cash' ? 'Gotówka' : 'Przelew')
       });
+      const noteEl = $('payment-note');
+      if (noteEl) noteEl.value = '';
 
       const { year, month } = getYearMonth();
       renderPaymentHistory(currentPaymentSourceId, year, month);
@@ -1089,6 +1299,13 @@
         c.classList.add('active');
       }
     });
+
+    // Zakres od–do (cykliczne)
+    const fromInput = $('income-active-from');
+    const toInput = $('income-active-to');
+    if (fromInput) fromInput.value = source.activeFrom || '';
+    if (toInput) toInput.value = source.activeTo || '';
+    updateIncomeRangeVisibility();
 
     // Update modal title
     modal.querySelector('.modal-header h2').textContent = '💵 Edytuj źródło';
@@ -1423,12 +1640,31 @@
 
   const PERSON_LABEL = { wife: '👩 Żona', husband: '👨 Mąż' };
 
+  /** Widoczny numer wersji: APK (mostek) + paczka web — koniec zgadywania,
+      co jest zainstalowane na urządzeniu. */
+  function refreshVersionLine() {
+    const el = $('app-version-line');
+    if (!el) return;
+    let apk = 'przeglądarka';
+    let web = window.FG_WEB_VERSION || 'dev';
+    if (typeof window.FGUpdater !== 'undefined') {
+      try {
+        const info = JSON.parse(window.FGUpdater.getInfo());
+        apk = 'v' + (info.versionName || '?');
+        if (info.webBundleVersion) web = info.webBundleVersion;
+      } catch (e) { /* zostają wartości domyślne */ }
+    }
+    const webShort = String(web).replace('T', ' ').replace(/:\d\dZ?$/, '').replace('Z', '');
+    el.textContent = `FamilyGoals ${apk} • web ${webShort}`;
+  }
+
   function refreshProfileUI() {
+    refreshVersionLine();
     const status = $('profile-item-status');
     if (status) status.textContent = currentPerson ? PERSON_LABEL[currentPerson] : 'nie wybrano';
-    // DevLog = narzędzie deweloperskie: widoczny wyłącznie na profilu Męża
-    const devlogBtn = document.getElementById('devlog-btn');
-    if (devlogBtn) devlogBtn.style.display = currentPerson === 'husband' ? 'block' : 'none';
+    // DevLog = narzędzie deweloperskie: widoczny wyłącznie na profilu Męża.
+    // Jedna implementacja w inline-skrypcie DevLoga (działa też gdy init padnie)
+    if (typeof devlogSyncVisibility === 'function') devlogSyncVisibility();
   }
 
   function openProfilePicker() {
@@ -1458,8 +1694,17 @@
     if (first && typeof syncManager !== 'undefined') syncManager.syncNow?.();
   }
 
+  /** Pola od–do tylko dla typu cyklicznego. */
+  function updateIncomeRangeVisibility() {
+    const group = $('income-range-group');
+    if (!group) return;
+    const type = document.querySelector('#income-type-chips .chip.active')?.dataset.value || 'recurring';
+    group.style.display = type === 'oneoff' ? 'none' : '';
+  }
+
   /** Domyślny właściciel nowego wpisu = osoba tego telefonu (wołane z openModal). */
   function applyProfileDefaults() {
+    updateIncomeRangeVisibility();
     if (!currentPerson || editingSourceId) return;
     // Chipy osoby = DRUGA grupa .chips w formularzu przychodu (jak w submit
     // handlerze — pozycyjnie, brak id w HTML).
@@ -2065,6 +2310,14 @@
 
       const isRecurring = chip.dataset.value === 'recurring';
       $('cost-recurring-options').style.display = isRecurring ? '' : 'none';
+      // Data realizacji dotyczy tylko jednorazowych (korzyść z konkretnego dnia)
+      const dateGroup = $('cost-date-group');
+      if (dateGroup) dateGroup.style.display = isRecurring ? 'none' : '';
+      const dateEl = $('cost-date');
+      if (dateEl && !isRecurring && !dateEl.value) {
+        const n = new Date();
+        dateEl.value = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+      }
     });
 
     // All chip groups
@@ -2093,6 +2346,14 @@
       if (!name || amount <= 0) return;
 
       const costData = { name, amount, category, isRecurring, recurringMonths, note };
+      // Jednorazowa Z DATĄ = korzyść zrealizowana — liczy się w miesiącu daty
+      // (np. zatankowanie auta z pieniędzy firmy); bez daty = planowany zakup
+      const costDate = $('cost-date')?.value;
+      if (!isRecurring && costDate) {
+        costData.lastPurchaseDate = new Date(costDate + 'T12:00:00').toISOString();
+      } else if (!isRecurring) {
+        costData.lastPurchaseDate = null;
+      }
 
       if (editingCostId) {
         dataManager.updateBusinessCost(editingCostId, costData);
@@ -2160,6 +2421,12 @@
 
     // Show/hide recurring options
     $('cost-recurring-options').style.display = cost.isRecurring ? '' : 'none';
+
+    // Data realizacji (jednorazowe): prefill + widoczność
+    const dateGroup = $('cost-date-group');
+    if (dateGroup) dateGroup.style.display = cost.isRecurring ? 'none' : '';
+    const dateEl = $('cost-date');
+    if (dateEl) dateEl.value = cost.lastPurchaseDate ? String(cost.lastPurchaseDate).slice(0, 10) : '';
 
     if (cost.isRecurring && cost.recurringMonths) {
       $('cost-months-chips').querySelectorAll('.chip').forEach(c => {
@@ -2418,6 +2685,8 @@
     renderOptimization,
     renderTodos,
     switchIncomeTab,
+    openAddPayment,
+    pickPaymentSource,
     applyProfileDefaults
   };
 

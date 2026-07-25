@@ -95,7 +95,9 @@
     if (typeof AbortController !== 'undefined') {
       var ctrl = new AbortController();
       opts.signal = ctrl.signal;
-      setTimeout(function () { ctrl.abort(); }, method.indexOf('Bootstrap') >= 0 ? 60000 : 30000);
+      // Duże odpowiedzi (paczka OTA ~0,5 MB, APK, bootstrap) na wolnym wifi
+      // + zimny start GAS przekraczały 30 s → aktualizacje cicho padały
+      setTimeout(function () { ctrl.abort(); }, /Bootstrap|Bundle|Apk/.test(method) ? 120000 : 30000);
     }
     return fetch(cfg.url, opts).then(function (res) {
       return res.json().catch(function () { throw new Error('not_json'); });

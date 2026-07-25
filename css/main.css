@@ -1316,3 +1316,13 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   opacity: 0.35;
   pointer-events: none;
 }
+
+/* Nagłówki miesięcy w historii wpłat */
+.history-month-header {
+  padding: 10px 4px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
