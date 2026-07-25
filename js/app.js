@@ -227,6 +227,11 @@
     setupPaymentForm();
     setupBusinessCostForm();
     setupHistoryEdit();
+    // Kategorie: przełącznik Przychody/Wydatki odświeża listę (generyczny
+    // handler .chips przełącza active wcześniej — kolejność rejestracji)
+    $('categories-kind-chips')?.addEventListener('click', (e) => {
+      if (e.target.closest('.chip')) renderCategories();
+    });
     setupTodoForm();
 
     // Tabs
@@ -977,7 +982,9 @@
         }
 
         const sourceChip = form.querySelector('.chips .chip.active');
-        const sourceName = sourceChip?.textContent.trim().split(' ').pop() || 'Inne';
+        const sourceName = sourceChip?.dataset.name || sourceChip?.textContent.trim().split(' ').pop() || 'Inne';
+        const sourceIcon = sourceChip?.dataset.icon ||
+          (sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵');
         const personChip = form.querySelectorAll('.chips')[1]?.querySelector('.chip.active');
         let owner = personChip?.textContent.includes('Żona') ? 'wife' : 'husband';
         // Twarda zasada: NOWY wpis zawsze za siebie (obrona w głąb —
@@ -1013,7 +1020,7 @@
               forMonth: incomeType === 'oneoff' ? forMonth : null,
               activeFrom,
               activeTo,
-              icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
+              icon: sourceIcon
             });
           }
           editingSourceId = null;
@@ -1034,7 +1041,7 @@
               forMonth: incomeType === 'oneoff' ? forMonth : null,
               activeFrom,
               activeTo,
-              icon: sourceName === 'Pensja' ? '💼' : sourceName === 'Freelance' ? '💻' : '💵'
+              icon: sourceIcon
             });
           }
 
@@ -1316,13 +1323,24 @@
 
     // Set source chip
     const sourceChips = form.querySelectorAll('.chips')[0].querySelectorAll('.chip');
+    let chipMatched = false;
     sourceChips.forEach(c => {
       c.classList.remove('active');
-      const chipName = c.textContent.trim().split(' ').pop();
-      if (source.name && source.name.includes(chipName)) {
+      if (!chipMatched && c.dataset.name && c.dataset.name === source.name) {
         c.classList.add('active');
+        chipMatched = true;
       }
     });
+    if (!chipMatched) {
+      sourceChips.forEach(c => {
+        if (chipMatched || c.dataset.name) return;
+        const chipName = c.textContent.trim().split(' ').pop();
+        if (source.name && source.name.includes(chipName)) {
+          c.classList.add('active');
+          chipMatched = true;
+        }
+      });
+    }
 
     // Set person chip
     const personChips = form.querySelectorAll('.chips')[1]?.querySelectorAll('.chip');
@@ -1748,6 +1766,7 @@
 
   /** Domyślny właściciel nowego wpisu = osoba tego telefonu (wołane z openModal). */
   function applyProfileDefaults() {
+    renderIncomeSourceChips();
     updateIncomeRangeVisibility();
     if (!currentPerson || editingSourceId) return;
     // Chipy osoby = DRUGA grupa .chips w formularzu przychodu (jak w submit
@@ -1945,20 +1964,34 @@
     openModal('modal-categories');
   }
 
+  function categoriesKind() {
+    return $('categories-kind-chips')?.querySelector('.chip.active')?.dataset.value || 'income';
+  }
+
   function renderCategories() {
     const list = $('categories-list');
     if (!list) return;
 
-    const defaultCategories = [
-      { id: 'housing', name: 'Mieszkanie', icon: '🏠' },
-      { id: 'food', name: 'Jedzenie', icon: '🍕' },
-      { id: 'transport', name: 'Transport', icon: '🚗' },
-      { id: 'children', name: 'Dzieci', icon: '👶' },
-      { id: 'health', name: 'Zdrowie', icon: '💊' },
-      { id: 'entertainment', name: 'Rozrywka', icon: '🎬' }
-    ];
+    const kind = categoriesKind();
+    // Wbudowane: przychodowe = chipy Źródła z formularza przychodu,
+    // wydatkowe = dotychczasowe kategorie wydatków
+    const defaultCategories = kind === 'income'
+      ? [
+          { id: 'salary', name: 'Pensja', icon: '💼' },
+          { id: 'freelance', name: 'Freelance', icon: '💻' },
+          { id: 'bonus', name: 'Bonus', icon: '🎁' },
+          { id: 'other-income', name: 'Inne', icon: '📈' }
+        ]
+      : [
+          { id: 'housing', name: 'Mieszkanie', icon: '🏠' },
+          { id: 'food', name: 'Jedzenie', icon: '🍕' },
+          { id: 'transport', name: 'Transport', icon: '🚗' },
+          { id: 'children', name: 'Dzieci', icon: '👶' },
+          { id: 'health', name: 'Zdrowie', icon: '💊' },
+          { id: 'entertainment', name: 'Rozrywka', icon: '🎬' }
+        ];
 
-    const custom = dataManager.getCustomCategories();
+    const custom = dataManager.getCustomCategories(kind);
     const all = [...defaultCategories, ...custom];
 
     list.innerHTML = all.map(cat => `
@@ -1984,8 +2017,9 @@
       return;
     }
 
-    dataManager.addCategory({ name, icon });
+    dataManager.addCategory({ name, icon, kind: categoriesKind() });
     renderCategories();
+    renderIncomeSourceChips();
 
     nameInput.value = '';
     iconInput.value = '';
@@ -1996,8 +2030,30 @@
     if (!confirm('Usunąć tę kategorię?')) return;
     dataManager.deleteCategory(id);
     renderCategories();
+    renderIncomeSourceChips();
     Toast.info('Usunięto', 'Kategoria usunięta');
   };
+
+  /**
+   * Własne kategorie przychodów jako chipy Źródła w formularzu przychodu.
+   * Idempotentne: wcześniej wstrzyknięte chipy są usuwane i budowane od nowa.
+   * dataset.name/icon = pełna nazwa (submit czyta dataset, nie ostatnie słowo).
+   */
+  function renderIncomeSourceChips() {
+    const group = document.querySelector('#modal-income form .chips');
+    if (!group || typeof dataManager === 'undefined' || !dataManager) return;
+    group.querySelectorAll('.chip[data-custom-cat]').forEach(c => c.remove());
+    dataManager.getCustomCategories('income').forEach(cat => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.dataset.customCat = '1';
+      b.dataset.name = cat.name;
+      b.dataset.icon = cat.icon || '💵';
+      b.textContent = `${cat.icon || '💵'} ${cat.name}`;
+      group.appendChild(b);
+    });
+  }
 
   async function changePin() {
     const newPin = prompt('Nowy PIN (4 cyfry):');

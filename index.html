@@ -810,6 +810,10 @@
         <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
       </div>
       <div class="modal-body">
+        <div class="chips" id="categories-kind-chips" role="group" aria-label="Rodzaj kategorii" style="margin-bottom:12px;">
+          <button type="button" class="chip active" data-value="income">💵 Przychody</button>
+          <button type="button" class="chip" data-value="expense">💸 Wydatki</button>
+        </div>
         <div id="categories-list" class="list categories-list">
           <!-- Categories rendered by JS -->
         </div>

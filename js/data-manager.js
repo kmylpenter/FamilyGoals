@@ -536,12 +536,18 @@ class DataManager {
 
   getCategories() {
     const defaults = this.config?.categories || [];
-    const custom = this.getCustomCategories();
+    const custom = this.getCustomCategories('expense');
     return [...defaults, ...custom];
   }
 
-  getCustomCategories() {
-    return this._getCached(this.constructor.STORAGE_KEYS.categories, []);
+  /**
+   * Własne kategorie; kind = 'income' | 'expense' (opcjonalny filtr).
+   * Legacy wpisy bez `kind` = wydatkowe (dotychczasowa semantyka modala).
+   */
+  getCustomCategories(kind) {
+    const all = this._getCached(this.constructor.STORAGE_KEYS.categories, []);
+    if (!kind) return all;
+    return all.filter(c => (c.kind || 'expense') === kind);
   }
 
   addCategory(category) {
