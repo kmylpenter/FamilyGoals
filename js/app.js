@@ -628,6 +628,30 @@
         });
       });
     });
+    // Korzyści firmowe = przychód Męża (firma Męża): jednorazowe pod datą
+    // realizacji, cykliczne jako naliczenie miesięczne w zakresie do dziś
+    const catIcons = { subscriptions: '📱', equipment: '💻', supplies: '📦', other: '📋' };
+    const bNow = new Date();
+    const nowYM = `${bNow.getFullYear()}-${String(bNow.getMonth() + 1).padStart(2, '0')}`;
+    dataManager.getBusinessCosts().forEach(c => {
+      const icon = catIcons[c.category] || '💼';
+      if (c.isRecurring && c.recurringMonths > 0) {
+        const share = Math.round(c.amount / c.recurringMonths);
+        const startYM = c.activeFrom || String(c.createdAt || '').slice(0, 7);
+        if (!startYM || share <= 0) return;
+        const endYM = c.activeTo && c.activeTo < nowYM ? c.activeTo : nowYM;
+        let [y, m] = startYM.split('-').map(Number);
+        let guard = 0;
+        while (guard++ < 60) {
+          const ym = `${y}-${String(m).padStart(2, '0')}`;
+          if (ym > endYM) break;
+          entries.push({ date: `${ym}-01`, amount: share, note: '', srcName: c.name, icon, ownerIcon: '👨', benefit: 'naliczenie' });
+          m++; if (m > 12) { m = 1; y++; }
+        }
+      } else if (c.lastPurchaseDate) {
+        entries.push({ date: String(c.lastPurchaseDate).slice(0, 10), amount: c.amount || 0, note: '', srcName: c.name, icon, ownerIcon: '👨', benefit: 'korzyść' });
+      }
+    });
     if (entries.length === 0) {
       renderEmptyState(list, 'Jeszcze żadnych wpłat');
       return;
@@ -645,9 +669,11 @@
       }
       const day = e.date.slice(8, 10);
       const title = e.note && !/^(Przelew|Gotówka|import z arkusza)$/.test(e.note) ? e.note : e.srcName;
-      const sub = title === e.srcName
+      let sub = title === e.srcName
         ? `${day}.${e.date.slice(5, 7)}${e.type === 'cash' ? ' • gotówka' : ''}`
         : `${e.srcName} • ${day}.${e.date.slice(5, 7)}${e.type === 'cash' ? ' • gotówka' : ''}`;
+      if (e.benefit === 'naliczenie') sub = '💼 korzyść firmowa • naliczenie mies.';
+      else if (e.benefit === 'korzyść') sub = `💼 korzyść firmowa • ${day}.${e.date.slice(5, 7)}`;
       return `${header}
         <div class="list-item">
           <div class="list-icon">${e.icon}</div>

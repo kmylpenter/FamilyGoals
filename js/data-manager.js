@@ -663,6 +663,11 @@ class DataManager {
           if (p.date) note(String(p.date).slice(0, 7));
         });
       });
+      // Korzyści firmowe też rozciągają okno (np. zakup z 2023)
+      this.getBusinessCosts().forEach(c => {
+        note(c.activeFrom);
+        if (c.lastPurchaseDate) note(String(c.lastPurchaseDate).slice(0, 7));
+      });
       if (earliest) {
         const [ey, em] = earliest.split('-').map(Number);
         const span = (now.getFullYear() - ey) * 12 + (now.getMonth() - (em - 1)) + 1;
@@ -696,6 +701,11 @@ class DataManager {
           husbandIncome += total;
         }
       });
+
+      // Korzyści firmowe = przychód Męża (firma Męża — decyzja Kamila
+      // 2026-07-25): jednorazowe w miesiącu realizacji, cykliczne jako
+      // naliczenie miesięczne w zakresie od–do
+      husbandIncome += this.calculateBusinessSavings(year, month);
 
       // B-M5: miesiące bez wpłat pokazują 0 — bez fabrykowania historii
       // z expectedAmount (fałszowało wykres, także wstecz przed
