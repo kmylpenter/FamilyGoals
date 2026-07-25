@@ -20,6 +20,16 @@ test('addCategory z kind=income + filtr getCustomCategories("income")', () => {
   assert.equal(income[0].icon, '🏠');
 });
 
+test('kategorie firmowe (kind=business) — osobny rodzaj dla korzyści firmowych', () => {
+  const { run } = fresh();
+  run(`dataManager.addCategory({ name: 'Samochód', icon: '🚗', kind: 'business' })`);
+  const business = run(`dataManager.getCustomCategories('business')`);
+  assert.equal(business.length, 1);
+  assert.equal(business[0].name, 'Samochód');
+  assert.equal(run(`dataManager.getCustomCategories('income').length`), 0, 'nie miesza się z przychodowymi');
+  assert.equal(run(`dataManager.getCustomCategories('expense').length`), 0, 'nie miesza się z wydatkowymi');
+});
+
 test('legacy kategoria bez kind traktowana jako wydatkowa (nie wchodzi do przychodów)', () => {
   const { run } = fresh();
   run(`dataManager.addCategory({ name: 'Stara kategoria', icon: '📁' })`);

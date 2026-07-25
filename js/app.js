@@ -226,6 +226,7 @@
     setupGoalForm();
     setupPaymentForm();
     setupBusinessCostForm();
+    renderCostCategoryChips();
     setupHistoryEdit();
     // Kategorie: przełącznik Przychody/Wydatki odświeża listę (generyczny
     // handler .chips przełącza active wcześniej — kolejność rejestracji)
@@ -650,11 +651,10 @@
     });
     // Korzyści firmowe = przychód Męża (firma Męża): jednorazowe pod datą
     // realizacji, cykliczne jako naliczenie miesięczne w zakresie do dziś
-    const catIcons = { subscriptions: '📱', equipment: '💻', supplies: '📦', other: '📋' };
     const bNow = new Date();
     const nowYM = `${bNow.getFullYear()}-${String(bNow.getMonth() + 1).padStart(2, '0')}`;
     dataManager.getBusinessCosts().forEach(c => {
-      const icon = catIcons[c.category] || '💼';
+      const icon = costCategoryIcon(c.category);
       if (c.isRecurring && c.recurringMonths > 0) {
         const share = Math.round(c.amount / c.recurringMonths);
         const startYM = c.activeFrom || String(c.createdAt || '').slice(0, 7);
@@ -1975,6 +1975,12 @@
     const kind = categoriesKind();
     // Wbudowane: przychodowe = chipy Źródła z formularza przychodu,
     // wydatkowe = dotychczasowe kategorie wydatków
+    const businessDefaults = [
+      { id: 'subscriptions', name: 'Abonamenty', icon: '📱' },
+      { id: 'equipment', name: 'Sprzęt', icon: '💻' },
+      { id: 'supplies', name: 'Materiały', icon: '📦' },
+      { id: 'other', name: 'Inne', icon: '📋' }
+    ];
     const defaultCategories = kind === 'income'
       ? [
           { id: 'salary', name: 'Pensja', icon: '💼' },
@@ -1982,7 +1988,7 @@
           { id: 'bonus', name: 'Bonus', icon: '🎁' },
           { id: 'other-income', name: 'Inne', icon: '📈' }
         ]
-      : [
+      : kind === 'business' ? businessDefaults : [
           { id: 'housing', name: 'Mieszkanie', icon: '🏠' },
           { id: 'food', name: 'Jedzenie', icon: '🍕' },
           { id: 'transport', name: 'Transport', icon: '🚗' },
@@ -2020,6 +2026,7 @@
     dataManager.addCategory({ name, icon, kind: categoriesKind() });
     renderCategories();
     renderIncomeSourceChips();
+    renderCostCategoryChips();
 
     nameInput.value = '';
     iconInput.value = '';
@@ -2031,6 +2038,7 @@
     dataManager.deleteCategory(id);
     renderCategories();
     renderIncomeSourceChips();
+    renderCostCategoryChips();
     Toast.info('Usunięto', 'Kategoria usunięta');
   };
 
@@ -2039,6 +2047,30 @@
    * Idempotentne: wcześniej wstrzyknięte chipy są usuwane i budowane od nowa.
    * dataset.name/icon = pełna nazwa (submit czyta dataset, nie ostatnie słowo).
    */
+  /** Ikona kategorii kosztu: wbudowane sloty, potem własne (kind=business). */
+  function costCategoryIcon(category) {
+    const builtin = { subscriptions: '📱', equipment: '💻', supplies: '📦', other: '📋' };
+    if (builtin[category]) return builtin[category];
+    const custom = dataManager.getCustomCategories('business').find(c => c.id === category);
+    return (custom && custom.icon) || '💼';
+  }
+
+  /** Własne kategorie firmowe jako chipy w formularzu korzyści (idempotentnie). */
+  function renderCostCategoryChips() {
+    const group = $('cost-category-chips');
+    if (!group || typeof dataManager === 'undefined' || !dataManager) return;
+    group.querySelectorAll('.chip[data-custom-cat]').forEach(c => c.remove());
+    dataManager.getCustomCategories('business').forEach(cat => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.dataset.customCat = '1';
+      b.dataset.value = cat.id;
+      b.textContent = `${cat.icon || '💼'} ${cat.name}`;
+      group.appendChild(b);
+    });
+  }
+
   function renderIncomeSourceChips() {
     const group = document.querySelector('#modal-income form .chips');
     if (!group || typeof dataManager === 'undefined' || !dataManager) return;
@@ -2360,13 +2392,7 @@
   }
 
   function renderCostItem(cost, showDue) {
-    const categoryIcons = {
-      subscriptions: '📱',
-      equipment: '💻',
-      supplies: '📦',
-      other: '📋'
-    };
-    const icon = categoryIcons[cost.category] || '📋';
+    const icon = costCategoryIcon(cost.category);
     let recurring = cost.isRecurring ? `🔄 co ${cost.recurringMonths} mies.` : '1️⃣ jednorazowy';
     // Zakres tylko na liście głównej — w "Nadchodzące zakupy" (showDue) brak
     // miejsca (przyciski Kupione/za-X-dni ściskają meta do 1 kolumny)
