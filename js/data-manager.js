@@ -285,7 +285,13 @@ class DataManager {
    */
   deleteIncomeSource(id) {
     const sources = this.getIncomeSources();
+    const removed = sources.find(s => s.id === id);
     this._saveIncomeSources(sources.filter(s => s.id !== id));
+    // B-M1c: lustra wpłat źródła w income[] muszą zniknąć razem z nim —
+    // inaczej skasowane źródło dalej zawyża statystyki (widmowe przychody)
+    if (removed && removed.payments && removed.payments.length) {
+      removed.payments.forEach(p => this._removePaymentMirror(id, p));
+    }
   }
 
   /**
@@ -411,13 +417,27 @@ class DataManager {
       if (s.incomeType === 'oneoff' && s.forMonth && s.forMonth !== currentForMonth) {
         return false;
       }
+      // Cykliczne: zakres obowiązywania od–do (YYYY-MM, stringi porównywalne
+      // leksykalnie; brak pola = bez ograniczenia). Umożliwia uzupełnianie
+      // historii wstecz i wygaszanie źródeł bez ich kasowania.
+      if (s.incomeType !== 'oneoff') {
+        if (s.activeFrom && currentForMonth < s.activeFrom) return false;
+        if (s.activeTo && currentForMonth > s.activeTo) return false;
+      }
       return true;
     });
 
     return sources.map(source => {
       const payments = this.getPaymentsByMonth(source.id, year, month);
-      const totalReceived = payments.reduce((sum, p) => sum + p.amount, 0);
       const expected = source.expectedAmount || 0;
+      // MODEL PULI (opt-in przez activeFrom): wszystkie wpłaty źródła
+      // sumują się jak saldo i pokrywają KOLEJNE miesiące od activeFrom
+      // po expected/mies. — nadpłata idzie w przód, jedna wpłata potrafi
+      // uzupełnić historię wstecz. Bez activeFrom: klasycznie po dacie.
+      const pooled = this._allocatedForMonth(source, year, month);
+      const totalReceived = pooled !== null
+        ? pooled
+        : payments.reduce((sum, p) => sum + p.amount, 0);
 
       return {
         ...source,
@@ -430,6 +450,24 @@ class DataManager {
         remaining: Math.max(0, expected - totalReceived)
       };
     });
+  }
+
+  /**
+   * Alokacja z puli dla miesiąca (null = źródło nie działa w modelu puli).
+   * idx = numer miesiąca licząc od activeFrom; miesiąc dostaje to, co
+   * zostało z sumy wszystkich wpłat po pokryciu wcześniejszych miesięcy.
+   */
+  _allocatedForMonth(source, year, month) {
+    if (source.incomeType === 'oneoff') return null;
+    const expected = source.expectedAmount || 0;
+    if (!source.activeFrom || expected <= 0) return null;
+    const currentForMonth = `${year}-${String(month + 1).padStart(2, '0')}`;
+    if (source.activeTo && currentForMonth > source.activeTo) return 0;
+    const [ay, am] = source.activeFrom.split('-').map(Number);
+    const idx = (year - ay) * 12 + (month - (am - 1));
+    if (idx < 0) return 0;
+    const totalPaid = (source.payments || []).reduce((s, p) => s + (p.amount || 0), 0);
+    return Math.max(0, Math.min(expected, totalPaid - expected * idx));
   }
 
   /**
@@ -611,8 +649,30 @@ class DataManager {
    */
   getTrendByOwner(months = 6) {
     const now = new Date();
-    const trend = [];
     const sources = this.getIncomeSources();
+
+    // 'auto': okno od najwcześniejszych danych (activeFrom / forMonth /
+    // pierwsza wpłata) do bieżącego miesiąca — historia w całości na wykresie
+    if (months === 'auto') {
+      let earliest = null;
+      const note = (ym) => { if (ym && (!earliest || ym < earliest)) earliest = ym; };
+      sources.forEach(s => {
+        note(s.activeFrom);
+        note(s.forMonth);
+        (s.payments || []).forEach(p => {
+          if (p.date) note(String(p.date).slice(0, 7));
+        });
+      });
+      if (earliest) {
+        const [ey, em] = earliest.split('-').map(Number);
+        const span = (now.getFullYear() - ey) * 12 + (now.getMonth() - (em - 1)) + 1;
+        months = Math.min(48, Math.max(6, span));
+      } else {
+        months = 6;
+      }
+    }
+
+    const trend = [];
 
     for (let i = months - 1; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -622,14 +682,14 @@ class DataManager {
       let wifeIncome = 0;
       let husbandIncome = 0;
 
-      // Zbierz zarobki per owner z sources (P2 optimized - no N+1)
+      // Wykres = FAKTYCZNE wpłaty wg daty zaksięgowania (decyzja Kamila
+      // 2026-07-25: prawda kasowa, bez wygładzania). Alokacja z puli
+      // (_allocatedForMonth) służy statusom/oczekiwanym na ekranie Przychody.
       sources.forEach(source => {
-        // Filter payments directly from source instead of calling getPaymentsByMonth
-        const payments = (source.payments || []).filter(p => {
+        const total = (source.payments || []).filter(p => {
           const d = new Date(p.date);
           return d.getFullYear() === year && d.getMonth() === month;
-        });
-        const total = payments.reduce((sum, p) => sum + p.amount, 0);
+        }).reduce((sum, p) => sum + p.amount, 0);
         if (source.owner === 'wife') {
           wifeIncome += total;
         } else if (source.owner === 'husband') {
@@ -1026,34 +1086,12 @@ class DataManager {
 
   getGoalAlerts() {
     const alerts = [];
-    const now = new Date();
-    const stats = this.getMonthlyStats(now.getFullYear(), now.getMonth());
 
-    // Savings goal
-    const savingsTarget = this.config?.goals?.monthlySavingsTarget || 0;
-    if (savingsTarget > 0) {
-      const percent = (stats.savings / savingsTarget) * 100;
-
-      if (stats.savings >= savingsTarget) {
-        alerts.push({
-          type: 'success',
-          goalType: 'savings',
-          message: `Cel osiągnięty! Oszczędzono ${this.formatCurrency(stats.savings)}`,
-          percent,
-          current: stats.savings,
-          target: savingsTarget
-        });
-      } else if (percent < 50 && now.getDate() > 15) {
-        alerts.push({
-          type: 'warning',
-          goalType: 'savings',
-          message: `Zostało ${this.formatCurrency(savingsTarget - stats.savings)} do celu`,
-          percent,
-          current: stats.savings,
-          target: savingsTarget
-        });
-      }
-    }
+    // USUNIĘTE (2026-07-25): alert "celu oszczędności" z config.goals
+    // .monthlySavingsTarget — w APK config.json się nie ładuje, wchodził
+    // domyślny target 2000 i produkował WIDMOWY alert ("Zostało 1300 zł
+    // do celu" przy zerze celów usera). Jedyne źródło celów = realne cele
+    // z aplikacji (blok niżej).
 
     // Planned expenses goals
     // B-M7: cele cykliczne to zobowiązania (bez "deadline'u") — bez alertów;

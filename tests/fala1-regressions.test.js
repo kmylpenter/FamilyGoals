@@ -138,3 +138,13 @@ test('C-M3: index.html bez zahardkodowanych value w polach type="date"', () => {
   const hardcoded = html.match(/<input type="date" value="[^"]+"/g) || [];
   assert.deepEqual(hardcoded, [], `zahardkodowane daty psują domyślny miesiąc: ${hardcoded.join(' | ')}`);
 });
+
+test('B-M1c: deleteIncomeSource usuwa też lustra wszystkich wpłat źródła', () => {
+  const { run } = loadApp({ scripts: ['js/utils.js', 'js/data-manager.js'] });
+  const src = run('dataManager.addIncomeSource({ name: "P", expectedAmount: 6000, owner: "husband" })');
+  run(`dataManager.recordPayment("${src.id}", { amount: 6000, date: "2026-07-10" })`);
+  run(`dataManager.recordPayment("${src.id}", { amount: 500, date: "2026-07-20" })`);
+  assert.equal(run('dataManager.getIncome().length'), 2, 'lustra są');
+  run(`dataManager.deleteIncomeSource("${src.id}")`);
+  assert.equal(run('dataManager.getIncome().length'), 0, 'lustra sprzątnięte ze źródłem');
+});
