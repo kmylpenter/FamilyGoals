@@ -1186,6 +1186,11 @@
       if (id === 'modal-income' && typeof app !== 'undefined' && app.applyProfileDefaults) {
         app.applyProfileDefaults();
       }
+      // Chipy kategorii firmowych świeże przy KAŻDYM otwarciu (kategorie
+      // z synca pojawiały się dopiero po restarcie apki)
+      if (id === 'modal-business-cost' && typeof app !== 'undefined' && app.renderCostCategoryChips) {
+        app.renderCostCategoryChips();
+      }
     }
     function closeModal(e) {
       // Handle both event-based calls and direct calls without event

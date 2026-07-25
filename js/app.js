@@ -2880,6 +2880,7 @@
     resetEditState,
     renderOptimization,
     renderTodos,
+    renderCostCategoryChips,
     switchIncomeTab,
     openAddPayment,
     pickPaymentSource,

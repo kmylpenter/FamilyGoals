@@ -86,9 +86,11 @@ body {
 /* Dashboard mieści się bez pionowego scrolla: nav ma ~61px, a 100px paddingu
    było zapasem w ciemno (pomiar 2026-07-25: przerost ekranu = 16px) */
 #screen-dashboard { padding-bottom: 68px; }
+/* Puste kontenery w-flow (baner aktualizacji) nie zjadają slotu gapu */
+#update-banner:empty, #advice-alerts-card:empty { display: none; }
 .header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: var(--s1) 0; min-height: 48px;
+  padding: 0; min-height: 48px;
 }
 .brand { display: flex; align-items: center; gap: var(--s1); font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
 .header-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
@@ -124,7 +126,8 @@ body {
 .income-bar-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
 /* Section Title */
-.section-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin: var(--s1) 0 4px; }
+/* Jednolity rytm pionowy (2026-07-25): odstępy daje WYŁĄCZNIE gap kontenera */
+.section-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; margin: 0; }
 
 /* Goal Cards */
 .goal-card {
@@ -238,6 +241,8 @@ body {
 .stat-label { font-size: 0.75rem; color: var(--text-muted); }
 
 /* Summary Card */
+#income-content, #optimization-content { display: flex; flex-direction: column; gap: var(--s1); }
+#optimization-content .summary-card, #income-content .summary-card { margin-bottom: 0; }
 .summary-card { background: var(--bg-card); border-radius: var(--r1); padding: var(--s2); margin-bottom: var(--s2); }
 .summary-card.mint { background: linear-gradient(135deg, var(--mint-light) 0%, var(--bg-card) 100%); }
 .summary-card.peach { background: linear-gradient(135deg, var(--peach-light) 0%, var(--bg-card) 100%); }
@@ -246,7 +251,7 @@ body {
 .summary-value.muted { color: var(--text-muted); }
 
 /* Month Selector */
-.month-selector { display: flex; justify-content: center; align-items: center; gap: var(--s2); margin-bottom: var(--s2); font-size: 1rem; }
+.month-selector { display: flex; justify-content: center; align-items: center; gap: var(--s2); margin-bottom: 0; font-size: 1rem; }
 .month-arrow { width: 36px; height: 36px; border: none; background: var(--bg-subtle); border-radius: 50%; font-size: 1rem; cursor: pointer; transition: background 0.15s, transform 0.1s; }
 .month-arrow:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
 .month-arrow:active { transform: scale(0.95); }
@@ -1258,7 +1263,7 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
 }
 
 /* ===== Porada dnia + alerty (sesja 13, E-M1/E-M2) ===== */
-#advice-alerts-card { margin-bottom: var(--s2); }
+#advice-alerts-card { margin-bottom: 0; } /* rytm: gap kontenera */
 .advice-card, .alert-card {
   display: flex;
   align-items: center;

@@ -44,6 +44,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Dashboard bez pionowego scrolla: padding dolny ekranu 100→68 px (nav ma 61 px; pomiar na realnych danych: przerost całego ekranu wynosił dokładnie 16 px → po zmianie 0). Files: `css/main.css`
 - Wyrównanie „odłożone" i celu miesiąca (SSOT): `getMonthlyStats` liczy przychód DOKŁADNIE formułą karty „Wasze przychody" (summary modelu puli + korzyści firmowe; było: lustra income[] — 2700 vs 3600, bo 600 zł wpłat bez lustra i korzyści nieliczone), a `savingsTarget` z realnych celów usera przez nowy helper `getMonthlySavingsTarget()` (używany też przez kafel — było: widmowe 2000 z config.json w ocenie miesiąca). Test agregacji zaktualizowany do nowej semantyki. Files: `js/data-manager.js`, `js/app.js`, `tests/data-manager.test.js`
 
+- Jednolity rytm pionowy: KAŻDY odstęp między elementami = 8 px (gap kontenera jako jedyne źródło odstępów; wyzerowane marginesy `.section-title`, headera, `#advice-alerts-card`, `.month-selector`; wrappery tabów Przychody/Optymalizacja jako kontenery flex z gap; pusty `#update-banner` nie zjada slotu gapu). Pomiar headless: dashboard 6×8, tab Przychody 7×8, Optymalizacja 4×8; scroll dalej zerowy. Files: `css/main.css`
+- „Edytuj koszt" nie pokazywał kategorii dodanych po starcie apki (np. przybyłych syncem) — chipy kategorii firmowych renderują się przy KAŻDYM otwarciu modala (hook w `openModal`), jak chipy źródeł przychodu. Files: `index.html`, `js/app.js`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
