@@ -448,9 +448,9 @@
 
     // Chart dimensions
     const width = 320;
-    // Wyższy wykres (120→190): przy skali do ~39 tys. różnice 6–16 tys.
-    // zlewały się w płaską linię
-    const height = 190;
+    // Wyższy wykres (120→190→170): 170 od 2026-07-26 — 20 px oddane linijce
+    // "Śr. 12 mies." pod legendą, żeby dashboard został bez scrolla
+    const height = 170;
     const padding = { top: 15, right: 10, bottom: 25, left: 38 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
@@ -509,6 +509,14 @@
           : t.monthName
       }));
 
+    // Śr. 12 mies. + rok do roku (żądanie Kamila 2026-07-26): zielony wzrost,
+    // czerwony spadek, (—) gdy poprzednie okno bez danych
+    const yoy = dataManager.getYearOverYear();
+    const pct = (v) => v === null
+      ? '<span class="yoy-flat">(—)</span>'
+      : `<span class="${v >= 0 ? 'yoy-up' : 'yoy-down'}">(${v >= 0 ? '+' : '−'}${Math.abs(v)}%)</span>`;
+    const yoyLine = `<div class="chart-yoy">Śr. 12 mies.: 👩 ${formatMoney(yoy.wife.avg)} ${pct(yoy.wife.yoy)} · 👨 ${formatMoney(yoy.husband.avg)} ${pct(yoy.husband.yoy)} · ∑ ${formatMoney(yoy.total.avg)} ${pct(yoy.total.yoy)}</div>`;
+
     // Build SVG - simple line chart
     container.innerHTML = `
       <div class="line-chart-container">
@@ -554,6 +562,7 @@
           <span class="legend-item-inline"><span class="legend-dot" style="background:var(--peach)"></span>👩 Żona</span>
           <span class="legend-item-inline"><span class="legend-dot" style="background:var(--mint)"></span>👨 Mąż</span>
         </div>
+        ${yoyLine}
       </div>
     `;
   }
@@ -665,7 +674,18 @@
       return;
     }
     entries.sort((a, b) => b.date.localeCompare(a.date));
-    const shown = entries.slice(0, 80);
+    // Filtr osoby/rodzaju (chipy nad listą); PEŁNA historia bez ucinania
+    // (decyzja Kamila 2026-07-26: "chcę móc zobaczyć całą historię")
+    const shown = entries.filter(e => {
+      if (historyFilter === 'wife') return e.ownerIcon === '👩';
+      if (historyFilter === 'husband') return e.ownerIcon === '👨';
+      if (historyFilter === 'business') return !!e.benefit;
+      return true;
+    });
+    if (shown.length === 0) {
+      renderEmptyState(list, 'Brak wpisów dla tego filtra');
+      return;
+    }
     let lastMonth = null;
     list.innerHTML = shown.map(e => {
       const ym = e.date.slice(0, 7);
@@ -694,8 +714,7 @@
           </div>
           <div class="list-amount positive">${formatMoney(e.amount)}</div>
         </div>`;
-    }).join('') + (entries.length > shown.length
-      ? `<div class="muted" style="text-align:center; padding:8px; font-size:12px;">…i ${entries.length - shown.length} starszych</div>` : '');
+    }).join('');
   }
 
   /**
@@ -2572,8 +2591,15 @@
 
   // ============ EDYCJA WPISÓW HISTORII ============
   let editingPayment = null;
+  let historyFilter = 'all';
 
   function setupHistoryEdit() {
+    $('history-filter')?.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      historyFilter = chip.dataset.filter || 'all';
+      renderGlobalHistory();
+    });
     const list = $('global-history-list');
     if (list) {
       list.addEventListener('click', (e) => {

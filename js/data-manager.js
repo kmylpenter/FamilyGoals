@@ -793,6 +793,61 @@ class DataManager {
     return trend;
   }
 
+  /**
+   * Początek REGULARNEGO śledzenia zarobków: pierwsza wpłata źródła albo
+   * start cyklicznej korzyści. Jednorazowe korzyści (np. zakup z 2023)
+   * celowo NIE otwierają okna — pojedynczy punkt sprzed śledzenia
+   * rozwadniałby średnie zerami z nieśledzonych miesięcy.
+   */
+  _earliestRegularIncomeYM() {
+    let earliest = null;
+    const note = (ym) => { if (ym && (!earliest || ym < earliest)) earliest = ym; };
+    this.getIncomeSources().forEach(s => {
+      (s.payments || []).forEach(p => { if (p.date) note(String(p.date).slice(0, 7)); });
+    });
+    this.getBusinessCosts().forEach(c => {
+      if (c.isRecurring && c.recurringMonths > 0) {
+        note(c.activeFrom || String(c.createdAt || '').slice(0, 7));
+      }
+    });
+    return earliest;
+  }
+
+  /**
+   * Średnia miesięczna z ostatnich 12 mies. + % zmiany vs poprzednie 12 mies.
+   * (mies. 13–24 wstecz), per Żona/Mąż/Razem. Dane jak na wykresie: wpłaty
+   * wg dat + korzyści firmowe u Męża. Średnia = suma / liczba miesięcy OD
+   * początku śledzenia w danym oknie; okno bez danych → yoy null.
+   */
+  getYearOverYear() {
+    const t = this.getTrendByOwner(24);
+    const prev = t.slice(0, 12);
+    const last = t.slice(12);
+    const firstYM = this._earliestRegularIncomeYM();
+    const ymOf = (e) => `${e.year}-${String(e.month + 1).padStart(2, '0')}`;
+    const effective = (win) => firstYM ? win.filter(e => ymOf(e) >= firstYM).length : 0;
+    const effLast = effective(last);
+    const effPrev = effective(prev);
+
+    const mk = (key) => {
+      const sumLast = last.reduce((s, e) => s + (e[key] || 0), 0);
+      const sumPrev = prev.reduce((s, e) => s + (e[key] || 0), 0);
+      const avgLast = effLast > 0 ? sumLast / effLast : 0;
+      const avgPrev = effPrev > 0 ? sumPrev / effPrev : null;
+      const yoy = (avgPrev !== null && avgPrev > 0)
+        ? Math.round(((avgLast - avgPrev) / avgPrev) * 100)
+        : null;
+      return { avg: Math.round(avgLast), yoy };
+    };
+
+    return {
+      wife: mk('wifeIncome'),
+      husband: mk('husbandIncome'),
+      total: mk('totalIncome'),
+      monthsCompared: { last: effLast, prev: effPrev }
+    };
+  }
+
   // === RECURRING ===
 
   getRecurringExpenses() {

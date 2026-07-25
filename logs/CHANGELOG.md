@@ -47,6 +47,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Jednolity rytm pionowy: KAŻDY odstęp między elementami = 8 px (gap kontenera jako jedyne źródło odstępów; wyzerowane marginesy `.section-title`, headera, `#advice-alerts-card`, `.month-selector`; wrappery tabów Przychody/Optymalizacja jako kontenery flex z gap; pusty `#update-banner` nie zjada slotu gapu). Pomiar headless: dashboard 6×8, tab Przychody 7×8, Optymalizacja 4×8; scroll dalej zerowy. Files: `css/main.css`
 - „Edytuj koszt" nie pokazywał kategorii dodanych po starcie apki (np. przybyłych syncem) — chipy kategorii firmowych renderują się przy KAŻDYM otwarciu modala (hook w `openModal`), jak chipy źródeł przychodu. Files: `index.html`, `js/app.js`
 
+- Średnie zarobki 12 mies. + wzrost rok do roku pod wykresem: „Śr. 12 mies.: 👩 X (—/±%) · 👨 Y (±%) · ∑ Z (±%)" — średnia miesięczna z ostatnich 12 mies. vs poprzednie 12 (mies. 13–24), per osoba i razem; wpłaty wg dat + korzyści u Męża (spójnie z wykresem); okna liczone od pierwszego REGULARNEGO śledzenia (pierwsza wpłata / start cyklicznej korzyści — jednorazowa z 2023 nie rozwadnia średnich zerami), zielony wzrost / czerwony spadek / (—) bez danych porównawczych; wykres 190→170 px, dashboard dalej bez scrolla. Files: `js/data-manager.js` (`getYearOverYear`), `js/app.js`, `css/main.css`
+
+- Historia wpłat: PEŁNA (koniec „…i N starszych" — było ucinanie do 80 wpisów) + chipy filtrowania Wszystkie / 👩 Żona / 👨 Mąż / 💼 Firmowe (Mąż zawiera korzyści — to jego przychody; Firmowe = tylko korzyści). Files: `index.html`, `js/app.js`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
@@ -56,6 +60,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - +1 (income-categories: kind=business osobny od income/expense) — razem 90; E2E headless pełny scenariusz zgłoszenia: Bayon 📱 → nowa kategoria 🚗 → przepięcie z historii → 🚗 w historii i na liście
 - +2 (planned-defaults-leak: plik demo nie przecieka, add nie zatrzaskuje widm, red→green) — razem 92; smoke headless: hero „Do odłożenia 0 zł" bez celów
 - +3 (stats-alignment: odłożone = wpłaty+korzyści, wpłata bez lustra liczona, target z celów, red→green) — razem 95; na realnych danych: stats 3600 = hero = karta przychodów
+- +4 (yoy: wzrost/spadek r/r, krótka historia bez rozwadniania, korzyści u Męża, red→green) — razem 99; realne dane: Mąż śr. 16 521 zł (+105%); historia: 117 wpisów bez ucinania, filtry 117/0/117/61 spójne
 
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 

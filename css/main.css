@@ -219,6 +219,10 @@ body {
 .line-chart { width: 100%; height: auto; display: block; }
 .line-chart text { font-size: 10px; fill: var(--text-muted); font-family: var(--font); }
 .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.chart-yoy { font-size: 11px; color: var(--text-soft); text-align: center; margin-top: 4px; }
+.chart-yoy .yoy-up { color: var(--success); font-weight: 600; }
+.chart-yoy .yoy-down { color: var(--danger); font-weight: 600; }
+.chart-yoy .yoy-flat { color: var(--text-muted); }
 
 /* Legacy bar chart (keeping for fallback) */
 .timeline-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 120px; gap: 6px; padding-top: 20px; }
