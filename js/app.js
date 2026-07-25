@@ -2267,7 +2267,12 @@
       other: '📋'
     };
     const icon = categoryIcons[cost.category] || '📋';
-    const recurring = cost.isRecurring ? `🔄 co ${cost.recurringMonths} mies.` : '1️⃣ jednorazowy';
+    let recurring = cost.isRecurring ? `🔄 co ${cost.recurringMonths} mies.` : '1️⃣ jednorazowy';
+    // Zakres tylko na liście głównej — w "Nadchodzące zakupy" (showDue) brak
+    // miejsca (przyciski Kupione/za-X-dni ściskają meta do 1 kolumny)
+    if (!showDue && cost.isRecurring && (cost.activeFrom || cost.activeTo)) {
+      recurring += ` • od ${cost.activeFrom || 'zawsze'} do ${cost.activeTo || 'bezterminowo'}`;
+    }
 
     let dueHtml = '';
     if (showDue && cost.nextDueDate) {
@@ -2341,11 +2346,18 @@
       const category = $('cost-category-chips').querySelector('.chip.active')?.dataset.value || 'other';
       const isRecurring = $('cost-type-chips').querySelector('.chip.active')?.dataset.value === 'recurring';
       const recurringMonths = isRecurring ? parseInt($('cost-months-chips').querySelector('.chip.active')?.dataset.value) || 1 : null;
+      // Zakres od–do cyklicznych (np. leasing); puste = bezterminowo
+      const activeFrom = isRecurring ? ($('cost-active-from')?.value || null) : null;
+      const activeTo = isRecurring ? ($('cost-active-to')?.value || null) : null;
+      if (activeFrom && activeTo && activeTo < activeFrom) {
+        alert('„Do" nie może być wcześniejsze niż „od"');
+        return;
+      }
       const note = $('cost-note').value.trim();
 
       if (!name || amount <= 0) return;
 
-      const costData = { name, amount, category, isRecurring, recurringMonths, note };
+      const costData = { name, amount, category, isRecurring, recurringMonths, activeFrom, activeTo, note };
       // Jednorazowa Z DATĄ = korzyść zrealizowana — liczy się w miesiącu daty
       // (np. zatankowanie auta z pieniędzy firmy); bez daty = planowany zakup
       const costDate = $('cost-date')?.value;
@@ -2433,6 +2445,12 @@
         c.classList.toggle('active', parseInt(c.dataset.value) === cost.recurringMonths);
       });
     }
+
+    // Zakres od–do (cykliczne); form.reset() w closeAllModals czyści przy "dodaj"
+    const fromEl = $('cost-active-from');
+    if (fromEl) fromEl.value = cost.activeFrom || '';
+    const toEl = $('cost-active-to');
+    if (toEl) toEl.value = cost.activeTo || '';
 
     // Update modal title
     $('modal-business-cost').querySelector('.modal-header h2').textContent = '💼 Edytuj koszt';

@@ -1164,6 +1164,9 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
 /* ========== Business Cost Item ========== */
 .cost-item {
   display: flex;
+  /* Badge "za X dni" + przyciski nie mieszczą się z treścią w 1 rzędzie na
+     telefonie — łamiemy rząd zamiast głodzić .cost-content do 1 kolumny */
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s2);
   padding: var(--s2);
@@ -1182,7 +1185,8 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
 }
 .cost-content {
   flex: 1;
-  min-width: 0;
+  /* min 140px: nazwa i meta czytelne; poniżej tego badge/akcje spadają niżej */
+  min-width: 140px;
 }
 .cost-name {
   font-weight: 500;
@@ -1210,6 +1214,8 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
 .cost-actions {
   display: flex;
   gap: var(--s1);
+  /* po złamaniu rzędu akcje trzymają się prawej */
+  margin-left: auto;
 }
 .cost-buy-btn {
   background: var(--mint);

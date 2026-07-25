@@ -23,15 +23,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Plusik: "Dodaj wpłatę" (wybór źródła z brakami z puli; 1 źródło = od razu; wszystko per profil) i "Dodaj korzyść firmową"; korzyść jednorazowa z datą realizacji (liczy się w miesiącu daty). Files: `index.html`, `js/app.js`
 - Wykres: okno od najwcześniejszych danych ('auto', roczniki przy styczniach), oś kwot po lewej, wysokość 190, linie trendu (regresja) per osoba, wartości = FAKTYCZNE wpłaty wg dat. Files: `js/data-manager.js`, `js/app.js`
 - Stopka wersji w Ustawieniach (APK + web) i stempel wersji w DevLogu na starcie. Files: `index.html`, `js/app.js`
+- Zakres od–do cyklicznych korzyści firmowych (wzorzec ze źródeł: `activeFrom`/`activeTo`, pola w formularzu przy typie Cykliczny, filtr w `calculateBusinessSavings`, zakres na liście Koszty firmowe; puste = bezterminowo, stare wpisy bez zmian; case: leasing auta). Files: `index.html`, `js/app.js`, `js/data-manager.js`
 
 #### Fixed
 - deleteIncomeSource nie sprzątał luster wpłat źródła (widmowe 6000 po skasowaniu testowej Pensji — złapane weryfikacją importu). Files: `js/data-manager.js`
 - Widmowy alert "Zostało 1300 zł do celu" z domyślnego configu (target 2000 przy braku celów) — blok config-celu usunięty. Files: `js/data-manager.js`
 - Timeout pobrań dużych odpowiedzi 30s→120s (paczki OTA ~0,5 MB cicho padały na wolnym wifi) + wydanie ratunkowe APK 1.3.0 (versionCode 4). Files: `js/sync-manager.js`, `android-apk/AndroidManifest.xml`
 - Zwrot pożyczki przemodelowany na 2 wpisy jednorazowe (cykliczne @0 świeciło zerem w każdym miesiącu)
+- Inputy od–do (`type=month`) wystawały poza ekran telefonu (wewnętrzny min-width Chromium; „do" ucięte 18px za krawędzią) — `min-width:0` w formularzu przychodu i korzyści. Files: `index.html`
+- Karta kosztu firmowego: badge „za X dni" + przyciski ściskały nazwę/meta do pionowej kolumny liter — rząd łamie się (`flex-wrap`), treść ma min 140px, akcje spadają do prawej w drugim rzędzie. Files: `css/main.css`
+- „Nadchodzące zakupy" pokazywały cykliczne korzyści poza zakresem od–do (przyszły leasing dostawał „za 31 dni ✓ Kupione" przed startem) — filtr zakresu w `getUpcomingBusinessCosts`. Files: `js/data-manager.js`
 
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
+- +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
 
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 

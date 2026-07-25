@@ -1193,11 +1193,15 @@ class DataManager {
   getUpcomingBusinessCosts() {
     const costs = this.getBusinessCosts();
     const now = new Date();
+    const nowYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const nextMonth = new Date(now);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
 
     return costs.filter(c => {
       if (!c.nextDueDate) return false;
+      // Zakres od–do: przed startem / po końcu nie ma czego odkupywać
+      if (c.activeFrom && nowYM < c.activeFrom) return false;
+      if (c.activeTo && nowYM > c.activeTo) return false;
       const dueDate = new Date(c.nextDueDate);
       return dueDate <= nextMonth;
     }).sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate));
@@ -1216,9 +1220,14 @@ class DataManager {
     const now = new Date();
     const refYear = year ?? now.getFullYear();
     const refMonth = month ?? now.getMonth();
+    const refYM = `${refYear}-${String(refMonth + 1).padStart(2, '0')}`;
 
     costs.forEach(cost => {
       if (cost.isRecurring && cost.recurringMonths && cost.recurringMonths > 0) {
+        // Zakres od–do (YYYY-MM, opcjonalny) — poza nim korzyść się nie liczy
+        // (np. leasing); brak pól = bezterminowo (stare wpisy bez zmian)
+        if (cost.activeFrom && refYM < cost.activeFrom) return;
+        if (cost.activeTo && refYM > cost.activeTo) return;
         // Distribute cost over recurring period
         monthlySavings += cost.amount / cost.recurringMonths;
       } else {
