@@ -843,7 +843,10 @@ class DataManager {
   // === PLANNED EXPENSES (GOALS) ===
 
   getPlannedExpenses() {
-    // Check override first (user data / demo data)
+    // TYLKO realne dane usera (override; demo też pisze override przy seedzie).
+    // Fallback do pliku data/planned.json USUNIĘTY (2026-07-25): domyślne cele
+    // demo świeciły jako widmowe „Do odłożenia" mimo braku celów i były
+    // zatrzaskiwane do danych przy pierwszym addPlannedGoal.
     const override = localStorage.getItem('familygoals_planned_override');
     if (override) {
       try {
@@ -852,7 +855,7 @@ class DataManager {
         console.warn('Invalid planned override data');
       }
     }
-    return this.planned?.plannedExpenses || [];
+    return [];
   }
 
   updatePlannedProgress(id, amount) {
@@ -1057,12 +1060,12 @@ class DataManager {
   }
 
   _getPlannedFromStorage() {
-    // Check for local overrides first
+    // Jak getPlannedExpenses: tylko override, bez fallbacku do pliku demo
     const override = localStorage.getItem('familygoals_planned_override');
     if (override) {
-      return this._safeJsonParse(override, this.planned?.plannedExpenses || []);
+      return this._safeJsonParse(override, []);
     }
-    return this.planned?.plannedExpenses || [];
+    return [];
   }
 
   _savePlanned(planned) {

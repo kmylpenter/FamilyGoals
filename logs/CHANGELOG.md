@@ -40,6 +40,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Cykliczna korzyść BEZ activeFrom fabrykowała się wstecz na wykresie (liczyła się w miesiącach sprzed dodania — złapane na realnych danych: abonament 300 zł świeciłby od 2023) — liczy się od miesiąca dodania (createdAt), spójnie z naliczeniami w historii; test zaktualizowany do nowej semantyki. Files: `js/data-manager.js`, `tests/business-cost-range.test.js`
 - Kolizja dwóch ostatnich etykiet osi wykresu („majlip") gdy krokowa etykieta wypada tuż przed ostatnią — krokowa odpada przy kolizji. Files: `js/app.js`
 - Baner aktualizacji „czasami się nie pokazywał": check był JEDNORAZOWY (5 s po zimnym starcie), a apka na telefonie żyje w pamięci dniami — publikacja przy otwartej apce lub jeden nieudany check = brak banera do restartu. Teraz: ponawianie co 30 min + przy powrocie apki na pierwszy plan (throttle 5 min); obie ścieżki zweryfikowane headless licznikiem wywołań. Files: `js/app.js`
+- Widmowe „Do odłożenia w tym miesiącu" (np. 2700 zł) mimo braku celów: `getPlannedExpenses`/`_getPlannedFromStorage` przy braku danych usera spadały do DOMYŚLNYCH celów demo z `data/planned.json` (Edukacja 500 + Remont 1500), a pierwszy `addPlannedGoal` zatrzaskiwał te widma do danych. Fallback usunięty: bez celów = 0 zł (demo dalej działa — seed pisze override wprost). Files: `js/data-manager.js`
 
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
@@ -48,6 +49,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - +4 (payment-edit: updatePayment źródło+lustro, legacy domknięcie, wykres po edycji, red→green) — razem 87; E2E headless: modal z historii, zapis 6000→6100 spójny w historii/wykresie/lustrze
 - +2 (income-categories: filtr kind, legacy=wydatkowe, red→green) — razem 89; E2E headless: kategoria „Wynajem mieszkania" → chip → źródło z pełną nazwą i ikoną w historii
 - +1 (income-categories: kind=business osobny od income/expense) — razem 90; E2E headless pełny scenariusz zgłoszenia: Bayon 📱 → nowa kategoria 🚗 → przepięcie z historii → 🚗 w historii i na liście
+- +2 (planned-defaults-leak: plik demo nie przecieka, add nie zatrzaskuje widm, red→green) — razem 92; smoke headless: hero „Do odłożenia 0 zł" bez celów
 
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 
