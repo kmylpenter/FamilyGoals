@@ -369,6 +369,44 @@ class DataManager {
   /**
    * Usuń pojedynczą płatność
    */
+  /**
+   * Edycja wpłaty (kwota/data/nazwa) + aktualizacja lustra w income.
+   * Lustro po paymentId; legacy (bez paymentId) po sourceId+data+kwota —
+   * dopasowanie na STARYCH wartościach, przed podmianą pól (jak B-M1).
+   */
+  updatePayment(sourceId, paymentId, updates) {
+    const sources = this.getIncomeSources();
+    const source = sources.find(s => s.id === sourceId);
+    if (!source || !source.payments) return null;
+    const payment = source.payments.find(p => p.id === paymentId);
+    if (!payment) return null;
+
+    const incomes = this.getIncome();
+    let mirror = incomes.find(i => i.paymentId === paymentId);
+    if (!mirror) {
+      mirror = incomes.find(i =>
+        !i.paymentId && i.sourceId === sourceId &&
+        i.date === payment.date && i.amount === payment.amount
+      );
+    }
+
+    if (updates.amount !== undefined) payment.amount = updates.amount;
+    if (updates.date !== undefined) payment.date = updates.date;
+    if (updates.note !== undefined) payment.note = updates.note;
+    this._saveIncomeSources(sources);
+
+    if (mirror) {
+      if (updates.amount !== undefined) mirror.amount = updates.amount;
+      if (updates.date !== undefined) mirror.date = updates.date;
+      if (updates.note !== undefined) mirror.description = updates.note;
+      if (!mirror.paymentId) mirror.paymentId = paymentId;
+      this._setCached(this.constructor.STORAGE_KEYS.income, incomes);
+    }
+
+    if (typeof EventBus !== 'undefined') EventBus.emit('income:updated');
+    return payment;
+  }
+
   deletePayment(sourceId, paymentId) {
     const sources = this.getIncomeSources();
     const source = sources.find(s => s.id === sourceId);

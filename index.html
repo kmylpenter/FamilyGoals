@@ -918,6 +918,33 @@
     </div>
   </div>
 
+  <!-- Modal: Edycja wpłaty (z historii) -->
+  <div id="modal-edit-payment" class="modal" role="dialog" aria-label="Edycja wpłaty" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
+        <h2>✏️ Edytuj wpłatę</h2>
+      </div>
+      <form class="form" id="edit-payment-form">
+        <div class="form-group">
+          <label>Kwota (zł)</label>
+          <input type="number" id="edit-payment-amount" class="input-large" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="edit-payment-date" required>
+        </div>
+        <div class="form-group">
+          <label>Nazwa (opcjonalnie)</label>
+          <input type="text" id="edit-payment-note" placeholder="np. Premia świąteczna">
+        </div>
+        <div class="muted" id="edit-payment-source" style="font-size:12px;"></div>
+        <button type="submit" class="btn-primary">💾 Zapisz</button>
+        <button type="button" class="btn-secondary" id="edit-payment-delete">🗑 Usuń wpłatę</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Todo -->
   <div id="modal-todo" class="modal" role="dialog" aria-label="Zadanie domowe" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -1245,6 +1272,11 @@
         if (costRec) costRec.style.display = 'none';
         var costDateGroup = document.getElementById('cost-date-group');
         if (costDateGroup) costDateGroup.style.display = ''; // domyślny typ = jednorazowy
+      }
+      var editPayModal = document.getElementById('modal-edit-payment');
+      if (editPayModal) {
+        var editPayForm = editPayModal.querySelector('form');
+        if (editPayForm) editPayForm.reset();
       }
       var todoModal = document.getElementById('modal-todo');
       if (todoModal) {

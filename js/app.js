@@ -226,6 +226,7 @@
     setupGoalForm();
     setupPaymentForm();
     setupBusinessCostForm();
+    setupHistoryEdit();
     setupTodoForm();
 
     // Tabs
@@ -636,7 +637,9 @@
           type: p.type,
           srcName: src.name,
           icon: src.icon || '💵',
-          ownerIcon: src.owner === 'wife' ? '👩' : '👨'
+          ownerIcon: src.owner === 'wife' ? '👩' : '👨',
+          srcId: src.id,
+          payId: p.id
         });
       });
     });
@@ -657,11 +660,11 @@
         while (guard++ < 60) {
           const ym = `${y}-${String(m).padStart(2, '0')}`;
           if (ym > endYM) break;
-          entries.push({ date: `${ym}-01`, amount: share, note: '', srcName: c.name, icon, ownerIcon: '👨', benefit: 'naliczenie' });
+          entries.push({ date: `${ym}-01`, amount: share, note: '', srcName: c.name, icon, ownerIcon: '👨', benefit: 'naliczenie', costId: c.id });
           m++; if (m > 12) { m = 1; y++; }
         }
       } else if (c.lastPurchaseDate) {
-        entries.push({ date: String(c.lastPurchaseDate).slice(0, 10), amount: c.amount || 0, note: '', srcName: c.name, icon, ownerIcon: '👨', benefit: 'korzyść' });
+        entries.push({ date: String(c.lastPurchaseDate).slice(0, 10), amount: c.amount || 0, note: '', srcName: c.name, icon, ownerIcon: '👨', benefit: 'korzyść', costId: c.id });
       }
     });
     if (entries.length === 0) {
@@ -686,8 +689,11 @@
         : `${e.srcName} • ${day}.${e.date.slice(5, 7)}${e.type === 'cash' ? ' • gotówka' : ''}`;
       if (e.benefit === 'naliczenie') sub = '💼 korzyść firmowa • naliczenie mies.';
       else if (e.benefit === 'korzyść') sub = `💼 korzyść firmowa • ${day}.${e.date.slice(5, 7)}`;
+      const editAttr = e.payId
+        ? `data-pay="${e.srcId}|${e.payId}"`
+        : (e.costId ? `data-cost-edit="${e.costId}"` : '');
       return `${header}
-        <div class="list-item">
+        <div class="list-item" ${editAttr} role="button" tabindex="0">
           <div class="list-icon">${e.icon}</div>
           <div class="list-content">
             <div class="list-title">${e.ownerIcon} ${escapeHtml(title)}</div>
@@ -2494,6 +2500,69 @@
     $('modal-business-cost').querySelector('.modal-header h2').textContent = '💼 Edytuj koszt';
   }
 
+  // ============ EDYCJA WPISÓW HISTORII ============
+  let editingPayment = null;
+
+  function setupHistoryEdit() {
+    const list = $('global-history-list');
+    if (list) {
+      list.addEventListener('click', (e) => {
+        const item = e.target.closest('.list-item');
+        if (!item) return;
+        if (item.dataset.pay) {
+          const [srcId, payId] = item.dataset.pay.split('|');
+          openEditPayment(srcId, payId);
+        } else if (item.dataset.costEdit) {
+          // Naliczenie/korzyść: edytuje się definicję korzyści (kwota,
+          // zakres, cykl) — naliczenia w historii są z niej wyliczane
+          editBusinessCost(item.dataset.costEdit);
+        }
+      });
+    }
+
+    const form = $('edit-payment-form');
+    if (!form) return;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!editingPayment) return;
+      const amount = parseFloat($('edit-payment-amount').value) || 0;
+      const date = $('edit-payment-date').value;
+      const note = $('edit-payment-note').value.trim();
+      if (amount <= 0 || !date) return;
+      dataManager.updatePayment(editingPayment.srcId, editingPayment.payId, { amount, date, note });
+      editingPayment = null;
+      closeAllModals();
+      renderAll();
+      Toast.success('Zapisano!', 'Wpłata zaktualizowana');
+    });
+    const delBtn = $('edit-payment-delete');
+    if (delBtn) {
+      delBtn.addEventListener('click', () => {
+        if (!editingPayment) return;
+        if (!confirm('Usunąć tę wpłatę?')) return;
+        dataManager.deletePayment(editingPayment.srcId, editingPayment.payId);
+        editingPayment = null;
+        closeAllModals();
+        renderAll();
+        Toast.success('Usunięto', 'Wpłata usunięta');
+      });
+    }
+  }
+
+  function openEditPayment(srcId, payId) {
+    const src = dataManager.getIncomeSources().find(s => s.id === srcId);
+    const p = src && (src.payments || []).find(x => x.id === payId);
+    if (!p) return;
+    // Otwarcie PRZED ustawieniem stanu (closeAllModals w openModal resetuje)
+    openModal('modal-edit-payment');
+    editingPayment = { srcId, payId };
+    $('edit-payment-amount').value = p.amount;
+    $('edit-payment-date').value = String(p.date || '').slice(0, 10);
+    $('edit-payment-note').value = p.note || '';
+    const srcLine = $('edit-payment-source');
+    if (srcLine) srcLine.textContent = `Źródło: ${src.name} (${src.owner === 'wife' ? 'Żona' : 'Mąż'})`;
+  }
+
   // ============ TODOS ============
   let editingTodoId = null;
   let currentTodoFilter = 'all';
@@ -2722,6 +2791,7 @@
     editingSourceId = null;
     editingCostId = null;
     editingTodoId = null;
+    editingPayment = null;
   }
 
   // ============ EXPOSE API ============
