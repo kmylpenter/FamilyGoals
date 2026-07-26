@@ -878,7 +878,21 @@ class DataManager {
 
     const person = (owner) => {
       const recurringExpected = recurringExpectedFor(owner, ymView);
-      if (eff === 0) return { recurringExpected, extrasAvg: 0, projected: recurringExpected };
+      // Składniki do okienka "jak to policzone"
+      const recurringSources = sources
+        .filter(s => s.isActive && s.owner === owner && s.incomeType !== 'oneoff')
+        .filter(s => !(s.activeFrom && ymView < s.activeFrom) && !(s.activeTo && ymView > s.activeTo))
+        .map(s => ({ name: s.name, icon: s.icon || '💵', expected: s.expectedAmount || 0 }));
+      const oneoffPayments = [];
+      sources.filter(s => s.owner === owner && s.incomeType === 'oneoff').forEach(s => {
+        (s.payments || []).forEach(p => {
+          const d = new Date(p.date);
+          if (effMonths.some(mm => mm.y === d.getFullYear() && mm.m === d.getMonth())) {
+            oneoffPayments.push({ name: p.note || s.name, icon: s.icon || '💵', amount: p.amount || 0 });
+          }
+        });
+      });
+      if (eff === 0) return { recurringExpected, extrasAvg: 0, projected: recurringExpected, recurringSources, oneoffPayments };
       let extrasSum = 0;
       effMonths.forEach(mm => {
         let cash = 0;
@@ -891,33 +905,36 @@ class DataManager {
         extrasSum += Math.max(0, cash - recurringExpectedFor(owner, mm.ym));
       });
       const extrasAvg = Math.round(extrasSum / eff);
-      return { recurringExpected, extrasAvg, projected: recurringExpected + extrasAvg };
+      return { recurringExpected, extrasAvg, projected: recurringExpected + extrasAvg, recurringSources, oneoffPayments };
     };
 
-    // Korzyści: cykliczne naliczenia aktywne w oglądanym miesiącu
-    let recurringMonthly = 0;
+    // Korzyści: cykliczne naliczenia aktywne w oglądanym miesiącu (+ listy)
+    const recurringItems = [];
     this.getBusinessCosts().forEach(c => {
       if (!(c.isRecurring && c.recurringMonths > 0)) return;
       const startYM = c.activeFrom || String(c.createdAt || '').slice(0, 7);
       if (startYM && ymView < startYM) return;
       if (c.activeTo && ymView > c.activeTo) return;
-      recurringMonthly += c.amount / c.recurringMonths;
+      recurringItems.push({ name: c.name, category: c.category, monthly: Math.round(c.amount / c.recurringMonths) });
     });
-    recurringMonthly = Math.round(recurringMonthly);
-    let oneoffSum = 0;
+    const recurringMonthly = recurringItems.reduce((sum, it) => sum + it.monthly, 0);
+    const oneoffItems = [];
     if (eff > 0) {
       this.getBusinessCosts().forEach(c => {
         if (c.isRecurring || !c.lastPurchaseDate) return;
         const d = new Date(c.lastPurchaseDate);
-        if (effMonths.some(mm => mm.y === d.getFullYear() && mm.m === d.getMonth())) oneoffSum += c.amount || 0;
+        if (effMonths.some(mm => mm.y === d.getFullYear() && mm.m === d.getMonth())) {
+          oneoffItems.push({ name: c.name, category: c.category, amount: c.amount || 0 });
+        }
       });
     }
+    const oneoffSum = oneoffItems.reduce((sum, it) => sum + it.amount, 0);
     const oneoffAvg = eff > 0 ? Math.round(oneoffSum / eff) : 0;
 
     return {
       wife: person('wife'),
       husband: person('husband'),
-      business: { recurringMonthly, oneoffAvg, projected: recurringMonthly + oneoffAvg }
+      business: { recurringMonthly, oneoffAvg, projected: recurringMonthly + oneoffAvg, recurringItems, oneoffItems, oneoffSum, effMonths: eff }
     };
   }
 

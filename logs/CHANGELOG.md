@@ -72,6 +72,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Przycisk płatności z miesiącem: „✓ Zapłacone za sierpień" (miesiąc z terminu `nextDueDate`; toast „Zapłacone za X — termin przesunięty o cykl") — nikt nie odkliknie płatności o miesiąc do przodu przez pomyłkę. Files: `js/app.js`
 - REVERT korekty `activeFrom` Pensji (2025-01 → z powrotem 2023-12): start grudzień 2023 jest CELOWY (wynagrodzenie prezesa od gru'23; wpłaty 2023–2024 będą uzupełniane wstecz — dokładnie do tego służy pula „historia wstecz"). Skutek przejściowy do czasu uzupełnienia: pula księguje wpłaty od najstarszych miesięcy, więc ostatnie ~13 miesięcy Pensji świeci jako niezapłacone. Zmiana danych przez backend
 
+- Okienko „jak to policzone" wypisuje SKŁADNIKI: przy Korzyściach lista cyklicznych z naliczeniem/mies. i lista jednorazowych z okna 12 mies. (z sumą „łącznie X w N mies."); przy osobach lista źródeł założeń, wpłaty jednorazowe i wiersz „nadpłaty ponad założenia (12 mies. łącznie)" — wszystko sumuje się do pokazywanej średniej (silnik: `getIncomeProjection` zwraca `recurringItems/oneoffItems/recurringSources/oneoffPayments`). Files: `js/data-manager.js`, `js/app.js`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
@@ -83,6 +85,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - +3 (stats-alignment: odłożone = wpłaty+korzyści, wpłata bez lustra liczona, target z celów, red→green) — razem 95; na realnych danych: stats 3600 = hero = karta przychodów
 - +4 (yoy: wzrost/spadek r/r, krótka historia bez rozwadniania, korzyści u Męża, red→green) — razem 99; realne dane: Mąż śr. 16 521 zł (+105%); historia: 117 wpisów bez ucinania, filtry 117/0/117/61 spójne
 - +5 (income-projection: nadwyżki, oneoff w nadwyżce, bez ujemnych, korzyści cykliczne+jednorazowe; koperta: updatePlannedProgress) — razem 104; E2E: karuzela realnych celów, wpłata 500 do koperty, karta 3300/18 600
+- +1 (income-projection: listy składników, jednorazowe tylko z okna) — razem 105; E2E: okienko Korzyści z pełną listą (2310 = 300+1130+640+240; 4670/12 = 389), Mąż domknięty co do złotówki (700+2000+28 500 = 2600×12)
 
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 

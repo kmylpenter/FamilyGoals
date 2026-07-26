@@ -66,3 +66,22 @@ test('projekcja korzyści: cykliczne bieżące + śr. jednorazowych z 12 mies.',
   assert.equal(p.business.oneoffAvg, 200, '2400 raz w roku = 200/mies.');
   assert.equal(p.business.projected, 500);
 });
+
+test('projekcja: szczegółowe listy składników (cykliczne + jednorazowe z okna)', () => {
+  const { run } = dm();
+  run(`window.__src = dataManager.addIncomeSource({ name: 'Pensja', owner: 'husband', expectedAmount: 5000, incomeType: 'recurring', isActive: true, activeFrom: '2025-08' })`);
+  seedMonthly(run, 'window.__src', '2025-08', '2026-07', 5000);
+  run(`dataManager.addBusinessCost({ name: 'Abonament', amount: 300, isRecurring: true, recurringMonths: 1, activeFrom: '2025-08' })`);
+  run(`dataManager.addBusinessCost({ name: 'Ubezpieczenie', amount: 2400, isRecurring: false, recurringMonths: null, lastPurchaseDate: '2026-06-10T10:00:00.000Z' })`);
+  run(`dataManager.addBusinessCost({ name: 'Stary zakup poza oknem', amount: 999, isRecurring: false, recurringMonths: null, lastPurchaseDate: '2024-01-10T10:00:00.000Z' })`);
+  const p = run('dataManager.getIncomeProjection(2026, 6)');
+  assert.equal(p.business.recurringItems.length, 1);
+  assert.equal(p.business.recurringItems[0].name, 'Abonament');
+  assert.equal(p.business.recurringItems[0].monthly, 300);
+  assert.equal(p.business.oneoffItems.length, 1, 'tylko jednorazowe z okna 12 mies.');
+  assert.equal(p.business.oneoffItems[0].name, 'Ubezpieczenie');
+  assert.equal(p.business.oneoffItems[0].amount, 2400);
+  assert.equal(p.husband.recurringSources.length, 1);
+  assert.equal(p.husband.recurringSources[0].name, 'Pensja');
+  assert.equal(p.husband.recurringSources[0].expected, 5000);
+});

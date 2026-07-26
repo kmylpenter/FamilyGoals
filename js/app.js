@@ -2745,20 +2745,31 @@
     const body = $('proj-info-body');
     if (!title || !body) return;
     const line = (label, val) => `<div style="display:flex; justify-content:space-between; gap:12px;"><span>${label}</span><b>${formatMoney(val)}</b></div>`;
+    const sub = (icon, name, val) => `<div style="display:flex; justify-content:space-between; gap:12px; font-size:13px; color:var(--text-soft); padding-left:12px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${icon} ${escapeHtml(name)}</span><span>${formatMoney(val)}</span></div>`;
+    const hr = `<hr style="border:none; border-top:1px solid var(--bg-subtle); margin:8px 0;">`;
+    const eff = proj.business.effMonths || 12;
     if (kind === 'business') {
       const b = proj.business;
       title.textContent = '💼 Korzyści firmowe';
       body.innerHTML = line('Cykliczne co miesiąc', b.recurringMonthly)
+        + b.recurringItems.map(it => sub(costCategoryIcon(it.category), it.name, it.monthly)).join('')
         + line('+ średnia jednorazowych (12 mies.)', b.oneoffAvg)
-        + `<hr style="border:none; border-top:1px solid var(--bg-subtle); margin:8px 0;">`
-        + line('= realnie miesięcznie', b.projected);
+        + (b.oneoffItems.length
+          ? `<div style="font-size:12px; color:var(--text-muted); padding-left:12px;">łącznie ${formatMoney(b.oneoffSum)} w ${eff} mies.:</div>`
+            + b.oneoffItems.map(it => sub(costCategoryIcon(it.category), it.name, it.amount)).join('')
+          : '')
+        + hr + line('= realnie miesięcznie', b.projected);
     } else {
       const p = proj[kind];
       title.textContent = kind === 'wife' ? '👩 Żona' : '👨 Mąż';
+      const oneoffSum = p.oneoffPayments.reduce((sum, it) => sum + it.amount, 0);
+      const overpay = Math.max(0, p.extrasAvg * eff - oneoffSum);
       body.innerHTML = line('Zadeklarowane co miesiąc', p.recurringExpected)
+        + p.recurringSources.map(it => sub(it.icon, it.name, it.expected)).join('')
         + line('+ średnia dodatkowych (12 mies.)', p.extrasAvg)
-        + `<hr style="border:none; border-top:1px solid var(--bg-subtle); margin:8px 0;">`
-        + line('= realnie daje', p.projected);
+        + p.oneoffPayments.map(it => sub(it.icon, it.name, it.amount)).join('')
+        + (overpay > 0 ? sub('📈', 'nadpłaty ponad założenia (12 mies. łącznie)', overpay) : '')
+        + hr + line('= realnie daje', p.projected);
     }
     openModal('modal-projection-info');
   }
