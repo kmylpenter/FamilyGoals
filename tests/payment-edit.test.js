@@ -55,3 +55,14 @@ test('po edycji suma miesiąca i wykres widzą nową kwotę', () => {
   const trend = run('dataManager.getTrendByOwner(1)');
   assert.equal(trend[0].wifeIncome, 7000, 'wykres: nowa kwota');
 });
+
+test('recordPayment bez nazwy dostaje etykietę "{źródło} za {miesiąc rok}"', () => {
+  const { run } = dm('2026-07-15T12:00:00');
+  run(`window.__s = dataManager.addIncomeSource({ name: 'Pensja', owner: 'husband', expectedAmount: 6000, incomeType: 'recurring', isActive: true })`);
+  run(`dataManager.recordPayment(window.__s.id, { amount: 6000, date: '2026-07-15' })`);
+  run(`dataManager.recordPayment(window.__s.id, { amount: 500, date: '2026-06-10', note: 'Premia specjalna' })`);
+  const p = run('dataManager.getIncomeSources()[0].payments');
+  assert.equal(p[0].note, 'Pensja za lipiec 2026', 'auto-etykieta z daty wpłaty');
+  assert.equal(p[1].note, 'Premia specjalna', 'własna nazwa zostaje');
+  assert.equal(run('dataManager.getIncome()[0].description'), 'Pensja za lipiec 2026', 'lustro z tą samą etykietą');
+});

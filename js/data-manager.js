@@ -312,6 +312,12 @@ class DataManager {
       note: payment.note || '',
       type: payment.type || 'transfer' // 'transfer' lub 'cash'
     };
+    // Bez własnej nazwy: etykieta "{źródło} za {miesiąc rok}" z daty wpłaty
+    // (decyzja Kamila 2026-07-26 — jednolicie dla wszystkich wpłat)
+    if (!newPayment.note && typeof FGUtils !== 'undefined' && FGUtils.MONTHS) {
+      const d = new Date(newPayment.date);
+      newPayment.note = `${source.name} za ${FGUtils.MONTHS[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+    }
 
     source.payments = source.payments || [];
     source.payments.push(newPayment);
@@ -324,7 +330,7 @@ class DataManager {
       source: source.name,
       sourceId: sourceId,
       paymentId: newPayment.id,
-      description: payment.note,
+      description: newPayment.note,
       date: newPayment.date
     });
 

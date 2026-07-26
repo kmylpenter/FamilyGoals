@@ -78,6 +78,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Okienko osoby wyszczególnia „dodatkowe": nadwyżki PER MIESIĄC („📈 nadwyżka — sierpień 2025 · 23 400" itd. — sumują się co do złotówki do łącznej kwoty) oraz „w tym wpłaty jednorazowe" z nazwą źródła i miesiącem („Bonus: Mystery Gift — lipiec 2026"); noty backfilli bez dopisku „(wg założenia)" (skasowane też w danych, pushChanges applied 14). Files: `js/data-manager.js`, `js/app.js`
 
+- Status „Synchronizacja rodzinna" w Ustawieniach pokazywał wiecznie „nieskonfigurowana" mimo działającego synca — `refreshSyncStatusUI` wołane było tylko przy otwarciu modala synca; teraz też przy starcie. Files: `js/app.js`
+- Etykiety „{źródło} za {miesiąc rok}" dla WSZYSTKICH wpłat: auto-nota w `recordPayment` gdy user nie poda nazwy (własne nazwy zostają) + migracja 54 istniejących wpłat z notami generycznymi („import z arkusza"/puste) w danych (pushChanges applied 60); „(wg założenia)" usunięte z backfilli. Files: `js/data-manager.js`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)

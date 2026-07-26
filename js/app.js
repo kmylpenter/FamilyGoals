@@ -255,6 +255,9 @@
 
     // Settings
     setupSettings();
+    // Status synca na liście Ustawień od startu (był ustawiany dopiero
+    // przy otwarciu modala — lista wiecznie pokazywała "nieskonfigurowana")
+    refreshSyncStatusUI();
 
     // Goal & Income items - delegated events
     document.addEventListener('click', handleItemClick);
