@@ -74,6 +74,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Okienko „jak to policzone" wypisuje SKŁADNIKI: przy Korzyściach lista cyklicznych z naliczeniem/mies. i lista jednorazowych z okna 12 mies. (z sumą „łącznie X w N mies."); przy osobach lista źródeł założeń, wpłaty jednorazowe i wiersz „nadpłaty ponad założenia (12 mies. łącznie)" — wszystko sumuje się do pokazywanej średniej (silnik: `getIncomeProjection` zwraca `recurringItems/oneoffItems/recurringSources/oneoffPayments`). Files: `js/data-manager.js`, `js/app.js`
 
+- Uzupełnienie wpłat „wg założenia" za okres przed 2025 (decyzja Kamila: co zadeklarowane przed 2025 = wpłacone): Pensja gru'23–gru'24, 13 × 6000 zł z notami „Pensja za {miesiąc rok} (wg założenia)" + lustra income (idempotentne id `backfill-…`). Suma Pensji = 186 000 = dokładnie 31 mies. × 6000 (gru'23–cze'26 complete, lipiec'26 pending — model „płacę po miesiącu"); wrzesień'24 w tooltipie wykresu: „Pensja za wrzesień 2024 (wg założenia) 6000". Gotówka bez zmian (segmenty od 2025-01). Wykonane przez backend (pushChanges: applied 14)
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
