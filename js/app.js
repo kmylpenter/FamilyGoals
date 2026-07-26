@@ -228,6 +228,16 @@
     setupBusinessCostForm();
     renderCostCategoryChips();
     setupGoalHero();
+    document.querySelector('.income-status-card')?.addEventListener('click', (e) => {
+      const row = e.target.closest('[data-proj]');
+      if (row) openProjectionInfo(row.dataset.proj);
+    });
+    document.getElementById('timeline-chart-container')?.addEventListener('click', (e) => {
+      const dot = e.target.closest('circle[data-mi]');
+      if (dot) showChartTooltip(parseInt(dot.dataset.mi), dot.dataset.owner);
+      else hideChartTooltip();
+    });
+    setupChartScrub();
     setupHistoryEdit();
     // Kategorie: przełącznik Przychody/Wydatki odświeża listę (generyczny
     // handler .chips przełącza active wcześniej — kolejność rejestracji)
@@ -395,24 +405,27 @@
       const totalReceived = incomeSummary.totalReceived + businessSavings;
       const projectedTotal = proj.wife.projected + proj.husband.projected + proj.business.projected;
 
+      // Format Kamila (2026-07-26): REALNIE (założenia + śr. dodatkowych
+      // z 12 mies.) / DEKLARACJA. Bieżący miesiąc jest na ekranie Przychody.
+      const declaredTotal = proj.wife.recurringExpected + proj.husband.recurringExpected + proj.business.recurringMonthly;
       incomeCard.innerHTML = `
-        <div class="income-status-row">
+        <div class="income-status-row" data-proj="wife" role="button" tabindex="0">
           <span>👩 Żona</span>
-          <span class="income-value ${wifeReceived > 0 ? 'positive' : ''}">${formatMoney(wifeReceived)} / ${formatMoney(proj.wife.projected)}</span>
+          <span class="income-value ${proj.wife.projected > proj.wife.recurringExpected ? 'positive' : ''}">${formatMoney(proj.wife.projected)} / ${formatMoney(proj.wife.recurringExpected)}</span>
         </div>
-        <div class="income-status-row">
+        <div class="income-status-row" data-proj="husband" role="button" tabindex="0">
           <span>👨 Mąż</span>
-          <span class="income-value ${husbandReceived > 0 ? 'positive' : ''}">${formatMoney(husbandReceived)} / ${formatMoney(proj.husband.projected)}</span>
+          <span class="income-value ${proj.husband.projected > proj.husband.recurringExpected ? 'positive' : ''}">${formatMoney(proj.husband.projected)} / ${formatMoney(proj.husband.recurringExpected)}</span>
         </div>
-        <div class="income-status-row">
+        <div class="income-status-row" data-proj="business" role="button" tabindex="0">
           <span>💼 Korzyści firmowe</span>
-          <span class="income-value ${businessSavings > 0 ? 'positive' : ''}">${formatMoney(businessSavings)} / ${formatMoney(proj.business.projected)}</span>
+          <span class="income-value ${proj.business.projected > proj.business.recurringMonthly ? 'positive' : ''}">${formatMoney(proj.business.projected)} / ${formatMoney(proj.business.recurringMonthly)}</span>
         </div>
         <div class="income-status-row total">
           <span>Razem</span>
-          <span class="income-value ${totalReceived >= projectedTotal ? 'positive' : ''}">${formatMoney(totalReceived)} / ${formatMoney(projectedTotal)}</span>
+          <span class="income-value ${projectedTotal > declaredTotal ? 'positive' : ''}">${formatMoney(projectedTotal)} / ${formatMoney(declaredTotal)}</span>
         </div>
-        <div class="muted" style="font-size:11px; text-align:right;">za „/" = założenia + śr. dodatkowych z 12 mies.</div>
+        <div class="muted" style="font-size:11px; text-align:right;">realnie / zadeklarowane · dotknij wiersz po wyliczenie</div>
       `;
     }
 
@@ -426,6 +439,7 @@
 
     // Okno od najwcześniejszych wpłat/źródeł do dziś (decyzja Kamila 2026-07-25)
     const trend = dataManager.getTrendByOwner('auto');
+    lastChartTrend = trend || [];
     if (!trend || trend.length === 0) {
       renderEmptyState(container, 'Brak danych o przychodach');
       return;
@@ -500,7 +514,12 @@
     const pct = (v) => v === null
       ? '<span class="yoy-flat">(—)</span>'
       : `<span class="${v >= 0 ? 'yoy-up' : 'yoy-down'}">(${v >= 0 ? '+' : '−'}${Math.abs(v)}%)</span>`;
-    const yoyLine = `<div class="chart-yoy">Śr. 12 mies.: 👩 ${formatMoney(yoy.wife.avg)} ${pct(yoy.wife.yoy)} · 👨 ${formatMoney(yoy.husband.avg)} ${pct(yoy.husband.yoy)} · ∑ ${formatMoney(yoy.total.avg)} ${pct(yoy.total.yoy)}</div>`;
+    const dot = (c) => `<span class="legend-dot" style="background:var(--${c}); vertical-align:middle; margin-right:2px;"></span>`;
+    const yoyLine = `<div class="chart-yoy">Śr. 12M: ${dot('peach')}👩 ${formatMoney(yoy.wife.avg)} ${pct(yoy.wife.yoy)} · ${dot('mint')}👨 ${formatMoney(yoy.husband.avg)} ${pct(yoy.husband.yoy)} · ∑ ${formatMoney(yoy.total.avg)} ${pct(yoy.total.yoy)}</div>`;
+    // Łączny dochód domu w całym oknie wykresu + średnia miesięczna
+    const totalAll = trend.reduce((sum, t) => sum + (t.totalIncome || 0), 0);
+    const avgAll = trend.length ? Math.round(totalAll / trend.length) : 0;
+    const totalLine = `<div class="chart-yoy">Łącznie: <b>${formatMoney(totalAll)}</b> · śr. <b>${formatMoney(avgAll)}/mies.</b></div>`;
 
     // Build SVG - simple line chart
     container.innerHTML = `
@@ -531,10 +550,12 @@
           <!-- Husband line -->
           <path d="${husbandLine}" fill="none" stroke="var(--mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-          <!-- Data points -->
+          <!-- Data points + niewidoczne strefy dotyku (tooltip ze składem) -->
           ${trend.map((t, i) => `
             <circle cx="${getX(i)}" cy="${getY(t.wifeIncome || 0)}" r="3" fill="var(--peach)" stroke="white" stroke-width="1"/>
             <circle cx="${getX(i)}" cy="${getY(t.husbandIncome || 0)}" r="3" fill="var(--mint)" stroke="white" stroke-width="1"/>
+            <circle cx="${getX(i)}" cy="${getY(t.wifeIncome || 0)}" r="11" fill="transparent" data-mi="${i}" data-owner="wife"/>
+            <circle cx="${getX(i)}" cy="${getY(t.husbandIncome || 0)}" r="11" fill="transparent" data-mi="${i}" data-owner="husband"/>
           `).join('')}
 
           <!-- Month labels -->
@@ -544,10 +565,7 @@
         </svg>
 
         ${yoyLine}
-        <div class="chart-legend-inline">
-          <span class="legend-item-inline"><span class="legend-dot" style="background:var(--peach)"></span>👩 Żona</span>
-          <span class="legend-item-inline"><span class="legend-dot" style="background:var(--mint)"></span>👨 Mąż</span>
-        </div>
+        ${totalLine}
       </div>
     `;
   }
@@ -2614,6 +2632,130 @@
 
     // Update modal title
     $('modal-business-cost').querySelector('.modal-header h2').textContent = '💼 Edytuj koszt';
+  }
+
+  // ============ TOOLTIP KROPKI WYKRESU (kwota + skład miesiąca) ============
+  let lastChartTrend = [];
+
+  function chartMonthBreakdown(owner, y, m) {
+    const items = [];
+    dataManager.getIncomeSources().filter(s => s.owner === owner).forEach(s => {
+      (s.payments || []).forEach(p => {
+        const d = new Date(p.date);
+        if (d.getFullYear() === y && d.getMonth() === m) {
+          const label = p.note && !/^(Przelew|Gotówka|import z arkusza)$/.test(p.note) ? p.note : s.name;
+          items.push({ label: `${s.icon || '💵'} ${label}`, amount: p.amount || 0 });
+        }
+      });
+    });
+    if (owner === 'husband') {
+      const ym = `${y}-${String(m + 1).padStart(2, '0')}`;
+      dataManager.getBusinessCosts().forEach(c => {
+        if (c.isRecurring && c.recurringMonths > 0) {
+          const startYM = c.activeFrom || String(c.createdAt || '').slice(0, 7);
+          if (startYM && ym < startYM) return;
+          if (c.activeTo && ym > c.activeTo) return;
+          items.push({ label: `${costCategoryIcon(c.category)} ${c.name}`, amount: Math.round(c.amount / c.recurringMonths) });
+        } else if (c.lastPurchaseDate) {
+          const d = new Date(c.lastPurchaseDate);
+          if (d.getFullYear() === y && d.getMonth() === m) {
+            items.push({ label: `${costCategoryIcon(c.category)} ${c.name}`, amount: c.amount || 0 });
+          }
+        }
+      });
+    }
+    items.sort((a, b) => b.amount - a.amount);
+    return items;
+  }
+
+  /**
+   * Scrub palcem po wykresie: dotknięcie/przesunięcie pokazuje najbliższą
+   * kropkę (miesiąc z X, seria Żona/Mąż z odległości w pionie do kropek).
+   * Stałe padding muszą zgadzać się z renderChart (padding {15,10,25,38}).
+   */
+  function setupChartScrub() {
+    const cont = document.getElementById('timeline-chart-container');
+    if (!cont) return;
+    let lastKey = '';
+    const handle = (e) => {
+      if (e.target.closest('.chart-tooltip')) return; // tap w dymek = zamknięcie klikiem
+      const svg = cont.querySelector('svg.line-chart');
+      if (!svg || !lastChartTrend.length) return;
+      const touch = e.touches && e.touches[0];
+      if (!touch) return;
+      const rect = svg.getBoundingClientRect();
+      const vb = svg.viewBox.baseVal;
+      const xVb = (touch.clientX - rect.left) / rect.width * vb.width;
+      const yVb = (touch.clientY - rect.top) / rect.height * vb.height;
+      const padL = 38, padR = 10;
+      const chartW = vb.width - padL - padR;
+      const n = lastChartTrend.length;
+      let i = Math.round((xVb - padL) / chartW * (n - 1));
+      i = Math.max(0, Math.min(n - 1, i));
+      let best = null, bestDy = Infinity;
+      svg.querySelectorAll(`circle[data-mi="${i}"]`).forEach(d => {
+        const dy = Math.abs(parseFloat(d.getAttribute('cy')) - yVb);
+        if (dy < bestDy) { bestDy = dy; best = d; }
+      });
+      if (!best) return;
+      const key = `${i}|${best.dataset.owner}`;
+      if (key !== lastKey) { lastKey = key; showChartTooltip(i, best.dataset.owner); }
+      if (e.cancelable) e.preventDefault();
+    };
+    cont.addEventListener('touchstart', handle, { passive: false });
+    cont.addEventListener('touchmove', handle, { passive: false });
+  }
+
+  function hideChartTooltip() {
+    document.querySelector('.chart-tooltip')?.remove();
+  }
+
+  function showChartTooltip(mi, owner) {
+    hideChartTooltip();
+    const t = lastChartTrend[mi];
+    if (!t) return;
+    const card = document.querySelector('#timeline-chart-container');
+    if (!card) return;
+    const total = owner === 'wife' ? (t.wifeIncome || 0) : (t.husbandIncome || 0);
+    const items = chartMonthBreakdown(owner, t.year, t.month);
+    const shownItems = items.slice(0, 6);
+    const box = document.createElement('div');
+    box.className = 'chart-tooltip';
+    const mies = `${FGUtils.MONTHS[t.month]} ${t.year}`;
+    box.innerHTML = `
+      <div class="chart-tooltip-head"><span>${owner === 'wife' ? '👩' : '👨'} ${mies}</span><b>${formatMoney(total)}</b></div>
+      ${shownItems.length === 0 ? '<div class="muted">Brak wpłat w tym miesiącu</div>' : shownItems.map(it =>
+        `<div class="chart-tooltip-row"><span>${escapeHtml(it.label)}</span><span>${formatMoney(it.amount)}</span></div>`).join('')}
+      ${items.length > shownItems.length ? `<div class="muted" style="text-align:center;">…i ${items.length - shownItems.length} więcej</div>` : ''}
+    `;
+    box.addEventListener('click', hideChartTooltip);
+    card.appendChild(box);
+  }
+
+  // ============ OKIENKO "JAK TO POLICZONE" (karta przychodów) ============
+  function openProjectionInfo(kind) {
+    const { year, month } = getYearMonth();
+    const proj = dataManager.getIncomeProjection(year, month);
+    const title = $('proj-info-title');
+    const body = $('proj-info-body');
+    if (!title || !body) return;
+    const line = (label, val) => `<div style="display:flex; justify-content:space-between; gap:12px;"><span>${label}</span><b>${formatMoney(val)}</b></div>`;
+    if (kind === 'business') {
+      const b = proj.business;
+      title.textContent = '💼 Korzyści firmowe';
+      body.innerHTML = line('Cykliczne co miesiąc', b.recurringMonthly)
+        + line('+ średnia jednorazowych (12 mies.)', b.oneoffAvg)
+        + `<hr style="border:none; border-top:1px solid var(--bg-subtle); margin:8px 0;">`
+        + line('= realnie miesięcznie', b.projected);
+    } else {
+      const p = proj[kind];
+      title.textContent = kind === 'wife' ? '👩 Żona' : '👨 Mąż';
+      body.innerHTML = line('Zadeklarowane co miesiąc', p.recurringExpected)
+        + line('+ średnia dodatkowych (12 mies.)', p.extrasAvg)
+        + `<hr style="border:none; border-top:1px solid var(--bg-subtle); margin:8px 0;">`
+        + line('= realnie daje', p.projected);
+    }
+    openModal('modal-projection-info');
   }
 
   // ============ KARUZELA CELÓW-KOPERT (Start) ============

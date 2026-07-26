@@ -60,6 +60,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Karta „Wasze przychody": kolumna „/" pokazuje REALNĄ moc zamiast samych założeń — założenia cykliczne (wybrany miesiąc) + średnia 12-mies. dodatkowych pieniędzy (nadwyżki wpłat ponad założenia — obejmuje źródła jednorazowe i nadpłaty; dla korzyści: cykliczne naliczenia + śr. jednorazowych); podpis wyjaśniający pod kartą. Silnik: `getIncomeProjection`. Na realnych danych: Mąż 3300/18 600 (16 000 założeń + 2600 śr. nadwyżek), Korzyści 4100/2699, Razem 7400/21 299. Files: `js/data-manager.js`, `js/app.js`
 - Linia „Śr. 12 mies." przeniesiona nad legendę wykresu (FAB przysłaniał jej prawy koniec). Files: `js/app.js`
 
+- Karta „Wasze przychody" w formacie Kamila: REALNIE / ZADEKLAROWANE (Mąż 18 600/16 000, Korzyści 2699/2310, Razem 21 299/18 310) — lewa = założenia + śr. dodatkowych z 12 mies., prawa = deklaracja (twarde minimum); bieżący miesiąc pozostaje na ekranie Przychody; dotknięcie wiersza otwiera okienko „X + Y = Z" (np. Zadeklarowane 16 000 + śr. dodatkowych 2600 = realnie 18 600). Files: `js/app.js`, `index.html`
+- Wykres: klikalne kropki (niewidoczne strefy dotyku r=11) → dymek z kwotą miesiąca i składem (wpłaty + naliczenia korzyści, top 6 + „…i N więcej"); przesuwanie palcem po wykresie (scrub) podświetla najbliższą kropkę (miesiąc z osi X, seria z bliskości w pionie) — łatwe celowanie przy gęstych danych. Files: `js/app.js`, `css/main.css`
+- Pod wykresem linia „Łącznie: X zł · śr. Y zł/mies." — suma dochodu domu (wpłaty + korzyści) w całym oknie wykresu i średnia miesięczna (na realnych danych: 361 734 zł · 9275 zł/mies. z 39 mies.); osobna legenda scalona z linią średnich (kolorowe kropki inline), linie bez łamania (nowrap + przewijanie awaryjne). Files: `js/app.js`, `css/main.css`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)

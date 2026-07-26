@@ -938,6 +938,17 @@
     </div>
   </div>
 
+  <!-- Modal: Jak policzona kwota z karty Wasze przychody -->
+  <div id="modal-projection-info" class="modal" role="dialog" aria-label="Jak to policzone" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
+        <h2 id="proj-info-title">Jak to policzone</h2>
+      </div>
+      <div class="modal-body" id="proj-info-body" style="line-height:2; font-size:15px;"></div>
+    </div>
+  </div>
+
   <!-- Modal: Wpłata do koperty celu (z kafla na Starcie) -->
   <div id="modal-goal-deposit" class="modal" role="dialog" aria-label="Wpłata do celu" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
