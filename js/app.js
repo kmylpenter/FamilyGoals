@@ -2726,7 +2726,7 @@
     if (!card) return;
     const total = owner === 'wife' ? (t.wifeIncome || 0) : (t.husbandIncome || 0);
     const items = chartMonthBreakdown(owner, t.year, t.month);
-    const shownItems = items.slice(0, 6);
+    const shownItems = items; // pełna lista (decyzja Kamila 2026-07-26)
     const box = document.createElement('div');
     box.className = 'chart-tooltip';
     const mies = `${FGUtils.MONTHS[t.month]} ${t.year}`;
@@ -2734,7 +2734,7 @@
       <div class="chart-tooltip-head"><span>${owner === 'wife' ? '👩' : '👨'} ${mies}</span><b>${formatMoney(total)}</b></div>
       ${shownItems.length === 0 ? '<div class="muted">Brak wpłat w tym miesiącu</div>' : shownItems.map(it =>
         `<div class="chart-tooltip-row"><span>${escapeHtml(it.label)}</span><span>${formatMoney(it.amount)}</span></div>`).join('')}
-      ${items.length > shownItems.length ? `<div class="muted" style="text-align:center;">…i ${items.length - shownItems.length} więcej</div>` : ''}
+
     `;
     box.addEventListener('click', hideChartTooltip);
     card.appendChild(box);
