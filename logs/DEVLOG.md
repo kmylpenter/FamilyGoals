@@ -11,24 +11,58 @@
 
 ## Current Context
 
-**Last Updated:** 2026-07-24
+**Last Updated:** 2026-07-26
 
 ### Project State
 - **Project:** FamilyGoals
-- **Version:** v0.2.0-dev (po audycie stabilizacyjnym)
-- **Phase:** Stabilizacja → droga do wersji stabilnej
+- **Version:** v0.3.0-dev (wersja DZIAŁAJĄCA dla obojga; web 2026-07-26T08:04:49Z, APK 1.3.0)
+- **Phase:** Produkcyjne użycie rodzinne — APK dla Żony (zero-config), iteracje wg zgłoszeń Kamila
 
 ### Current Objectives (STRATEGICZNE - tydzień/sprint)
-- [x] Pełny audyt projektu (raport: `logs/AUDIT-2026-07-24.md`)
-- [x] Bramka testowa (`npm test`, 43 testy)
-- [x] Naprawy fal 1-2 (integralność danych + spójność)
-- [ ] Decyzje o martwych modułach i osiągnięciach (Kamil — patrz AUDIT)
-- [ ] Fala 3 (porządki wg decyzji) + minors
-- [ ] Test na urządzeniu + APK przez PWABuilder
+- [x] Backend rodzinny + sync + import historii (sesja 14)
+- [x] Korzyści firmowe jako pełnoprawny przychód Męża (zakresy od–do, historia, wykres, kategorie własne)
+- [x] Karta „realnie/zadeklarowane" + okienka wyliczeń + YoY + tooltipy/scrub wykresu
+- [x] Zero-konfiguracyjny APK (gitignorowany family-config.js do OTA/APK)
+- [ ] APK dla Żony — build i instalacja (Kamil)
+- [ ] Uzupełnienie udokumentowanych przelewów 2023–24 (Kamil; wpisy „wg założenia" już siedzą, edytowalne z historii)
+- [ ] Decyzje o martwych modułach i osiągnięciach (patrz AUDIT-2026-07-24)
 
 ---
 
 ## Daily Log
+
+### 2026-07-25/26: Maraton — korzyści firmowe pełnoprawne, projekcje, zero-config APK
+
+**Sytuacja:** Kamil intensywnie testuje na telefonie i zgłasza na żywo;
+tryb „zawsze wrzucaj" (auto-release po zielonej bramce, zapisany w pamięci).
+
+**Wyzwanie:** Kilkanaście zgłoszeń w pętli — od „nie widzę korzyści w historii"
+po „zhardkoduj sync do APK" — bez psucia świeżych fundamentów.
+
+**Decyzje:** (1) Korzyści firmowe = przychód Męża (firma Męża) — wszędzie:
+historia (naliczenia mies. + jednorazowe pod datą), wykres (okno auto od
+najwcześniejszej korzyści), statystyki. (2) Karta „Wasze przychody" =
+REALNIE/ZADEKLAROWANE: projekcja = założenia + śr. 12-mies. nadwyżek
+(intencja > litera: nadpłaty gotówki liczą się, nie tylko źródła oneoff);
+okienko „X+Y=Z" ze składnikami per pozycja i nadwyżkami per miesiąc.
+(3) Kafel celów = karuzela kopert (wpłata dotknięciem). (4) Wykres:
+tooltip kropek ze składem miesiąca + scrub palcem + „Łącznie/śr." okna.
+(5) Zero-config: gitignorowany js/family-config.js generowany do OTA/APK —
+token nigdy w repo (Pages publiczne). (6) Dane: backfill „Pensja za {mies}"
+gru'23–gru'24 wg założeń (materiał do podmiany na udokumentowane);
+etykiety „{źródło} za {miesiąc rok}" dla wszystkich wpłat (auto-nota
+w recordPayment + migracja 54 not).
+
+**Rezultat:** 21 wydań OTA w ~24h, suita 63→106 testów (red-first),
+każda zmiana weryfikowana headless na REALNYCH danych rodziny (pull-only,
+push blokowany). Wyłapane po drodze: fabrykacja wstecz, widmowe cele demo,
+zły start puli Pensji (revert po wyjaśnieniu Kamila — activeFrom 2023-12
+celowy), martwy jednorazowy check aktualizacji.
+
+**Files:** praktycznie cały front (`js/*`, `index.html`, `css/main.css`),
+`scripts/gen-family-config.sh`, `tests/*` (8 nowych plików), CHANGELOG
+
+---
 
 ### 2026-07-24 (cz. 2): Backend rodzinny — arkusz Google + sync urządzeń
 
