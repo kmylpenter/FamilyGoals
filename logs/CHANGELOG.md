@@ -56,6 +56,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Kafel oszczędności ZNIKA przy braku celów (4. runda „co to za kwota 7400?!"): bez wydatków i bez celu pokazywał to samo co „Razem" na karcie przychodów — czyste dublowanie; wraca automatycznie z pierwszym celem (cel vs odłożone + pasek). Files: `js/app.js`
 - Filtr per kategoria wpłaty w historii: drugi rząd chipów (przewijany poziomo) budowany z danych — nazwa źródła/korzyści + ikona + licznik, łączy się z filtrem osoby (liczniki w obrębie aktywnego filtra osoby). Files: `index.html`, `js/app.js`, `css/main.css`
 
+- Karuzela celów-kopert na Starcie: strzałki ‹ › przełączają cele (nazwa + licznik 1/N), dotknięcie kafla otwiera modal „✉️ Do koperty" → wpłata dolicza się do `currentAmount` celu (`updatePlannedProgress`, sync-safe); pasek postępu i „Zostało" przy celach kwotowych. Files: `index.html`, `js/app.js`, `css/main.css`
+- Karta „Wasze przychody": kolumna „/" pokazuje REALNĄ moc zamiast samych założeń — założenia cykliczne (wybrany miesiąc) + średnia 12-mies. dodatkowych pieniędzy (nadwyżki wpłat ponad założenia — obejmuje źródła jednorazowe i nadpłaty; dla korzyści: cykliczne naliczenia + śr. jednorazowych); podpis wyjaśniający pod kartą. Silnik: `getIncomeProjection`. Na realnych danych: Mąż 3300/18 600 (16 000 założeń + 2600 śr. nadwyżek), Korzyści 4100/2699, Razem 7400/21 299. Files: `js/data-manager.js`, `js/app.js`
+- Linia „Śr. 12 mies." przeniesiona nad legendę wykresu (FAB przysłaniał jej prawy koniec). Files: `js/app.js`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
@@ -66,6 +70,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - +2 (planned-defaults-leak: plik demo nie przecieka, add nie zatrzaskuje widm, red→green) — razem 92; smoke headless: hero „Do odłożenia 0 zł" bez celów
 - +3 (stats-alignment: odłożone = wpłaty+korzyści, wpłata bez lustra liczona, target z celów, red→green) — razem 95; na realnych danych: stats 3600 = hero = karta przychodów
 - +4 (yoy: wzrost/spadek r/r, krótka historia bez rozwadniania, korzyści u Męża, red→green) — razem 99; realne dane: Mąż śr. 16 521 zł (+105%); historia: 117 wpisów bez ucinania, filtry 117/0/117/61 spójne
+- +5 (income-projection: nadwyżki, oneoff w nadwyżce, bez ujemnych, korzyści cykliczne+jednorazowe; koperta: updatePlannedProgress) — razem 104; E2E: karuzela realnych celów, wpłata 500 do koperty, karta 3300/18 600
 
 ### Sesja 13 (2026-07-24) - Pełny audyt + stabilizacja (fala 1+2) + bramka testowa
 

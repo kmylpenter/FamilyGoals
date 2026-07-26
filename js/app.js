@@ -227,6 +227,7 @@
     setupPaymentForm();
     setupBusinessCostForm();
     renderCostCategoryChips();
+    setupGoalHero();
     setupHistoryEdit();
     // Kategorie: przełącznik Przychody/Wydatki odświeża listę (generyczny
     // handler .chips przełącza active wcześniej — kolejność rejestracji)
@@ -362,46 +363,11 @@
     const badge = $('month-badge');
     if (badge) badge.textContent = formatMonth(currentMonth);
 
-    // Cel miesiąca z realnych celów usera (SSOT: ten sam helper co statystyki)
-    const totalRequired = dataManager.getMonthlySavingsTarget();
-
     // Get income summary
     const incomeSummary = dataManager.getMonthlyIncomeSummary(year, month);
-    const monthStats = dataManager.getMonthlyStats(year, month);
-    const savedThisMonth = monthStats.savings > 0 ? monthStats.savings : 0;
 
-    // Update hero section
-    const savingsRequired = $('savings-required');
-    const savingsDone = $('savings-done');
-    const savingsBar = $('savings-bar');
-    const hasTarget = totalRequired > 0;
-
-    // Bez ustawionego celu kafel ZNIKA (4. runda pytań "co to za kwota?!"):
-    // bez wydatków i celu pokazywał to samo co "Razem" na karcie przychodów.
-    // Wraca, gdy pojawi się pierwszy cel (cel vs odłożone + pasek).
-    const heroCard = document.querySelector('#screen-dashboard .income-hero');
-    if (heroCard) heroCard.style.display = hasTarget ? '' : 'none';
-
-    // Duża liczba = ODŁOŻONE (fakt); cel jako podpis, "bez celu" gdy brak
-    if (savingsDone) savingsDone.textContent = formatMoney(savedThisMonth);
-    if (savingsRequired) savingsRequired.textContent = hasTarget ? formatMoney(totalRequired) : 'bez celu';
-
-    const percent = hasTarget ? Math.round((savedThisMonth / totalRequired) * 100) : 0;
-    if (savingsBar) {
-      savingsBar.style.width = Math.min(100, percent) + '%';
-      // Pasek i "Zostało" tylko przy ustawionym celu — bez celu nie ma czego odmierzać
-      savingsBar.parentElement.style.display = hasTarget ? '' : 'none';
-    }
-
-    // A-M3: tekst pod paskiem był statycznym HTML — pasek się ruszał,
-    // liczby obok nie
-    const savingsLeftText = $('savings-left-text');
-    const savingsPercentText = $('savings-percent-text');
-    if (savingsLeftText) {
-      savingsLeftText.textContent = 'Zostało: ' + formatMoney(Math.max(0, totalRequired - savedThisMonth));
-      savingsLeftText.parentElement.style.display = hasTarget ? '' : 'none';
-    }
-    if (savingsPercentText) savingsPercentText.textContent = percent + '%';
+    // Karuzela celów-kopert (strzałki + wpłata dotknięciem); ukryta bez celów
+    renderGoalHero();
 
     renderAdviceAndAlerts();
 
@@ -423,34 +389,38 @@
       });
 
       const businessSavings = dataManager.calculateBusinessSavings(year, month);
+      // Kolumna "/" = realna moc (decyzja Kamila 2026-07-26): założenia
+      // cykliczne + śr. 12-mies. dodatkowych (nadwyżki/jednorazowe)
+      const proj = dataManager.getIncomeProjection(year, month);
       const totalReceived = incomeSummary.totalReceived + businessSavings;
-      const totalExpected = incomeSummary.totalExpected + businessSavings;
+      const projectedTotal = proj.wife.projected + proj.husband.projected + proj.business.projected;
 
       incomeCard.innerHTML = `
         <div class="income-status-row">
           <span>👩 Żona</span>
-          <span class="income-value ${wifeReceived > 0 ? 'positive' : ''}">${formatMoney(wifeReceived)} / ${formatMoney(wifeExpected)}</span>
+          <span class="income-value ${wifeReceived > 0 ? 'positive' : ''}">${formatMoney(wifeReceived)} / ${formatMoney(proj.wife.projected)}</span>
         </div>
         <div class="income-status-row">
           <span>👨 Mąż</span>
-          <span class="income-value ${husbandReceived > 0 ? 'positive' : ''}">${formatMoney(husbandReceived)} / ${formatMoney(husbandExpected)}</span>
+          <span class="income-value ${husbandReceived > 0 ? 'positive' : ''}">${formatMoney(husbandReceived)} / ${formatMoney(proj.husband.projected)}</span>
         </div>
         <div class="income-status-row">
           <span>💼 Korzyści firmowe</span>
-          <span class="income-value ${businessSavings > 0 ? 'positive' : ''}">${formatMoney(businessSavings)}</span>
+          <span class="income-value ${businessSavings > 0 ? 'positive' : ''}">${formatMoney(businessSavings)} / ${formatMoney(proj.business.projected)}</span>
         </div>
         <div class="income-status-row total">
           <span>Razem</span>
-          <span class="income-value ${totalReceived >= totalExpected ? 'positive' : ''}">${formatMoney(totalReceived)} / ${formatMoney(totalExpected)}</span>
+          <span class="income-value ${totalReceived >= projectedTotal ? 'positive' : ''}">${formatMoney(totalReceived)} / ${formatMoney(projectedTotal)}</span>
         </div>
+        <div class="muted" style="font-size:11px; text-align:right;">za „/" = założenia + śr. dodatkowych z 12 mies.</div>
       `;
     }
 
     // Render chart
-    renderChart(totalRequired);
+    renderChart();
   }
 
-  function renderChart(neededIncome) {
+  function renderChart() {
     const container = document.querySelector('#timeline-chart-container');
     if (!container) return;
 
@@ -573,11 +543,11 @@
           `).join('')}
         </svg>
 
+        ${yoyLine}
         <div class="chart-legend-inline">
           <span class="legend-item-inline"><span class="legend-dot" style="background:var(--peach)"></span>👩 Żona</span>
           <span class="legend-item-inline"><span class="legend-dot" style="background:var(--mint)"></span>👨 Mąż</span>
         </div>
-        ${yoyLine}
       </div>
     `;
   }
@@ -2646,6 +2616,75 @@
     $('modal-business-cost').querySelector('.modal-header h2').textContent = '💼 Edytuj koszt';
   }
 
+  // ============ KARUZELA CELÓW-KOPERT (Start) ============
+  let goalHeroIndex = 0;
+  let depositGoalId = null;
+
+  function renderGoalHero() {
+    const hero = $('goal-hero');
+    if (!hero) return;
+    const goals = dataManager.getPlannedExpenses();
+    if (!goals.length) { hero.style.display = 'none'; return; }
+    hero.style.display = '';
+    if (goalHeroIndex >= goals.length) goalHeroIndex = 0;
+    if (goalHeroIndex < 0) goalHeroIndex = goals.length - 1;
+    const g = goals[goalHeroIndex];
+    hero.dataset.goalId = g.id;
+    const name = $('goal-hero-name');
+    if (name) name.textContent = `${g.icon || '🎯'} ${g.name}${goals.length > 1 ? ` (${goalHeroIndex + 1}/${goals.length})` : ''}`;
+    const saved = g.currentAmount || 0;
+    const target = g.targetAmount || 0;
+    if ($('goal-hero-saved')) $('goal-hero-saved').textContent = formatMoney(saved);
+    if ($('goal-hero-target')) {
+      $('goal-hero-target').textContent = target > 0
+        ? `z ${formatMoney(target)}`
+        : (g.monthlyContribution ? `${formatMoney(g.monthlyContribution)}/mies.` : '—');
+    }
+    const pct = target > 0 ? Math.min(100, Math.round((saved / target) * 100)) : 0;
+    const bar = $('goal-hero-bar');
+    if (bar) {
+      bar.style.width = pct + '%';
+      bar.parentElement.style.display = target > 0 ? '' : 'none';
+    }
+    const left = $('goal-hero-left');
+    if (left) {
+      left.textContent = 'Zostało: ' + formatMoney(Math.max(0, target - saved));
+      left.parentElement.style.display = target > 0 ? '' : 'none';
+    }
+    if ($('goal-hero-percent')) $('goal-hero-percent').textContent = pct + '%';
+  }
+
+  function setupGoalHero() {
+    const hero = $('goal-hero');
+    if (!hero) return;
+    $('goal-hero-prev')?.addEventListener('click', (e) => { e.stopPropagation(); goalHeroIndex--; renderGoalHero(); });
+    $('goal-hero-next')?.addEventListener('click', (e) => { e.stopPropagation(); goalHeroIndex++; renderGoalHero(); });
+    hero.addEventListener('click', (e) => {
+      if (e.target.closest('.goal-hero-arrow')) return;
+      const goals = dataManager.getPlannedExpenses();
+      const g = goals.find(x => x.id === hero.dataset.goalId) || goals[0];
+      if (!g) return;
+      // Otwarcie PRZED ustawieniem stanu (closeAllModals resetuje editing*)
+      openModal('modal-goal-deposit');
+      depositGoalId = g.id;
+      const t = $('goal-deposit-title');
+      if (t) t.textContent = `✉️ ${g.icon || '🎯'} ${g.name}`;
+    });
+    const form = $('goal-deposit-form');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const amount = parseFloat($('goal-deposit-amount').value) || 0;
+        if (!depositGoalId || amount <= 0) return;
+        dataManager.updatePlannedProgress(depositGoalId, amount);
+        depositGoalId = null;
+        closeAllModals();
+        renderAll();
+        Toast.success('W kopercie!', 'Wpłata dodana do celu');
+      });
+    }
+  }
+
   // ============ EDYCJA WPISÓW HISTORII ============
   let editingPayment = null;
   let historyFilter = 'all';
@@ -2952,6 +2991,7 @@
     editingCostId = null;
     editingTodoId = null;
     editingPayment = null;
+    depositGoalId = null;
   }
 
   // ============ EXPOSE API ============

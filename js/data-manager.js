@@ -848,6 +848,79 @@ class DataManager {
     };
   }
 
+  /**
+   * Projekcja "ile realnie daje" (karta Wasze przychody, kolumna "/"):
+   * osoby: założenia cykliczne (wybrany miesiąc) + średnia 12-mies. NADWYŻEK
+   * wpłat kasowych ponad założenia (obejmuje źródła jednorazowe i nadpłaty;
+   * niedopłaty nie dają ujemnych nadwyżek). Korzyści: cykliczne naliczenia
+   * bieżące + średnia 12-mies. korzyści jednorazowych. Okno od pierwszego
+   * regularnego śledzenia (bez rozwadniania zerami sprzed danych).
+   */
+  getIncomeProjection(year, month) {
+    const ymView = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const sources = this.getIncomeSources();
+
+    const recurringExpectedFor = (owner, ym) => sources
+      .filter(s => s.isActive && s.owner === owner && s.incomeType !== 'oneoff')
+      .filter(s => !(s.activeFrom && ym < s.activeFrom) && !(s.activeTo && ym > s.activeTo))
+      .reduce((sum, s) => sum + (s.expectedAmount || 0), 0);
+
+    // Okno: ostatnie 12 miesięcy od dziś
+    const now = new Date();
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ y: d.getFullYear(), m: d.getMonth(), ym: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` });
+    }
+    const firstYM = this._earliestRegularIncomeYM();
+    const effMonths = firstYM ? months.filter(mm => mm.ym >= firstYM) : [];
+    const eff = effMonths.length;
+
+    const person = (owner) => {
+      const recurringExpected = recurringExpectedFor(owner, ymView);
+      if (eff === 0) return { recurringExpected, extrasAvg: 0, projected: recurringExpected };
+      let extrasSum = 0;
+      effMonths.forEach(mm => {
+        let cash = 0;
+        sources.filter(s => s.owner === owner).forEach(s => {
+          (s.payments || []).forEach(p => {
+            const d = new Date(p.date);
+            if (d.getFullYear() === mm.y && d.getMonth() === mm.m) cash += p.amount || 0;
+          });
+        });
+        extrasSum += Math.max(0, cash - recurringExpectedFor(owner, mm.ym));
+      });
+      const extrasAvg = Math.round(extrasSum / eff);
+      return { recurringExpected, extrasAvg, projected: recurringExpected + extrasAvg };
+    };
+
+    // Korzyści: cykliczne naliczenia aktywne w oglądanym miesiącu
+    let recurringMonthly = 0;
+    this.getBusinessCosts().forEach(c => {
+      if (!(c.isRecurring && c.recurringMonths > 0)) return;
+      const startYM = c.activeFrom || String(c.createdAt || '').slice(0, 7);
+      if (startYM && ymView < startYM) return;
+      if (c.activeTo && ymView > c.activeTo) return;
+      recurringMonthly += c.amount / c.recurringMonths;
+    });
+    recurringMonthly = Math.round(recurringMonthly);
+    let oneoffSum = 0;
+    if (eff > 0) {
+      this.getBusinessCosts().forEach(c => {
+        if (c.isRecurring || !c.lastPurchaseDate) return;
+        const d = new Date(c.lastPurchaseDate);
+        if (effMonths.some(mm => mm.y === d.getFullYear() && mm.m === d.getMonth())) oneoffSum += c.amount || 0;
+      });
+    }
+    const oneoffAvg = eff > 0 ? Math.round(oneoffSum / eff) : 0;
+
+    return {
+      wife: person('wife'),
+      husband: person('husband'),
+      business: { recurringMonthly, oneoffAvg, projected: recurringMonthly + oneoffAvg }
+    };
+  }
+
   // === RECURRING ===
 
   getRecurringExpenses() {

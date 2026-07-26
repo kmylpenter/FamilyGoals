@@ -31,3 +31,12 @@ test('pierwszy addPlannedGoal nie zatrzaskuje celów demo do danych', () => {
   assert.equal(goals.length, 1, `w danych wylądowało ${goals.length} celów (demo przemycone)`);
   assert.equal(goals[0].name, 'Mój cel');
 });
+
+test('koperta: updatePlannedProgress dolicza wpłatę do currentAmount celu', () => {
+  const { run } = withFileDefaults();
+  run(`dataManager.addPlannedGoal({ name: 'Wakacje', targetAmount: 10000, currentAmount: 0 })`);
+  const id = run('dataManager.getPlannedExpenses()[0].id');
+  run(`dataManager.updatePlannedProgress('${id}', 500)`);
+  run(`dataManager.updatePlannedProgress('${id}', 250)`);
+  assert.equal(run('dataManager.getPlannedExpenses()[0].currentAmount'), 750, 'dwie wpłaty do koperty zsumowane');
+});

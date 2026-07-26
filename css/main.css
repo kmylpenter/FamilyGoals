@@ -115,6 +115,13 @@ body {
   box-shadow: 0 4px 20px rgba(126,205,176,0.15);
 }
 .income-hero-title { font-size: 0.8rem; color: var(--text-soft); margin-bottom: 4px; }
+.goal-hero-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s1); }
+.goal-hero-head span { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goal-hero-arrow {
+  width: 40px; height: 40px; flex: 0 0 auto; border: none; border-radius: var(--r1);
+  background: rgba(255,255,255,0.6); color: var(--text); font-size: 1.3rem; cursor: pointer;
+}
+.goal-hero-arrow:active { transform: scale(0.92); }
 .income-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--s1); }
 .income-actual { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--mint); line-height: 1; }
 .income-required { text-align: right; }
