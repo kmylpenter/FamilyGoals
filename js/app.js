@@ -376,6 +376,12 @@
     const savingsBar = $('savings-bar');
     const hasTarget = totalRequired > 0;
 
+    // Bez ustawionego celu kafel ZNIKA (4. runda pytań "co to za kwota?!"):
+    // bez wydatków i celu pokazywał to samo co "Razem" na karcie przychodów.
+    // Wraca, gdy pojawi się pierwszy cel (cel vs odłożone + pasek).
+    const heroCard = document.querySelector('#screen-dashboard .income-hero');
+    if (heroCard) heroCard.style.display = hasTarget ? '' : 'none';
+
     // Duża liczba = ODŁOŻONE (fakt); cel jako podpis, "bez celu" gdy brak
     if (savingsDone) savingsDone.textContent = formatMoney(savedThisMonth);
     if (savingsRequired) savingsRequired.textContent = hasTarget ? formatMoney(totalRequired) : 'bez celu';
