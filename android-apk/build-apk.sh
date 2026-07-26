@@ -11,6 +11,7 @@ KS_PASS="$(grep -m1 'Key store password' "$ROOT/apk/signing-key-info.txt" | sed 
 VER="$(grep versionName "$P/AndroidManifest.xml" | sed 's/.*versionName="\([^"]*\)".*/\1/')"
 OUT_APK="$ROOT/apk/FamilyGoals-$VER.apk"
 O="$P/build"
+bash "$ROOT/scripts/gen-family-config.sh"
 rm -rf "$O"; mkdir -p "$O/obj" "$O/assets/www"
 
 echo "[1/8] assets: kopiuję web-aplikację do APK"

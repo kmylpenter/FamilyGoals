@@ -4,3 +4,6 @@ apk/
 backend-gas/.local-config.json
 android-apk/build/
 DANE-LOGOWANIA.md
+
+# Konfiguracja rodziny (URL+token) generowana do APK/OTA - nigdy do repo
+js/family-config.js

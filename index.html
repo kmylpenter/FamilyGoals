@@ -1115,6 +1115,22 @@
 
   <!-- Load shared utilities first -->
   <script src="js/app-version.js"></script>
+  <!-- Konfiguracja rodziny: generowana do APK/OTA (gitignore) — na publicznym
+       GitHub Pages plik nie istnieje (404 jest nieszkodliwy) -->
+  <script src="js/family-config.js"></script>
+  <script>
+    // Auto-konfiguracja synca przy PIERWSZYM uruchomieniu — APK żony działa
+    // od razu, bez ręcznego wpisywania URL i tokenu (decyzja Kamila 2026-07-26)
+    try {
+      if (window.FG_FAMILY_DEFAULTS && !localStorage.getItem('familygoals_sync_config')) {
+        localStorage.setItem('familygoals_sync_config', JSON.stringify({
+          url: window.FG_FAMILY_DEFAULTS.url,
+          token: window.FG_FAMILY_DEFAULTS.token,
+          enabled: true
+        }));
+      }
+    } catch (e) {}
+  </script>
   <script src="js/utils.js"></script>
   <!-- Load managers -->
   <script src="js/data-manager.js"></script>

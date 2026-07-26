@@ -81,6 +81,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Status „Synchronizacja rodzinna" w Ustawieniach pokazywał wiecznie „nieskonfigurowana" mimo działającego synca — `refreshSyncStatusUI` wołane było tylko przy otwarciu modala synca; teraz też przy starcie. Files: `js/app.js`
 - Etykiety „{źródło} za {miesiąc rok}" dla WSZYSTKICH wpłat: auto-nota w `recordPayment` gdy user nie poda nazwy (własne nazwy zostają) + migracja 54 istniejących wpłat z notami generycznymi („import z arkusza"/puste) w danych (pushChanges applied 60); „(wg założenia)" usunięte z backfilli. Files: `js/data-manager.js`
 
+- Zero-konfiguracyjny start dla rodziny: generowany, GITIGNOROWANY `js/family-config.js` (URL+token z `backend-gas/.local-config.json`) trafia wyłącznie do paczki OTA i APK (kanały tokenowane; na publicznym GitHub Pages plik nie istnieje — token nie wycieka); przy pierwszym uruchomieniu apka sama zapisuje config synca i ciągnie dane rodziny (bez demo). Żonie wystarczy sam plik APK. Files: `scripts/gen-family-config.sh` (nowy), `android-apk/publish-web.sh`, `android-apk/build-apk.sh`, `index.html`, `.gitignore`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)

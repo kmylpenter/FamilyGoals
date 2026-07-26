@@ -6,6 +6,7 @@ set -euo pipefail
 P="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$P/.." && pwd)"
 STAMP="${1:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+bash "$ROOT/scripts/gen-family-config.sh"
 
 python3 - "$ROOT" "$STAMP" << 'EOF'
 import json, sys, os, urllib.request
