@@ -269,18 +269,19 @@
       <span class="month-badge" id="month-badge">Grudzień 2025</span>
     </header>
 
-    <!-- Savings Hero -->
+    <!-- Savings Hero: DUŻA liczba = odłożone (fakt); cel jako podpis.
+         3x z rzędu tytuł "Do odłożenia" mylił przy braku celów (2026-07-26) -->
     <div class="income-hero">
-      <div class="income-hero-title">🎯 Do odłożenia w tym miesiącu</div>
+      <div class="income-hero-title">💰 Oszczędności w tym miesiącu</div>
       <div class="income-row">
-        <div class="income-actual" id="savings-required">3 855 zł</div>
+        <div class="income-actual" id="savings-done">0 zł</div>
         <div class="income-required">
-          <div class="income-required-label">odłożone</div>
-          <div class="income-required-value" id="savings-done">1 200 zł</div>
+          <div class="income-required-label">cel miesiąca</div>
+          <div class="income-required-value" id="savings-required">bez celu</div>
         </div>
       </div>
       <div class="income-bar">
-        <div class="income-bar-fill" id="savings-bar" style="width: 31%"></div>
+        <div class="income-bar-fill" id="savings-bar" style="width: 0%"></div>
       </div>
       <div class="income-bar-text">
         <span id="savings-left-text">Zostało: —</span>
@@ -367,6 +368,9 @@
         <button type="button" class="chip" data-filter="wife">👩 Żona</button>
         <button type="button" class="chip" data-filter="husband">👨 Mąż</button>
         <button type="button" class="chip" data-filter="business">💼 Firmowe</button>
+      </div>
+      <div class="chips filter-chips chips-scroll" id="history-cat-filter" role="group" aria-label="Filtr kategorii wpłat">
+        <!-- chipy kategorii budowane z danych przy renderze historii -->
       </div>
       <div class="list" id="global-history-list">
         <!-- Wszystkie wpłaty obojga, najnowsze na górze -->

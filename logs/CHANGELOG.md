@@ -52,6 +52,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Historia wpłat: PEŁNA (koniec „…i N starszych" — było ucinanie do 80 wpisów) + chipy filtrowania Wszystkie / 👩 Żona / 👨 Mąż / 💼 Firmowe (Mąż zawiera korzyści — to jego przychody; Firmowe = tylko korzyści). Files: `index.html`, `js/app.js`
 - Liczniki wpisów na chipach filtra historii, np. „Wszystkie (133) · Żona (0) · Mąż (133) · Firmowe (77)" — filtr „działa w oczach" nawet gdy lista wygląda identycznie (zgłoszenie „nie filtruje nic": u Kamila WSZYSTKIE wpisy należą do Męża, więc Wszystkie↔Mąż niczego nie zmieniało; potrójna weryfikacja: kod repo + paczka na backendzie + tap dotykiem na realnych danych 133→77→0). Files: `js/app.js`
 
+- Kafel na Starcie przemianowany: „💰 Oszczędności w tym miesiącu" — DUŻA liczba = odłożone (fakt), cel miesiąca jako podpis („bez celu" gdy brak; pasek i „Zostało" tylko przy ustawionym celu). Powód: 3× z rzędu tytuł „🎯 Do odłożenia" mylił przy braku celów („skąd 2700/7400 do odłożenia?!" — to było odłożone). Files: `index.html`, `js/app.js`
+- Filtr per kategoria wpłaty w historii: drugi rząd chipów (przewijany poziomo) budowany z danych — nazwa źródła/korzyści + ikona + licznik, łączy się z filtrem osoby (liczniki w obrębie aktywnego filtra osoby). Files: `index.html`, `js/app.js`, `css/main.css`
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)

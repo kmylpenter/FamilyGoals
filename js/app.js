@@ -374,18 +374,27 @@
     const savingsRequired = $('savings-required');
     const savingsDone = $('savings-done');
     const savingsBar = $('savings-bar');
+    const hasTarget = totalRequired > 0;
 
-    if (savingsRequired) savingsRequired.textContent = formatMoney(totalRequired);
+    // Duża liczba = ODŁOŻONE (fakt); cel jako podpis, "bez celu" gdy brak
     if (savingsDone) savingsDone.textContent = formatMoney(savedThisMonth);
+    if (savingsRequired) savingsRequired.textContent = hasTarget ? formatMoney(totalRequired) : 'bez celu';
 
-    const percent = totalRequired > 0 ? Math.round((savedThisMonth / totalRequired) * 100) : 0;
-    if (savingsBar) savingsBar.style.width = Math.min(100, percent) + '%';
+    const percent = hasTarget ? Math.round((savedThisMonth / totalRequired) * 100) : 0;
+    if (savingsBar) {
+      savingsBar.style.width = Math.min(100, percent) + '%';
+      // Pasek i "Zostało" tylko przy ustawionym celu — bez celu nie ma czego odmierzać
+      savingsBar.parentElement.style.display = hasTarget ? '' : 'none';
+    }
 
     // A-M3: tekst pod paskiem był statycznym HTML — pasek się ruszał,
     // liczby obok nie
     const savingsLeftText = $('savings-left-text');
     const savingsPercentText = $('savings-percent-text');
-    if (savingsLeftText) savingsLeftText.textContent = 'Zostało: ' + formatMoney(Math.max(0, totalRequired - savedThisMonth));
+    if (savingsLeftText) {
+      savingsLeftText.textContent = 'Zostało: ' + formatMoney(Math.max(0, totalRequired - savedThisMonth));
+      savingsLeftText.parentElement.style.display = hasTarget ? '' : 'none';
+    }
     if (savingsPercentText) savingsPercentText.textContent = percent + '%';
 
     renderAdviceAndAlerts();
@@ -690,12 +699,40 @@
 
     // Filtr osoby/rodzaju (chipy nad listą); PEŁNA historia bez ucinania
     // (decyzja Kamila 2026-07-26: "chcę móc zobaczyć całą historię")
-    const shown = entries.filter(e => {
+    const byPerson = entries.filter(e => {
       if (historyFilter === 'wife') return e.ownerIcon === '👩';
       if (historyFilter === 'husband') return e.ownerIcon === '👨';
       if (historyFilter === 'business') return !!e.benefit;
       return true;
     });
+
+    // Chipy kategorii (= nazwa źródła/korzyści) budowane z danych, liczniki
+    // w obrębie aktywnego filtra osoby; przewijane poziomo
+    const catBox = $('history-cat-filter');
+    if (catBox) {
+      const cats = new Map();
+      byPerson.forEach(e => {
+        if (!cats.has(e.srcName)) cats.set(e.srcName, { icon: e.icon, n: 0 });
+        cats.get(e.srcName).n++;
+      });
+      if (historyCatFilter && !cats.has(historyCatFilter)) historyCatFilter = null;
+      catBox.innerHTML = '';
+      const mkChip = (label, catValue, active) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip' + (active ? ' active' : '');
+        if (catValue) b.dataset.cat = catValue;
+        b.textContent = label;
+        catBox.appendChild(b);
+      };
+      mkChip(`Wszystkie kategorie (${byPerson.length})`, null, historyCatFilter === null);
+      [...cats.entries()].sort((a, b) => b[1].n - a[1].n)
+        .forEach(([name, c]) => mkChip(`${c.icon} ${name} (${c.n})`, name, historyCatFilter === name));
+    }
+
+    const shown = historyCatFilter
+      ? byPerson.filter(e => e.srcName === historyCatFilter)
+      : byPerson;
     if (shown.length === 0) {
       renderEmptyState(list, 'Brak wpisów dla tego filtra');
       return;
@@ -2606,12 +2643,19 @@
   // ============ EDYCJA WPISÓW HISTORII ============
   let editingPayment = null;
   let historyFilter = 'all';
+  let historyCatFilter = null; // null = wszystkie kategorie
 
   function setupHistoryEdit() {
     $('history-filter')?.addEventListener('click', (e) => {
       const chip = e.target.closest('.chip');
       if (!chip) return;
       historyFilter = chip.dataset.filter || 'all';
+      renderGlobalHistory();
+    });
+    $('history-cat-filter')?.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      historyCatFilter = chip.dataset.cat || null;
       renderGlobalHistory();
     });
     const list = $('global-history-list');
