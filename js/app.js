@@ -2474,7 +2474,7 @@
         <div class="cost-amount">${formatMoney(cost.amount)}</div>
         ${dueHtml}
         <div class="cost-actions">
-          ${showDue ? `<button class="cost-buy-btn" data-buy-id="${cost.id}">✓ Zapłacone</button>` : ''}
+          ${showDue ? `<button class="cost-buy-btn" data-buy-id="${cost.id}">✓ Zapłacone za ${cost.nextDueDate ? FGUtils.MONTHS[new Date(cost.nextDueDate).getMonth()].toLowerCase() : '—'}</button>` : ''}
           <button class="delete-btn" data-id="${cost.id}" data-type="cost">✕</button>
         </div>
       </div>
@@ -2565,9 +2565,11 @@
       // Buy button
       if (e.target.dataset.buyId) {
         e.stopPropagation();
+        const paidCost = dataManager.getBusinessCosts().find(c => c.id === e.target.dataset.buyId);
+        const paidMonth = paidCost?.nextDueDate ? FGUtils.MONTHS[new Date(paidCost.nextDueDate).getMonth()].toLowerCase() : null;
         dataManager.markBusinessCostPurchased(e.target.dataset.buyId);
         renderAll();
-        Toast.success('Oznaczono!', 'Płatność odnotowana — termin przesunięty o cykl');
+        Toast.success('Oznaczono!', paidMonth ? `Zapłacone za ${paidMonth} — termin przesunięty o cykl` : 'Płatność odnotowana');
         return;
       }
 

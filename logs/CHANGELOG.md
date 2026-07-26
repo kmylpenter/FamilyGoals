@@ -69,6 +69,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - „✓ Kupione" → „✓ Zapłacone", „Nadchodzące zakupy" → „Nadchodzące płatności" (przycisk odnotowuje opłacenie pozycji i przesuwa termin o cykl). Files: `js/app.js`, `index.html`
 - Audyt importu na pytanie Kamila o przesunięcie miesiąca: Gotówka bez przesunięcia (wpłaty 15-go miesiąca-za-który; 110 600 wpłacone = 11×10k do czerwca + 600 na poczet lipca ✓ widoczne); PENSJA miała zły start puli (activeFrom 2023-12, a tabelka od 2025-01 → pula wsysała 13 pustych miesięcy, lipiec pokazywał 0 przy fikcyjnym niedoborze −78k) — naprawione w danych (activeFrom→2025-01): sty'25–cze'26 complete, lipiec pending. Odnotowane bez zmian: stary segment Gotówki −1500 vs założenia (tak w tabelce), segment 04–07.2025 z +4200 ponad zamknięty zakres
 
+- Przycisk płatności z miesiącem: „✓ Zapłacone za sierpień" (miesiąc z terminu `nextDueDate`; toast „Zapłacone za X — termin przesunięty o cykl") — nikt nie odkliknie płatności o miesiąc do przodu przez pomyłkę. Files: `js/app.js`
+- REVERT korekty `activeFrom` Pensji (2025-01 → z powrotem 2023-12): start grudzień 2023 jest CELOWY (wynagrodzenie prezesa od gru'23; wpłaty 2023–2024 będą uzupełniane wstecz — dokładnie do tego służy pula „historia wstecz"). Skutek przejściowy do czasu uzupełnienia: pula księguje wpłaty od najstarszych miesięcy, więc ostatnie ~13 miesięcy Pensji świeci jako niezapłacone. Zmiana danych przez backend
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)
