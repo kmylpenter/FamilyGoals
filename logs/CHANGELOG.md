@@ -64,6 +64,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Wykres: klikalne kropki (niewidoczne strefy dotyku r=11) → dymek z kwotą miesiąca i składem (wpłaty + naliczenia korzyści, top 6 + „…i N więcej"); przesuwanie palcem po wykresie (scrub) podświetla najbliższą kropkę (miesiąc z osi X, seria z bliskości w pionie) — łatwe celowanie przy gęstych danych. Files: `js/app.js`, `css/main.css`
 - Pod wykresem linia „Łącznie: X zł · śr. Y zł/mies." — suma dochodu domu (wpłaty + korzyści) w całym oknie wykresu i średnia miesięczna (na realnych danych: 361 734 zł · 9275 zł/mies. z 39 mies.); osobna legenda scalona z linią średnich (kolorowe kropki inline), linie bez łamania (nowrap + przewijanie awaryjne). Files: `js/app.js`, `css/main.css`
 
+- Dymek kropki wykresu zamyka się tapnięciem W DOWOLNE miejsce ekranu poza nim (wcześniej tylko w obrębie małego wykresu). Files: `js/app.js`
+- Karta „Wasze przychody" bez przekierowania na Przychody (inline onclick odpalał razem z okienkiem wyliczenia); klik wiersza = tylko okienko. Files: `index.html`, `js/app.js`
+- „✓ Kupione" → „✓ Zapłacone", „Nadchodzące zakupy" → „Nadchodzące płatności" (przycisk odnotowuje opłacenie pozycji i przesuwa termin o cykl). Files: `js/app.js`, `index.html`
+- Audyt importu na pytanie Kamila o przesunięcie miesiąca: Gotówka bez przesunięcia (wpłaty 15-go miesiąca-za-który; 110 600 wpłacone = 11×10k do czerwca + 600 na poczet lipca ✓ widoczne); PENSJA miała zły start puli (activeFrom 2023-12, a tabelka od 2025-01 → pula wsysała 13 pustych miesięcy, lipiec pokazywał 0 przy fikcyjnym niedoborze −78k) — naprawione w danych (activeFrom→2025-01): sty'25–cze'26 complete, lipiec pending. Odnotowane bez zmian: stary segment Gotówki −1500 vs założenia (tak w tabelce), segment 04–07.2025 z +4200 ponad zamknięty zakres
+
 #### Testy
 - +13 (income-range, income-pool, B-M1c, widmowy alert) — razem 75; każda zmiana wydana OTA po zielonej bramce i probe na danych z arkusza
 - +5 (business-cost-range: zakres od–do korzyści cyklicznych + upcoming respektuje zakres, red→green) — razem 80; walidacja wizualna headless (6 zrzutów w `logs/screenshots/korzysc-*.png`, `naprawa-*.png`)

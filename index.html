@@ -302,7 +302,8 @@
 
     <!-- Income Status -->
     <h2 class="section-title">💰 Wasze przychody</h2>
-    <div class="income-status-card" onclick="showScreen('screen-income')" tabindex="0" role="button" aria-label="Przejdź do przychodów">
+    <!-- Bez przekierowania (decyzja 2026-07-26): klik wiersza otwiera okienko wyliczenia -->
+    <div class="income-status-card">
       <div class="income-status-row">
         <span>Wymagane</span>
         <span class="income-value">12 000 zł</span>
@@ -396,7 +397,7 @@
         </div>
       </div>
 
-      <h2 class="section-title">🛒 Nadchodzące zakupy</h2>
+      <h2 class="section-title">🧾 Nadchodzące płatności</h2>
       <div class="list" id="upcoming-purchases">
         <div class="empty-state">Brak nadchodzących zakupów</div>
       </div>

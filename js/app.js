@@ -235,7 +235,10 @@
     document.getElementById('timeline-chart-container')?.addEventListener('click', (e) => {
       const dot = e.target.closest('circle[data-mi]');
       if (dot) showChartTooltip(parseInt(dot.dataset.mi), dot.dataset.owner);
-      else hideChartTooltip();
+    });
+    // Dymek znika po tapnięciu W DOWOLNE miejsce poza nim (wykres jest mały)
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.chart-tooltip') && !e.target.closest('circle[data-mi]')) hideChartTooltip();
     });
     setupChartScrub();
     setupHistoryEdit();
@@ -2471,7 +2474,7 @@
         <div class="cost-amount">${formatMoney(cost.amount)}</div>
         ${dueHtml}
         <div class="cost-actions">
-          ${showDue ? `<button class="cost-buy-btn" data-buy-id="${cost.id}">✓ Kupione</button>` : ''}
+          ${showDue ? `<button class="cost-buy-btn" data-buy-id="${cost.id}">✓ Zapłacone</button>` : ''}
           <button class="delete-btn" data-id="${cost.id}" data-type="cost">✕</button>
         </div>
       </div>
@@ -2564,7 +2567,7 @@
         e.stopPropagation();
         dataManager.markBusinessCostPurchased(e.target.dataset.buyId);
         renderAll();
-        Toast.success('Oznaczono!', 'Koszt oznaczony jako kupiony');
+        Toast.success('Oznaczono!', 'Płatność odnotowana — termin przesunięty o cykl');
         return;
       }
 
