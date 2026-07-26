@@ -2762,13 +2762,19 @@
     } else {
       const p = proj[kind];
       title.textContent = kind === 'wife' ? '👩 Żona' : '👨 Mąż';
-      const oneoffSum = p.oneoffPayments.reduce((sum, it) => sum + it.amount, 0);
-      const overpay = Math.max(0, p.extrasAvg * eff - oneoffSum);
+      const mies = (ym) => { const [y, m] = ym.split('-').map(Number); return `${FGUtils.MONTHS[m - 1].toLowerCase()} ${y}`; };
+      const note = (t) => `<div style="font-size:12px; color:var(--text-muted); padding-left:12px;">${t}</div>`;
       body.innerHTML = line('Zadeklarowane co miesiąc', p.recurringExpected)
         + p.recurringSources.map(it => sub(it.icon, it.name, it.expected)).join('')
         + line('+ średnia dodatkowych (12 mies.)', p.extrasAvg)
-        + p.oneoffPayments.map(it => sub(it.icon, it.name, it.amount)).join('')
-        + (overpay > 0 ? sub('📈', 'nadpłaty ponad założenia (12 mies. łącznie)', overpay) : '')
+        + (p.extrasMonths.length
+          ? note(`łącznie ${formatMoney(p.extrasSum)} ponad założenia, w miesiącach:`)
+            + p.extrasMonths.map(it => sub('📈', `nadwyżka — ${mies(it.ym)}`, it.amount)).join('')
+          : '')
+        + (p.oneoffPayments.length
+          ? note('w tym wpłaty jednorazowe:')
+            + p.oneoffPayments.map(it => sub(it.icon, `${it.name} — ${mies(it.ym)}`, it.amount)).join('')
+          : '')
         + hr + line('= realnie daje', p.projected);
     }
     openModal('modal-projection-info');

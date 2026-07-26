@@ -888,12 +888,13 @@ class DataManager {
         (s.payments || []).forEach(p => {
           const d = new Date(p.date);
           if (effMonths.some(mm => mm.y === d.getFullYear() && mm.m === d.getMonth())) {
-            oneoffPayments.push({ name: p.note || s.name, icon: s.icon || '💵', amount: p.amount || 0 });
+            oneoffPayments.push({ name: p.note && p.note !== 'import z arkusza' ? `${s.name}: ${p.note}` : s.name, icon: s.icon || '💵', amount: p.amount || 0, ym: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` });
           }
         });
       });
-      if (eff === 0) return { recurringExpected, extrasAvg: 0, projected: recurringExpected, recurringSources, oneoffPayments };
+      if (eff === 0) return { recurringExpected, extrasAvg: 0, projected: recurringExpected, recurringSources, oneoffPayments, extrasMonths: [], extrasSum: 0 };
       let extrasSum = 0;
+      const extrasMonths = []; // nadwyżki per miesiąc — sumują się do extrasSum
       effMonths.forEach(mm => {
         let cash = 0;
         sources.filter(s => s.owner === owner).forEach(s => {
@@ -902,10 +903,12 @@ class DataManager {
             if (d.getFullYear() === mm.y && d.getMonth() === mm.m) cash += p.amount || 0;
           });
         });
-        extrasSum += Math.max(0, cash - recurringExpectedFor(owner, mm.ym));
+        const extra = Math.max(0, cash - recurringExpectedFor(owner, mm.ym));
+        if (extra > 0) extrasMonths.push({ ym: mm.ym, amount: extra });
+        extrasSum += extra;
       });
       const extrasAvg = Math.round(extrasSum / eff);
-      return { recurringExpected, extrasAvg, projected: recurringExpected + extrasAvg, recurringSources, oneoffPayments };
+      return { recurringExpected, extrasAvg, projected: recurringExpected + extrasAvg, recurringSources, oneoffPayments, extrasMonths, extrasSum };
     };
 
     // Korzyści: cykliczne naliczenia aktywne w oglądanym miesiącu (+ listy)
