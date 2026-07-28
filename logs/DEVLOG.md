@@ -11,7 +11,7 @@
 
 ## Current Context
 
-**Last Updated:** 2026-07-26
+**Last Updated:** 2026-07-28
 
 ### Project State
 - **Project:** FamilyGoals
@@ -23,6 +23,7 @@
 - [x] Korzyści firmowe jako pełnoprawny przychód Męża (zakresy od–do, historia, wykres, kategorie własne)
 - [x] Karta „realnie/zadeklarowane" + okienka wyliczeń + YoY + tooltipy/scrub wykresu
 - [x] Zero-konfiguracyjny APK (gitignorowany family-config.js do OTA/APK)
+- [ ] Deploy backendu GAS z encją `expenses` — MUSI poprzedzić wydanie web/OTA wydatków (sesja 16)
 - [ ] APK dla Żony — build i instalacja (Kamil)
 - [ ] Uzupełnienie udokumentowanych przelewów 2023–24 (Kamil; wpisy „wg założenia" już siedzą, edytowalne z historii)
 - [ ] Decyzje o martwych modułach i osiągnięciach (patrz AUDIT-2026-07-24)
@@ -30,6 +31,52 @@
 ---
 
 ## Daily Log
+
+### 2026-07-28: Wydatki wracają — i lekcja o zero-config syncu w kopii deweloperskiej
+
+**Sytuacja:** Kamil prosi o możliwość zapisywania wydatków. Funkcja była
+w apce, ale została CELOWO usunięta w `6e62604` („refactor — remove expenses");
+zostały po niej sieroty: `addExpense/getExpenses` w DataManagerze, cały modal
+w `index.html` (wpis w menu zakomentowany „ARCHIVED") i martwy `setupExpenseForm`.
+Czyli nie budowa od zera, tylko przywrócenie i dopięcie do DZISIEJSZEJ
+architektury (osoba 👨/👩, historia, sync z arkuszem).
+
+**Wyzwanie:** (1) jak nalicza się „stały wydatek", (2) jak nie ruszyć świeżo
+ustabilizowanych kart dashboardu.
+
+**Decyzje:** (a) Zakres: rejestr + historia; dashboard i statystyki BEZ ZMIAN
+(wybór Kamila). (b) Stałe wydatki wg wzorca KORZYŚCI FIRMOWYCH, nie
+RecurringManagera: jedna definicja + naliczenia liczone w locie
+(`getExpenseEntries`). Powód rozstrzygający — materializacja nie jest
+sync-bezpieczna: telefon Kamila i APK Żony offline naliczyłyby ten sam miesiąc
+osobno (różne id, ten sam `recurringSourceId`) i po syncu wyszedłby duplikat;
+przy okazji edycja kwoty poprawia całą historię, a zakres działa też wstecz.
+(c) `EXPENSE_CATEGORIES` jako SSOT kategorii (modal Kategorie znał 6, formularz 12).
+
+**Rezultat:** 116 testów zielonych (106 + 10 nowych, red-first), smoke headless
+przeklikany na Pixelu 7: menu → formularz (jednorazowy i stały) → historia →
+filtr → edycja → reset modala, zero błędów konsoli, dashboard identyczny
+co do znaku przed i po dodaniu wydatków.
+
+**Wpadka (warta zapamiętania):** pierwszy przebieg smoke'a wypchnął testowe
+źródło „Pensja 8000 zł" do ŻYWEGO arkusza rodziny — bo lokalna kopia repo ma
+`js/family-config.js` i auto-konfiguruje sync przy pierwszym starcie. Rekord
+usunięty tombstonem po id (za zgodą Kamila), pozostałe 9 źródeł nietknięte.
+Wniosek na przyszłość: headless na tej kopii MUSI mieć odcięty `proxy_call`
+na poziomie `fetch` — inaczej „weryfikacja" pisze do produkcji. Drugi wniosek:
+`live-server` obserwuje katalog projektu, więc zapis zrzutu do `logs/screenshots/`
+przeładowywał stronę w środku testu (stąd pierwszy, mylący crash) — zrzuty
+lecą poza serwowany katalog, serwer bez watchera.
+
+**Kolejność wydania:** backend GAS PRZED webem. Backend odrzuca nieznaną encję
+do `errors[]`, a `flushQueue` kasuje rekord z kolejki po samej udanej odpowiedzi
+HTTP — wydatek dodany między wydaniem webu a deployem backendu nigdy by nie
+dotarł do Żony.
+
+**Files:** `js/data-manager.js`, `js/app.js`, `js/sync-manager.js`,
+`index.html`, `css/main.css`, `backend-gas/FamilyBackend.gs`, `tests/expenses.test.js`
+
+---
 
 ### 2026-07-25/26: Maraton — korzyści firmowe pełnoprawne, projekcje, zero-config APK
 

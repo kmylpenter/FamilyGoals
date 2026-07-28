@@ -13,6 +13,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 16 (2026-07-28) - Wydatki wracają jako pełnoprawna encja
+
+#### Added
+- Zapisywanie WYDATKÓW (funkcja usunięta w `6e62604`, wraca na żądanie Kamila): pozycja „🛒 Dodaj wydatek" w menu ➕, modal z kwotą, osobą (👨/👩), 12 kategoriami + własnymi (`kind=expense`), opisem i datą. Files: `index.html`, `js/app.js`
+- Wydatki STAŁE (abonamenty) z zakresem od–do: JEDNA definicja w bazie, naliczenia miesięczne liczone w locie przez `getExpenseEntries()` — wzorzec korzyści firmowych zamiast materializacji RecurringManagera (dwa urządzenia offline nie zrobią duplikatu tego samego miesiąca, edycja kwoty poprawia całą historię, działa też wstecz w zakresie). Files: `js/data-manager.js`
+- Wydatki w historii: kwota na czerwono z minusem, podtytuł „🛒 {kategoria} • {data|co miesiąc}", chip filtra „🛒 Wydatki" z licznikiem, wydatki wchodzą też w filtry 👩/👨 i chipy kategorii; edycja dotknięciem wpisu (naliczenie stałego otwiera jego definicję) + „🗑 Usuń wydatek". Sekcja przemianowana na „Historia wpłat i wydatków". Files: `js/app.js`, `index.html`, `css/main.css`
+- Wydatki jako encja synchronizowana (`expenses`, mode `array`) — front + whitelist backendu. Files: `js/sync-manager.js`, `backend-gas/FamilyBackend.gs`
+- 10 testów wydatków (red-first): rejestr, naliczenia w zakresie, „zero fabrykacji wstecz" bez `activeFrom`, brak naliczeń w przyszłość, SSOT przy edycji kwoty, kasowanie, kolejka synca. Suita 106→116. Files: `tests/expenses.test.js`
+
+#### Changed
+- `EXPENSE_CATEGORIES` jako jedno źródło kategorii wydatków (chipy formularza + lista w modalu Kategorie; wcześniej modal znał 6, formularz 12). Files: `js/app.js`
+- `addExpense` stempluje `createdAt` (potrzebny stałym bez `activeFrom`). Files: `js/data-manager.js`
+
+#### Notes
+- Dashboard i statystyki przychodów CELOWO bez zmian (decyzja Kamila: wydatki = rejestr, nie wchodzą w wyliczenia) — zweryfikowane porównaniem treści ekranu przed/po dodaniu wydatków.
+- Kolejność wydania: NAJPIERW backend GAS (`expenses` w `ENTITIES`), POTEM web/OTA. Odwrotnie wydatki dodane w międzyczasie przepadną dla synca: backend odrzuca nieznaną encję do `errors[]`, a `flushQueue` i tak kasuje rekord z kolejki (odpowiedź HTTP była udana).
+
 ### Sesja 14 (2026-07-25) - Przychody: pula, zakresy, import historii, UX wpłat (wydawane OTA na bieżąco)
 
 #### Added

@@ -678,6 +678,21 @@
         entries.push({ date: String(c.lastPurchaseDate).slice(0, 10), amount: c.amount || 0, note: '', srcName: c.name, icon, ownerIcon: '👨', benefit: 'korzyść', costId: c.id });
       }
     });
+    // Wydatki: jednorazowe pod swoją datą, stałe jako naliczenie miesięczne
+    // (jedna definicja w bazie — patrz dataManager.getExpenseEntries)
+    dataManager.getExpenseEntries().forEach(x => {
+      const cat = expenseCategory(x.categoryId);
+      entries.push({
+        date: x.date,
+        amount: x.amount,
+        note: x.description,
+        srcName: cat.name,
+        icon: cat.icon,
+        ownerIcon: x.owner === 'wife' ? '👩' : '👨',
+        expense: x.isAccrual ? 'stały' : 'wydatek',
+        expenseId: x.expenseId
+      });
+    });
     if (entries.length === 0) {
       renderEmptyState(list, 'Jeszcze żadnych wpłat');
       return;
@@ -689,7 +704,8 @@
       all: entries.length,
       wife: entries.filter(e => e.ownerIcon === '👩').length,
       husband: entries.filter(e => e.ownerIcon === '👨').length,
-      business: entries.filter(e => !!e.benefit).length
+      business: entries.filter(e => !!e.benefit).length,
+      expenses: entries.filter(e => !!e.expense).length
     };
     document.querySelectorAll('#history-filter .chip').forEach(c => {
       if (!c.dataset.label) c.dataset.label = c.textContent.trim();
@@ -703,6 +719,7 @@
       if (historyFilter === 'wife') return e.ownerIcon === '👩';
       if (historyFilter === 'husband') return e.ownerIcon === '👨';
       if (historyFilter === 'business') return !!e.benefit;
+      if (historyFilter === 'expenses') return !!e.expense;
       return true;
     });
 
@@ -753,9 +770,13 @@
         : `${e.srcName} • ${day}.${e.date.slice(5, 7)}${e.type === 'cash' ? ' • gotówka' : ''}`;
       if (e.benefit === 'naliczenie') sub = '💼 korzyść firmowa • naliczenie mies.';
       else if (e.benefit === 'korzyść') sub = `💼 korzyść firmowa • ${day}.${e.date.slice(5, 7)}`;
+      // Krótko, żeby mieściło się w jednej linii karty (kategoria + kiedy)
+      else if (e.expense === 'stały') sub = `🛒 ${e.srcName} • co miesiąc`;
+      else if (e.expense === 'wydatek') sub = `🛒 ${e.srcName} • ${day}.${e.date.slice(5, 7)}`;
       const editAttr = e.payId
         ? `data-pay="${e.srcId}|${e.payId}"`
-        : (e.costId ? `data-cost-edit="${e.costId}"` : '');
+        : (e.costId ? `data-cost-edit="${e.costId}"`
+          : (e.expenseId ? `data-expense-edit="${e.expenseId}"` : ''));
       return `${header}
         <div class="list-item" ${editAttr} role="button" tabindex="0">
           <div class="list-icon">${e.icon}</div>
@@ -763,7 +784,7 @@
             <div class="list-title">${e.ownerIcon} ${escapeHtml(title)}</div>
             <div class="list-subtitle">${escapeHtml(sub)}</div>
           </div>
-          <div class="list-amount positive">${formatMoney(e.amount)}</div>
+          <div class="list-amount ${e.expense ? 'negative' : 'positive'}">${e.expense ? '−' : ''}${formatMoney(e.amount)}</div>
         </div>`;
     }).join('');
   }
@@ -1692,47 +1713,178 @@
     modal.querySelector('.modal-header h2').textContent = '🎯 Edytuj cel';
   }
 
-  // Expenses
+  // ============ WYDATKI ============
+
+  /**
+   * Wbudowane kategorie wydatków — JEDNO źródło dla chipów formularza,
+   * ikon w historii i listy w modalu Kategorie (własne dokłada
+   * getCustomCategories('expense')).
+   */
+  const EXPENSE_CATEGORIES = [
+    { id: 'housing', name: 'Mieszkanie', icon: '🏠' },
+    { id: 'food', name: 'Jedzenie', icon: '🍽️' },
+    { id: 'transport', name: 'Transport', icon: '🚗' },
+    { id: 'children', name: 'Dzieci', icon: '👶' },
+    { id: 'health', name: 'Zdrowie', icon: '❤️' },
+    { id: 'entertainment', name: 'Rozrywka', icon: '🎬' },
+    { id: 'education', name: 'Edukacja', icon: '📚' },
+    { id: 'clothing', name: 'Ubrania', icon: '👕' },
+    { id: 'hygiene', name: 'Higiena', icon: '🧴' },
+    { id: 'gifts', name: 'Prezenty', icon: '🎁' },
+    { id: 'savings', name: 'Oszczędności', icon: '💰' },
+    { id: 'other', name: 'Inne', icon: '📦' }
+  ];
+
+  /** Kategoria wydatku po id: wbudowana, potem własna, na końcu fallback. */
+  function expenseCategory(categoryId) {
+    const builtin = EXPENSE_CATEGORIES.find(c => c.id === categoryId);
+    if (builtin) return builtin;
+    const custom = dataManager.getCustomCategories('expense').find(c => c.id === categoryId);
+    if (custom) return { id: custom.id, name: custom.name, icon: custom.icon || '📦' };
+    return { id: 'other', name: 'Inne', icon: '📦' };
+  }
+
+  /** Chipy kategorii wydatku: wbudowane + własne (idempotentnie). */
+  function renderExpenseCategoryChips() {
+    const group = $('expense-category-chips');
+    if (!group || typeof dataManager === 'undefined' || !dataManager) return;
+    const activeId = group.querySelector('.chip.active')?.dataset.value;
+    const all = [...EXPENSE_CATEGORIES, ...dataManager.getCustomCategories('expense')];
+    group.innerHTML = '';
+    all.forEach(cat => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (cat.id === activeId ? ' active' : '');
+      b.dataset.value = cat.id;
+      b.textContent = `${cat.icon || '📦'} ${cat.name}`;
+      group.appendChild(b);
+    });
+    if (!group.querySelector('.chip.active')) group.querySelector('.chip')?.classList.add('active');
+  }
+
+  let editingExpenseId = null;
+
+  /** „Dodaj wydatek" z menu ➕: świeży formularz, dzisiejsza data, ja jako płacący. */
+  function openAddExpense() {
+    closeAllModals();
+    openModal('modal-expense');
+    renderExpenseCategoryChips();
+    const d = new Date();
+    $('expense-date').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    // Domyślnie płaci właściciel urządzenia (profil), tak jak przy wpłatach
+    setChip('expense-owner-chips', currentPerson === 'wife' ? 'wife' : 'husband');
+  }
+
+  /** Zaznacz chip o danym data-value w grupie (reszta traci active). */
+  function setChip(groupId, value) {
+    const group = $(groupId);
+    if (!group) return;
+    group.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.value === String(value)));
+  }
+
   function setupExpenseForm() {
-    const form = document.querySelector('#modal-expense form');
+    const form = $('expense-form');
     if (!form) return;
 
-    form.onsubmit = e => {
-      e.preventDefault();
+    // Typ: jednorazowy = data, stały = zakres od–do
+    const typeChips = $('expense-type-chips');
+    typeChips?.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      typeChips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const isRecurring = chip.dataset.value === 'recurring';
+      $('expense-recurring-options').style.display = isRecurring ? '' : 'none';
+      $('expense-date-group').style.display = isRecurring ? 'none' : '';
+    });
 
+    ['expense-owner-chips', 'expense-category-chips'].forEach(id => {
+      const container = $(id);
+      container?.addEventListener('click', e => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
       try {
-        const amount = parseFloat(form.querySelector('input[type="number"]').value) || 0;
+        const amount = parseFloat($('expense-amount').value) || 0;
         if (amount <= 0) {
-          alert('Wprowadź poprawną kwotę');
+          Toast.error('Zła kwota', 'Wprowadź kwotę większą od zera');
+          return;
+        }
+        const owner = $('expense-owner-chips').querySelector('.chip.active')?.dataset.value === 'wife' ? 'wife' : 'husband';
+        const categoryId = $('expense-category-chips').querySelector('.chip.active')?.dataset.value || 'other';
+        const isRecurring = $('expense-type-chips').querySelector('.chip.active')?.dataset.value === 'recurring';
+        const description = $('expense-desc').value.trim();
+
+        const activeFrom = isRecurring ? ($('expense-active-from').value || null) : null;
+        const activeTo = isRecurring ? ($('expense-active-to').value || null) : null;
+        if (activeFrom && activeTo && activeTo < activeFrom) {
+          Toast.error('Zły zakres', '„Do" nie może być wcześniejsze niż „od"');
           return;
         }
 
-        const catChip = form.querySelector('.chips .chip.active');
-        const categoryId = catChip?.dataset.categoryId || 'other';
-        const desc = form.querySelector('input[type="text"]').value;
-        const date = form.querySelector('input[type="date"]').value;
+        const data = { amount, owner, categoryId, description, isRecurring, activeFrom, activeTo };
+        if (!isRecurring) {
+          // Bez daty wpis wypadłby z historii — fallback na dziś
+          data.date = $('expense-date').value || FGUtils.getDateString(new Date());
+        }
 
-        dataManager.addExpense({
-          amount,
-          categoryId,
-          description: desc,
-          date
-        });
-
-        if (gamificationManager) {
-          const newAchievements = gamificationManager.checkAchievements(currentPerson);
-          if (newAchievements.length > 0) {
-            // New achievements unlocked
-          }
+        if (editingExpenseId) {
+          dataManager.updateExpense(editingExpenseId, data);
+          editingExpenseId = null;
+        } else {
+          dataManager.addExpense(data);
         }
 
         closeAllModals();
         renderAll();
+        Toast.success('Zapisano!', isRecurring ? 'Stały wydatek zapisany' : 'Wydatek zapisany');
       } catch (err) {
         console.error('Expense form error:', err);
-        alert('Wystąpił błąd przy zapisywaniu wydatku');
+        Toast.error('Błąd zapisu wydatku', String(err && err.message || err));
       }
-    };
+    });
+
+    $('expense-delete')?.addEventListener('click', () => {
+      if (!editingExpenseId) return;
+      if (!confirm('Usunąć ten wydatek?')) return;
+      dataManager.deleteExpense(editingExpenseId);
+      editingExpenseId = null;
+      closeAllModals();
+      renderAll();
+      Toast.success('Usunięto', 'Wydatek usunięty');
+    });
+  }
+
+  /** Edycja wydatku (z historii). Stały: edytuje się definicja, nie naliczenie. */
+  function editExpense(id) {
+    const exp = dataManager.getExpenses().find(e => e.id === id);
+    if (!exp) return;
+
+    // Modal NAJPIERW (closeAllModals czyści editingExpenseId przez resetEditState)
+    openModal('modal-expense');
+    renderExpenseCategoryChips();
+    editingExpenseId = id;
+
+    $('expense-amount').value = exp.amount;
+    $('expense-desc').value = exp.description || '';
+    setChip('expense-owner-chips', exp.owner === 'wife' ? 'wife' : 'husband');
+    setChip('expense-category-chips', exp.categoryId || 'other');
+    setChip('expense-type-chips', exp.isRecurring ? 'recurring' : 'oneoff');
+
+    $('expense-recurring-options').style.display = exp.isRecurring ? '' : 'none';
+    $('expense-date-group').style.display = exp.isRecurring ? 'none' : '';
+    $('expense-date').value = exp.isRecurring ? '' : String(exp.date || '').slice(0, 10);
+    $('expense-active-from').value = exp.activeFrom || '';
+    $('expense-active-to').value = exp.activeTo || '';
+
+    $('expense-delete').style.display = '';
+    $('modal-expense').querySelector('.modal-header h2').textContent = '🛒 Edytuj wydatek';
   }
 
   // ============ SETTINGS ============
@@ -2046,14 +2198,7 @@
           { id: 'bonus', name: 'Bonus', icon: '🎁' },
           { id: 'other-income', name: 'Inne', icon: '📈' }
         ]
-      : kind === 'business' ? businessDefaults : [
-          { id: 'housing', name: 'Mieszkanie', icon: '🏠' },
-          { id: 'food', name: 'Jedzenie', icon: '🍕' },
-          { id: 'transport', name: 'Transport', icon: '🚗' },
-          { id: 'children', name: 'Dzieci', icon: '👶' },
-          { id: 'health', name: 'Zdrowie', icon: '💊' },
-          { id: 'entertainment', name: 'Rozrywka', icon: '🎬' }
-        ];
+      : kind === 'business' ? businessDefaults : EXPENSE_CATEGORIES;
 
     const custom = dataManager.getCustomCategories(kind);
     const all = [...defaultCategories, ...custom];
@@ -2085,6 +2230,7 @@
     renderCategories();
     renderIncomeSourceChips();
     renderCostCategoryChips();
+    renderExpenseCategoryChips();
 
     nameInput.value = '';
     iconInput.value = '';
@@ -2097,6 +2243,7 @@
     renderCategories();
     renderIncomeSourceChips();
     renderCostCategoryChips();
+    renderExpenseCategoryChips();
     Toast.info('Usunięto', 'Kategoria usunięta');
   };
 
@@ -2882,6 +3029,9 @@
           // Naliczenie/korzyść: edytuje się definicję korzyści (kwota,
           // zakres, cykl) — naliczenia w historii są z niej wyliczane
           editBusinessCost(item.dataset.costEdit);
+        } else if (item.dataset.expenseEdit) {
+          // Tak samo wydatki: naliczenie stałego prowadzi do jego definicji
+          editExpense(item.dataset.expenseEdit);
         }
       });
     }
@@ -3156,6 +3306,7 @@
     editingGoalId = null;
     editingSourceId = null;
     editingCostId = null;
+    editingExpenseId = null;
     editingTodoId = null;
     editingPayment = null;
     depositGoalId = null;
@@ -3180,6 +3331,7 @@
     renderCostCategoryChips,
     switchIncomeTab,
     openAddPayment,
+    openAddExpense,
     pickPaymentSource,
     applyProfileDefaults
   };

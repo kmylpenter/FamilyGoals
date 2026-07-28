@@ -300,6 +300,7 @@ body {
 .list-subtitle { font-size: 0.8rem; color: var(--text-muted); }
 .list-amount { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
 .list-amount.positive { color: var(--success); }
+.list-amount.negative { color: var(--danger); }
 .list-amount.muted { color: var(--text-muted); }
 .list-status {
   font-size: 1.2rem;

@@ -26,6 +26,7 @@
     income: { key: 'familygoals_income', mode: 'array' },
     plannedGoals: { key: 'familygoals_planned_override', mode: 'array' },
     businessCosts: { key: 'familygoals_business_costs', mode: 'array' },
+    expenses: { key: 'familygoals_expenses', mode: 'array' },
     todos: { key: 'familygoals_todos', mode: 'array' },
     categories: { key: 'familygoals_categories', mode: 'array' },
     settings: { key: 'familygoals_settings', mode: 'single' },

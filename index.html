@@ -368,12 +368,13 @@
         <!-- Renderowane dynamicznie przez JS (niezależnie od miesiąca) -->
       </div>
 
-      <h2 class="section-title">🧾 Historia wpłat</h2>
+      <h2 class="section-title">🧾 Historia wpłat i wydatków</h2>
       <div class="chips filter-chips" id="history-filter" role="group" aria-label="Filtr historii">
         <button type="button" class="chip active" data-filter="all">Wszystkie</button>
         <button type="button" class="chip" data-filter="wife">👩 Żona</button>
         <button type="button" class="chip" data-filter="husband">👨 Mąż</button>
         <button type="button" class="chip" data-filter="business">💼 Firmowe</button>
+        <button type="button" class="chip" data-filter="expenses">🛒 Wydatki</button>
       </div>
       <div class="chips filter-chips chips-scroll" id="history-cat-filter" role="group" aria-label="Filtr kategorii wpłat">
         <!-- chipy kategorii budowane z danych przy renderze historii -->
@@ -595,12 +596,10 @@
         <span class="modal-menu-icon" aria-hidden="true">💼</span>
         <span>Dodaj korzyść firmową</span>
       </button>
-      <!-- ARCHIVED: Wydatki usunięte z głównej funkcjonalności
-      <button type="button" class="modal-menu-item" onclick="openModal('modal-expense')" role="menuitem">
-        <span class="modal-menu-icon" aria-hidden="true">💸</span>
+      <button type="button" class="modal-menu-item" onclick="app.openAddExpense()" role="menuitem">
+        <span class="modal-menu-icon" aria-hidden="true">🛒</span>
         <span>Dodaj wydatek</span>
       </button>
-      -->
     </div>
   </div>
 
@@ -664,40 +663,52 @@
   <div id="modal-expense" class="modal" role="dialog" aria-label="Formularz wydatku" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h2>💸 Dodaj wydatek</h2>
-        <button type="button" class="modal-close" onclick="closeAllModals()" aria-label="Zamknij">✕</button>
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Zamknij">&times;</button>
+        <h2>🛒 Dodaj wydatek</h2>
       </div>
-      <form class="form">
+      <form class="form" id="expense-form">
         <div class="form-group">
           <label>Kwota (zł)</label>
-          <input type="number" placeholder="0" class="input-large">
+          <input type="number" id="expense-amount" class="input-large" placeholder="0" min="0" step="0.01" required>
         </div>
         <div class="form-group">
-          <label>Kategoria</label>
-          <div class="chips">
-            <button type="button" class="chip" data-category-id="housing">🏠 Mieszkanie</button>
-            <button type="button" class="chip active" data-category-id="food">🍽️ Jedzenie</button>
-            <button type="button" class="chip" data-category-id="transport">🚗 Transport</button>
-            <button type="button" class="chip" data-category-id="children">👶 Dzieci</button>
-            <button type="button" class="chip" data-category-id="health">❤️ Zdrowie</button>
-            <button type="button" class="chip" data-category-id="entertainment">🎬 Rozrywka</button>
-            <button type="button" class="chip" data-category-id="education">📚 Edukacja</button>
-            <button type="button" class="chip" data-category-id="clothing">👕 Ubrania</button>
-            <button type="button" class="chip" data-category-id="hygiene">🧴 Higiena</button>
-            <button type="button" class="chip" data-category-id="gifts">🎁 Prezenty</button>
-            <button type="button" class="chip" data-category-id="savings">💰 Oszczędności</button>
-            <button type="button" class="chip" data-category-id="other">📦 Inne</button>
+          <label>Kto wydał</label>
+          <div class="chips" id="expense-owner-chips">
+            <button type="button" class="chip active" data-value="husband">👨 Mąż</button>
+            <button type="button" class="chip" data-value="wife">👩 Żona</button>
           </div>
         </div>
         <div class="form-group">
-          <label>Opis</label>
-          <input type="text" placeholder="np. Zakupy Biedronka">
+          <label>Kategoria</label>
+          <div class="chips" id="expense-category-chips">
+            <!-- chipy budowane z EXPENSE_CATEGORIES + własnych kategorii wydatków -->
+          </div>
         </div>
         <div class="form-group">
-          <label>Data</label>
-          <input type="date">
+          <label>Typ</label>
+          <div class="chips" id="expense-type-chips">
+            <button type="button" class="chip active" data-value="oneoff">1️⃣ Jednorazowy</button>
+            <button type="button" class="chip" data-value="recurring">🔄 Stały (co miesiąc)</button>
+          </div>
         </div>
-        <button type="submit" class="btn-primary sticky">💾 Zapisz</button>
+        <div class="form-group" id="expense-date-group">
+          <label>Data</label>
+          <input type="date" id="expense-date">
+        </div>
+        <div class="form-group recurring-options" id="expense-recurring-options" style="display: none;">
+          <label>Płacony w miesiącach (od – do)</label>
+          <div style="display:flex; gap:8px;">
+            <input type="month" id="expense-active-from" style="flex:1; min-width:0;" aria-label="Od miesiąca">
+            <input type="month" id="expense-active-to" style="flex:1; min-width:0;" aria-label="Do miesiąca">
+          </div>
+          <div class="muted" style="font-size:12px;">Puste „od" = od tego miesiąca, puste „do" = bezterminowo (np. abonament). Kwota = za jeden miesiąc.</div>
+        </div>
+        <div class="form-group">
+          <label>Opis</label>
+          <input type="text" id="expense-desc" placeholder="np. Zakupy Biedronka">
+        </div>
+        <button type="submit" class="btn-primary">💾 Zapisz</button>
+        <button type="button" class="btn-secondary" id="expense-delete" style="display: none;">🗑 Usuń wydatek</button>
       </form>
     </div>
   </div>
@@ -1342,6 +1353,19 @@
         if (costRec) costRec.style.display = 'none';
         var costDateGroup = document.getElementById('cost-date-group');
         if (costDateGroup) costDateGroup.style.display = ''; // domyślny typ = jednorazowy
+      }
+      var expenseModal = document.getElementById('modal-expense');
+      if (expenseModal) {
+        expenseModal.querySelector('.modal-header h2').textContent = '🛒 Dodaj wydatek';
+        var expForm = expenseModal.querySelector('form');
+        if (expForm) expForm.reset();
+        resetChips('expense-type-chips', 0);   // domyślnie jednorazowy
+        var expRec = document.getElementById('expense-recurring-options');
+        if (expRec) expRec.style.display = 'none';
+        var expDateGroup = document.getElementById('expense-date-group');
+        if (expDateGroup) expDateGroup.style.display = '';
+        var expDel = document.getElementById('expense-delete');
+        if (expDel) expDel.style.display = 'none';
       }
       var depositModal = document.getElementById('modal-goal-deposit');
       if (depositModal) {

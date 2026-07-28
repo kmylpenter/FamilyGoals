@@ -18,6 +18,7 @@ var ENTITIES = {
   income: ['amount', 'source', 'date'],
   plannedGoals: ['name', 'type', 'targetAmount', 'currentAmount', 'monthlyContribution'],
   businessCosts: ['name', 'amount', 'isRecurring'],
+  expenses: ['description', 'amount', 'categoryId', 'owner', 'date'],
   todos: ['title', 'owner', 'completed'],
   categories: ['name', 'icon'],
   settings: [],

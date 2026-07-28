@@ -184,11 +184,13 @@ class DataManager {
     const expenses = this.getExpenses();
     const newExpense = {
       id: this._generateId(),
+      createdAt: new Date().toISOString(),
       date: new Date().toISOString(),
       ...expense
     };
     // OWN-8: spread mógł nadpisać datę wartością undefined/pustą
     if (!newExpense.date) newExpense.date = new Date().toISOString();
+    if (!newExpense.createdAt) newExpense.createdAt = new Date().toISOString();
     expenses.push(newExpense);
     this._saveExpenses(expenses);
     return newExpense;
@@ -213,6 +215,55 @@ class DataManager {
 
   _saveExpenses(expenses) {
     this._setCached(this.constructor.STORAGE_KEYS.expenses, expenses);
+  }
+
+  /**
+   * Wpisy wydatków do historii: jednorazowe pod swoją datą + naliczenia
+   * miesięczne wydatków STAŁYCH w zakresie od–do.
+   *
+   * Model jak korzyści firmowe: w bazie siedzi JEDNA definicja stałego
+   * wydatku, a naliczenia liczone są w locie. Dzięki temu (a) sync nie mnoży
+   * duplikatów, gdy telefon Kamila i APK Żony naliczą ten sam miesiąc offline,
+   * (b) edycja kwoty poprawia całą historię, (c) widać też miesiące sprzed
+   * dodania wpisu (zakres od–do), czego materializacja nie daje.
+   *
+   * Zero fabrykacji wstecz: stały bez activeFrom startuje od miesiąca dodania,
+   * i nigdy nie nalicza w przyszłość (koniec = bieżący miesiąc).
+   */
+  getExpenseEntries() {
+    const now = new Date();
+    const nowYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const entries = [];
+
+    this.getExpenses().forEach(e => {
+      const base = {
+        expenseId: e.id,
+        amount: e.amount || 0,
+        owner: e.owner === 'wife' ? 'wife' : 'husband',
+        categoryId: e.categoryId || 'other',
+        description: e.description || ''
+      };
+
+      if (e.isRecurring) {
+        const startYM = e.activeFrom || String(e.createdAt || e.date || '').slice(0, 7);
+        if (!/^\d{4}-\d{2}$/.test(startYM)) return;
+        const endYM = e.activeTo && e.activeTo < nowYM ? e.activeTo : nowYM;
+        let [y, m] = startYM.split('-').map(Number);
+        let guard = 0;
+        while (guard++ < 600) {
+          const ym = `${y}-${String(m).padStart(2, '0')}`;
+          if (ym > endYM) break;
+          entries.push({ ...base, date: `${ym}-01`, isAccrual: true });
+          m++; if (m > 12) { m = 1; y++; }
+        }
+      } else {
+        const date = String(e.date || '').slice(0, 10);
+        if (!date) return;
+        entries.push({ ...base, date, isAccrual: false });
+      }
+    });
+
+    return entries;
   }
 
   // === INCOME ===
