@@ -236,10 +236,11 @@ class DataManager {
     const entries = [];
 
     this.getExpenses().forEach(e => {
+      // Wydatki są WSPÓLNE (decyzja Kamila 2026-07-28) — żadnego właściciela,
+      // nawet gdy stary rekord jeszcze niesie pole `owner`.
       const base = {
         expenseId: e.id,
         amount: e.amount || 0,
-        owner: e.owner === 'wife' ? 'wife' : 'husband',
         categoryId: e.categoryId || 'other',
         description: e.description || ''
       };
@@ -264,6 +265,36 @@ class DataManager {
     });
 
     return entries;
+  }
+
+  /**
+   * Podsumowanie wydatków miesiąca (karta „Wasze wydatki" — WYŁĄCZNIE
+   * informacyjne, nie wchodzi w wyliczenia przychodów; decyzja Kamila).
+   * `items` = składniki do okienka „skąd ta kwota", `byCategory` posortowane
+   * malejąco (na co idzie najwięcej).
+   */
+  getMonthExpensesSummary(year, month) {
+    const ym = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const items = this.getExpenseEntries().filter(e => e.date.slice(0, 7) === ym);
+
+    let recurring = 0, oneoff = 0;
+    const cats = {};
+    items.forEach(e => {
+      if (e.isAccrual) recurring += e.amount; else oneoff += e.amount;
+      cats[e.categoryId] = (cats[e.categoryId] || 0) + e.amount;
+    });
+
+    const byCategory = Object.keys(cats)
+      .map(categoryId => ({ categoryId, amount: cats[categoryId] }))
+      .sort((a, b) => b.amount - a.amount);
+
+    return {
+      recurring,
+      oneoff,
+      total: recurring + oneoff,
+      items: items.slice().sort((a, b) => b.amount - a.amount),
+      byCategory
+    };
   }
 
   // === INCOME ===
@@ -794,6 +825,10 @@ class DataManager {
         note(c.activeFrom);
         if (c.lastPurchaseDate) note(String(c.lastPurchaseDate).slice(0, 7));
       });
+      // Wydatki tak samo — inaczej czynsz wpisany wstecz nie miałby gdzie się
+      // narysować (linia czerwona zaczynałaby się dopiero od okna przychodów)
+      this.getExpenseEntries().forEach(e => note(e.date.slice(0, 7)));
+
       if (earliest) {
         const [ey, em] = earliest.split('-').map(Number);
         const span = (now.getFullYear() - ey) * 12 + (now.getMonth() - (em - 1)) + 1;
@@ -804,6 +839,14 @@ class DataManager {
     }
 
     const trend = [];
+
+    // Wydatki (wspólne) pogrupowane po miesiącu — trzecia, czerwona linia.
+    // Liczone RAZ przed pętlą: getExpenseEntries rozwija naliczenia stałych.
+    const expensesByYm = {};
+    this.getExpenseEntries().forEach(e => {
+      const ym = e.date.slice(0, 7);
+      expensesByYm[ym] = (expensesByYm[ym] || 0) + e.amount;
+    });
 
     for (let i = months - 1; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -843,7 +886,9 @@ class DataManager {
         monthName: d.toLocaleDateString('pl-PL', { month: 'short' }),
         wifeIncome,
         husbandIncome,
-        totalIncome: wifeIncome + husbandIncome
+        totalIncome: wifeIncome + husbandIncome,
+        // Osobna linia — wydatki CELOWO nie pomniejszają przychodów
+        expenses: expensesByYm[`${year}-${String(month + 1).padStart(2, '0')}`] || 0
       });
     }
 
@@ -1336,7 +1381,12 @@ class DataManager {
   getBudgetAlerts() {
     const now = new Date();
     const stats = this.getMonthlyStats(now.getFullYear(), now.getMonth());
-    const categories = this.getCategories();
+    // TYLKO budżety ustawione przez usera. `getCategories()` dokleja kategorie
+    // demo z data/config.json, które niosą budżety (Mieszkanie 3000, Jedzenie
+    // 2000...) — nikt ich nie ustawiał i nie ma na to UI. Dopóki nie było
+    // wydatków, ten kod spał; z wydatkami sypałby widmowymi alertami
+    // „Przekroczono budżet" (ten sam gatunek co usunięty alert celu z configu).
+    const categories = this.getCustomCategories('expense');
     const alerts = [];
 
     categories.forEach(cat => {

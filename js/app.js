@@ -228,9 +228,13 @@
     setupBusinessCostForm();
     renderCostCategoryChips();
     setupGoalHero();
-    document.querySelector('.income-status-card')?.addEventListener('click', (e) => {
+    $('income-status-card')?.addEventListener('click', (e) => {
       const row = e.target.closest('[data-proj]');
       if (row) openProjectionInfo(row.dataset.proj);
+    });
+    $('expense-status-card')?.addEventListener('click', (e) => {
+      const row = e.target.closest('[data-exp]');
+      if (row) openExpenseInfo(row.dataset.exp);
     });
     document.getElementById('timeline-chart-container')?.addEventListener('click', (e) => {
       const dot = e.target.closest('circle[data-mi]');
@@ -388,7 +392,7 @@
     renderAdviceAndAlerts();
 
     // Update income status - show same data as Income screen
-    const incomeCard = document.querySelector('.income-status-card');
+    const incomeCard = $('income-status-card');
     if (incomeCard) {
       // Calculate wife and husband income separately
       let wifeReceived = 0, husbandReceived = 0;
@@ -435,8 +439,84 @@
       `;
     }
 
+    renderExpenseCard(year, month);
+
     // Render chart
     renderChart();
+  }
+
+  /**
+   * Karta „Wasze wydatki" — CZYSTE PODSUMOWANIE oglądanego miesiąca
+   * (decyzja Kamila 2026-07-28: nie wchodzi w wyliczenia przychodów).
+   * Wiersze dotykalne = okienko ze składnikami, jak na karcie przychodów.
+   */
+  function renderExpenseCard(year, month) {
+    const card = $('expense-status-card');
+    if (!card) return;
+    const s = dataManager.getMonthExpensesSummary(year, month);
+
+    if (s.total === 0) {
+      card.innerHTML = `<div class="muted" style="text-align:center; padding:4px 0;">
+        Brak wydatków w tym miesiącu — dodasz je plusem ➕</div>`;
+      return;
+    }
+
+    // Na co poszło najwięcej: 2 kategorie, reszta zwinięta (3 zawijały podpis
+    // na drugą linię i dashboard wychodził poza ekran)
+    const top = s.byCategory.slice(0, 2)
+      .map(c => { const cat = expenseCategory(c.categoryId); return `${cat.icon} ${escapeHtml(cat.name)} ${formatMoney(c.amount)}`; })
+      .join(' · ');
+    const restCount = s.byCategory.length - 2;
+
+    card.innerHTML = `
+      <div class="income-status-row" data-exp="recurring" role="button" tabindex="0">
+        <span>🔄 Stałe</span>
+        <span class="income-value">${formatMoney(s.recurring)}</span>
+      </div>
+      <div class="income-status-row" data-exp="oneoff" role="button" tabindex="0">
+        <span>🧾 Jednorazowe</span>
+        <span class="income-value">${formatMoney(s.oneoff)}</span>
+      </div>
+      <div class="income-status-row total" data-exp="all" role="button" tabindex="0">
+        <span>Razem</span>
+        <span class="income-value negative">−${formatMoney(s.total)}</span>
+      </div>
+      <div class="muted" style="font-size:11px; text-align:right;">${top}${restCount > 0 ? ` · +${restCount}` : ''} · dotknij po wyliczenie</div>
+    `;
+  }
+
+  /** Okienko „skąd ta kwota" dla karty wydatków. */
+  function openExpenseInfo(kind) {
+    const { year, month } = getYearMonth();
+    const s = dataManager.getMonthExpensesSummary(year, month);
+    const title = $('proj-info-title');
+    const body = $('proj-info-body');
+    if (!title || !body) return;
+
+    const items = kind === 'recurring' ? s.items.filter(e => e.isAccrual)
+      : kind === 'oneoff' ? s.items.filter(e => !e.isAccrual)
+      : s.items;
+    const sum = kind === 'recurring' ? s.recurring : kind === 'oneoff' ? s.oneoff : s.total;
+
+    title.textContent = kind === 'recurring' ? '🔄 Stałe wydatki'
+      : kind === 'oneoff' ? '🧾 Jednorazowe wydatki'
+      : '🛒 Wydatki razem';
+
+    const line = (label, val) => `<div style="display:flex; justify-content:space-between; gap:12px;"><span>${label}</span><b>${formatMoney(val)}</b></div>`;
+    const sub = (icon, name, val) => `<div style="display:flex; justify-content:space-between; gap:12px; font-size:13px; color:var(--text-soft); padding-left:12px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${icon} ${escapeHtml(name)}</span><span>${formatMoney(val)}</span></div>`;
+    const hr = `<hr style="border:none; border-top:1px solid var(--bg-subtle); margin:8px 0;">`;
+
+    body.innerHTML = (items.length === 0
+      ? '<div class="muted">Brak wydatków w tym miesiącu</div>'
+      : items.map(e => {
+          const cat = expenseCategory(e.categoryId);
+          const day = e.isAccrual ? 'co miesiąc' : `${e.date.slice(8, 10)}.${e.date.slice(5, 7)}`;
+          return sub(cat.icon, `${e.description || cat.name} — ${day}`, e.amount);
+        }).join(''))
+      + hr + line('= razem', sum)
+      + `<div style="font-size:12px; color:var(--text-muted); margin-top:6px;">Wydatki są wspólne i NIE pomniejszają wyliczeń przychodów — to samo podsumowanie.</div>`;
+
+    openModal('modal-projection-info');
   }
 
   function renderChart() {
@@ -453,17 +533,18 @@
 
     // Chart dimensions
     const width = 320;
-    // Wyższy wykres (120→190→170): 170 od 2026-07-26 — 20 px oddane linijce
-    // "Śr. 12 mies." pod legendą, żeby dashboard został bez scrolla
-    const height = 170;
+    // Wysokość: 120→190→170→150. 150 od 2026-07-28 — 20 px oddane trzeciej
+    // linijce legendy (wydatki), żeby dashboard NADAL mieścił się bez scrolla
+    // (pomiar: 937 px przy ekranie 915 px zanim to przyciąłem)
+    const height = 150;
     const padding = { top: 15, right: 10, bottom: 25, left: 38 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
-    // Calculate max for scaling (separate lines for wife and husband)
+    // Skala obejmuje też wydatki — inaczej czerwona linia uciekałaby poza wykres
     const maxIncome = Math.max(
       1,
-      ...trend.map(t => Math.max(t.wifeIncome || 0, t.husbandIncome || 0))
+      ...trend.map(t => Math.max(t.wifeIncome || 0, t.husbandIncome || 0, t.expenses || 0))
     );
 
     // Helper to calculate Y position
@@ -480,6 +561,10 @@
     // Line paths (separate lines for wife and husband)
     const wifeLine = `M ${trend.map((t, i) => `${getX(i)},${getY(t.wifeIncome || 0)}`).join(' L ')}`;
     const husbandLine = `M ${trend.map((t, i) => `${getX(i)},${getY(t.husbandIncome || 0)}`).join(' L ')}`;
+    // Trzecia linia: WSPÓLNE wydatki (żądanie Kamila 2026-07-28). Bez linii
+    // regresji — trzy przerywane na 320 px robiłyby się nieczytelne.
+    const hasExpenses = trend.some(t => (t.expenses || 0) > 0);
+    const expenseLine = `M ${trend.map((t, i) => `${getX(i)},${getY(t.expenses || 0)}`).join(' L ')}`;
 
     // Linie TRENDU (regresja liniowa najmniejszych kwadratów) per osoba
     const linReg = (values) => {
@@ -526,6 +611,16 @@
     const totalAll = trend.reduce((sum, t) => sum + (t.totalIncome || 0), 0);
     const avgAll = trend.length ? Math.round(totalAll / trend.length) : 0;
     const totalLine = `<div class="chart-yoy">Łącznie: <b>${formatMoney(totalAll)}</b> · śr. <b>${formatMoney(avgAll)}/mies.</b></div>`;
+    // Wydatki w legendzie liczone od PIERWSZEGO miesiąca z wydatkiem — inaczej
+    // średnia rozwadniałaby się zerami sprzed rozpoczęcia notowania wydatków
+    const firstExpIdx = trend.findIndex(t => (t.expenses || 0) > 0);
+    const expWindow = firstExpIdx === -1 ? [] : trend.slice(firstExpIdx);
+    const expTotal = expWindow.reduce((sum, t) => sum + (t.expenses || 0), 0);
+    const expAvg = expWindow.length ? Math.round(expTotal / expWindow.length) : 0;
+    // padding-right: ostatnia linijka nie może wejść pod pływający ➕
+    const expenseLegend = hasExpenses
+      ? `<div class="chart-yoy" style="padding-right:78px;">${dot('expense')}🛒 Wydatki: <b>${formatMoney(expTotal)}</b> · śr. <b>${formatMoney(expAvg)}/mies.</b></div>`
+      : '';
 
     // Build SVG - simple line chart
     container.innerHTML = `
@@ -556,12 +651,17 @@
           <!-- Husband line -->
           <path d="${husbandLine}" fill="none" stroke="var(--mint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 
+          <!-- Wydatki (wspólne) -->
+          ${hasExpenses ? `<path d="${expenseLine}" fill="none" stroke="var(--expense)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+
           <!-- Data points + niewidoczne strefy dotyku (tooltip ze składem) -->
           ${trend.map((t, i) => `
             <circle cx="${getX(i)}" cy="${getY(t.wifeIncome || 0)}" r="3" fill="var(--peach)" stroke="white" stroke-width="1"/>
             <circle cx="${getX(i)}" cy="${getY(t.husbandIncome || 0)}" r="3" fill="var(--mint)" stroke="white" stroke-width="1"/>
+            ${hasExpenses ? `<circle cx="${getX(i)}" cy="${getY(t.expenses || 0)}" r="3" fill="var(--expense)" stroke="white" stroke-width="1"/>` : ''}
             <circle cx="${getX(i)}" cy="${getY(t.wifeIncome || 0)}" r="11" fill="transparent" data-mi="${i}" data-owner="wife"/>
             <circle cx="${getX(i)}" cy="${getY(t.husbandIncome || 0)}" r="11" fill="transparent" data-mi="${i}" data-owner="husband"/>
+            ${hasExpenses ? `<circle cx="${getX(i)}" cy="${getY(t.expenses || 0)}" r="11" fill="transparent" data-mi="${i}" data-owner="expenses"/>` : ''}
           `).join('')}
 
           <!-- Month labels -->
@@ -572,6 +672,7 @@
 
         ${yoyLine}
         ${totalLine}
+        ${expenseLegend}
       </div>
     `;
   }
@@ -680,6 +781,7 @@
     });
     // Wydatki: jednorazowe pod swoją datą, stałe jako naliczenie miesięczne
     // (jedna definicja w bazie — patrz dataManager.getExpenseEntries)
+    // Wydatki są WSPÓLNE: bez ikonki osoby i poza filtrami 👩/👨
     dataManager.getExpenseEntries().forEach(x => {
       const cat = expenseCategory(x.categoryId);
       entries.push({
@@ -688,7 +790,7 @@
         note: x.description,
         srcName: cat.name,
         icon: cat.icon,
-        ownerIcon: x.owner === 'wife' ? '👩' : '👨',
+        ownerIcon: '',
         expense: x.isAccrual ? 'stały' : 'wydatek',
         expenseId: x.expenseId
       });
@@ -781,7 +883,7 @@
         <div class="list-item" ${editAttr} role="button" tabindex="0">
           <div class="list-icon">${e.icon}</div>
           <div class="list-content">
-            <div class="list-title">${e.ownerIcon} ${escapeHtml(title)}</div>
+            <div class="list-title">${e.ownerIcon ? e.ownerIcon + ' ' : ''}${escapeHtml(title)}</div>
             <div class="list-subtitle">${escapeHtml(sub)}</div>
           </div>
           <div class="list-amount ${e.expense ? 'negative' : 'positive'}">${e.expense ? '−' : ''}${formatMoney(e.amount)}</div>
@@ -1771,8 +1873,6 @@
     renderExpenseCategoryChips();
     const d = new Date();
     $('expense-date').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    // Domyślnie płaci właściciel urządzenia (profil), tak jak przy wpłatach
-    setChip('expense-owner-chips', currentPerson === 'wife' ? 'wife' : 'husband');
   }
 
   /** Zaznacz chip o danym data-value w grupie (reszta traci active). */
@@ -1798,14 +1898,12 @@
       $('expense-date-group').style.display = isRecurring ? 'none' : '';
     });
 
-    ['expense-owner-chips', 'expense-category-chips'].forEach(id => {
-      const container = $(id);
-      container?.addEventListener('click', e => {
-        const chip = e.target.closest('.chip');
-        if (!chip) return;
-        container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-      });
+    const catChips = $('expense-category-chips');
+    catChips?.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      catChips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
     });
 
     form.addEventListener('submit', e => {
@@ -1816,7 +1914,6 @@
           Toast.error('Zła kwota', 'Wprowadź kwotę większą od zera');
           return;
         }
-        const owner = $('expense-owner-chips').querySelector('.chip.active')?.dataset.value === 'wife' ? 'wife' : 'husband';
         const categoryId = $('expense-category-chips').querySelector('.chip.active')?.dataset.value || 'other';
         const isRecurring = $('expense-type-chips').querySelector('.chip.active')?.dataset.value === 'recurring';
         const description = $('expense-desc').value.trim();
@@ -1828,7 +1925,8 @@
           return;
         }
 
-        const data = { amount, owner, categoryId, description, isRecurring, activeFrom, activeTo };
+        // Wydatki są WSPÓLNE — bez pola owner (decyzja Kamila 2026-07-28)
+        const data = { amount, categoryId, description, isRecurring, activeFrom, activeTo };
         if (!isRecurring) {
           // Bez daty wpis wypadłby z historii — fallback na dziś
           data.date = $('expense-date').value || FGUtils.getDateString(new Date());
@@ -1873,7 +1971,6 @@
 
     $('expense-amount').value = exp.amount;
     $('expense-desc').value = exp.description || '';
-    setChip('expense-owner-chips', exp.owner === 'wife' ? 'wife' : 'husband');
     setChip('expense-category-chips', exp.categoryId || 'other');
     setChip('expense-type-chips', exp.isRecurring ? 'recurring' : 'oneoff');
 
@@ -2794,6 +2891,15 @@
 
   function chartMonthBreakdown(owner, y, m) {
     const items = [];
+    // Wydatki (wspólne): naliczenia stałych + jednorazowe tego miesiąca
+    if (owner === 'expenses') {
+      dataManager.getMonthExpensesSummary(y, m).items.forEach(e => {
+        const cat = expenseCategory(e.categoryId);
+        const name = e.description || cat.name;
+        items.push({ label: `${cat.icon} ${name}${e.isAccrual ? ' (stały)' : ''}`, amount: e.amount });
+      });
+      return items;
+    }
     dataManager.getIncomeSources().filter(s => s.owner === owner).forEach(s => {
       (s.payments || []).forEach(p => {
         const d = new Date(p.date);
@@ -2871,15 +2977,17 @@
     if (!t) return;
     const card = document.querySelector('#timeline-chart-container');
     if (!card) return;
-    const total = owner === 'wife' ? (t.wifeIncome || 0) : (t.husbandIncome || 0);
+    const total = owner === 'wife' ? (t.wifeIncome || 0)
+      : owner === 'expenses' ? (t.expenses || 0)
+      : (t.husbandIncome || 0);
     const items = chartMonthBreakdown(owner, t.year, t.month);
     const shownItems = items; // pełna lista (decyzja Kamila 2026-07-26)
     const box = document.createElement('div');
     box.className = 'chart-tooltip';
     const mies = `${FGUtils.MONTHS[t.month]} ${t.year}`;
     box.innerHTML = `
-      <div class="chart-tooltip-head"><span>${owner === 'wife' ? '👩' : '👨'} ${mies}</span><b>${formatMoney(total)}</b></div>
-      ${shownItems.length === 0 ? '<div class="muted">Brak wpłat w tym miesiącu</div>' : shownItems.map(it =>
+      <div class="chart-tooltip-head"><span>${owner === 'wife' ? '👩' : owner === 'expenses' ? '🛒' : '👨'} ${mies}</span><b>${owner === 'expenses' ? '−' : ''}${formatMoney(total)}</b></div>
+      ${shownItems.length === 0 ? `<div class="muted">${owner === 'expenses' ? 'Brak wydatków w tym miesiącu' : 'Brak wpłat w tym miesiącu'}</div>` : shownItems.map(it =>
         `<div class="chart-tooltip-row"><span>${escapeHtml(it.label)}</span><span>${formatMoney(it.amount)}</span></div>`).join('')}
 
     `;

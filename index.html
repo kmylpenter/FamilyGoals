@@ -303,7 +303,7 @@
     <!-- Income Status -->
     <h2 class="section-title">💰 Wasze przychody</h2>
     <!-- Bez przekierowania (decyzja 2026-07-26): klik wiersza otwiera okienko wyliczenia -->
-    <div class="income-status-card">
+    <div class="income-status-card" id="income-status-card">
       <div class="income-status-row">
         <span>Wymagane</span>
         <span class="income-value">12 000 zł</span>
@@ -316,6 +316,11 @@
         <span>Brakuje</span>
         <span class="income-value negative">-3 500 zł</span>
       </div>
+    </div>
+
+    <h2 class="section-title">🛒 Wasze wydatki</h2>
+    <div class="income-status-card" id="expense-status-card">
+      <!-- Renderowane dynamicznie przez JS (podsumowanie, bez wpływu na przychody) -->
     </div>
 
     <h2 class="section-title">📈 Przychody</h2>
@@ -670,13 +675,6 @@
         <div class="form-group">
           <label>Kwota (zł)</label>
           <input type="number" id="expense-amount" class="input-large" placeholder="0" min="0" step="0.01" required>
-        </div>
-        <div class="form-group">
-          <label>Kto wydał</label>
-          <div class="chips" id="expense-owner-chips">
-            <button type="button" class="chip active" data-value="husband">👨 Mąż</button>
-            <button type="button" class="chip" data-value="wife">👩 Żona</button>
-          </div>
         </div>
         <div class="form-group">
           <label>Kategoria</label>

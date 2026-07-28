@@ -13,6 +13,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 16b (2026-07-28) - Wydatki: linia na wykresie, wspólne, karta podsumowania
+
+#### Added
+- Trzecia linia na wykresie: WYDATKI na mocnej czerwieni (Mąż zielony, Żona różowa) + kropki z dymkiem składu miesiąca („🛒 Lipiec 2026 −1492,99 zł" i pozycje) + linijka legendy „🛒 Wydatki: suma · śr./mies." (średnia liczona od pierwszego miesiąca z wydatkiem, żeby nie rozwadniać zerami). Skala wykresu uwzględnia wydatki. Files: `js/data-manager.js` (`trend.expenses`), `js/app.js`
+- Karta „🛒 Wasze wydatki" na Starcie, w stylu karty przychodów: 🔄 Stałe / 🧾 Jednorazowe / Razem + 2 największe kategorie; dotknięcie wiersza otwiera okienko ze składnikami („skąd ta kwota"). CZYSTE PODSUMOWANIE — nie wchodzi w wyliczenia przychodów. Files: `index.html`, `js/data-manager.js` (`getMonthExpensesSummary`), `js/app.js`
+- Zmienna `--expense: #c62828` (mocna czerwień wydatków) — `--danger` (#e07878) zlewał się na wykresie z pastelowym `--peach` Żony. Kwoty wydatków w historii i na karcie używają tej samej barwy. Files: `css/main.css`, `js/app.js`
+
+#### Changed
+- Wydatki są WSPÓLNE (decyzja Kamila): usunięte chipy „Kto wydał", wpisy historii bez ikonki osoby i poza filtrami 👩/👨 (zostają w „Wszystkie" i „🛒 Wydatki"). Stare rekordy z `owner` są ignorowane. Files: `index.html`, `js/app.js`, `js/data-manager.js`
+- Wysokość wykresu 170→150 px i podpis karty do 2 kategorii — trzecia linijka legendy wypychała dashboard poza ekran (pomiar: 937 px przy ekranie 915). Legenda dostała `padding-right`, żeby nie wchodzić pod pływający ➕. Files: `js/app.js`
+- Karta przychodów dostała `id` (`#income-status-card`) — karta wydatków używa tej samej klasy, `querySelector('.income-status-card')` stał się niejednoznaczny. Files: `index.html`, `js/app.js`
+
+#### Fixed
+- Widmowe alerty „Przekroczono budżet o X": `getBudgetAlerts` liczyło z budżetów kategorii demo w `data/config.json` (Mieszkanie 3000, Jedzenie 2000...), których nikt nie ustawiał i na które nie ma UI. Kod spał, dopóki nie było wydatków — pierwszy większy wydatek zapaliłby alert z widmowej kwoty (ten sam gatunek co usunięty alert celu z configu). Liczone są teraz tylko budżety kategorii własnych. Files: `js/data-manager.js`
+
 ### Sesja 16 (2026-07-28) - Wydatki wracają jako pełnoprawna encja
 
 #### Added

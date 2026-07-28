@@ -32,6 +32,47 @@
 
 ## Daily Log
 
+### 2026-07-28 (cz. 2): Wydatki na wykresie i własna karta — pomiar wyłapał trzy rzeczy, których oko nie widziało
+
+**Sytuacja:** Po wydaniu wydatków Kamil zamówił trzy rzeczy: trzecią linię na
+wykresie (on zielony, Żona różowa, wydatki czerwone), zniesienie podziału
+wydatków na Męża/Żonę („wydatki mogą być wspólne") i kartę podsumowania
+wydatków w stylu karty przychodów — bez wchodzenia w wyliczenia.
+
+**Wyzwanie:** Wszystkie trzy dokładają piksele do dashboardu, który od
+2026-07-25 ma twardą zasadę „mieści się bez scrolla", i dokładają czerwień
+do palety, w której Żona jest już łososiowa.
+
+**Decyzje:** (1) `--expense: #c62828` jako osobny, mocny czerwony — `--danger`
+(#e07878) na wykresie zlewał się z `--peach` Żony w jedną linię; ta sama barwa
+niesie teraz wydatki wszędzie (linia, kropki, kwoty). (2) Wydatki wypadają
+z filtrów osobowych i tracą ikonkę osoby; stare rekordy z `owner` są po prostu
+ignorowane (bez migracji danych). (3) Karta wydatków = Stałe / Jednorazowe /
+Razem + dwie największe kategorie, wiersze dotykalne po składniki — mirror
+karty przychodów, ale świadomie węższy.
+
+**Co wyłapał pomiar (a nie wzrok):** headless zmierzył dashboard i pokazał, że
+po dodaniu karty i trzeciej linijki legendy strona ma 937 px przy ekranie
+915 — zasada „bez scrolla" złamana. Odzyskane 36 px: wykres 170→150 i podpis
+karty do 2 kategorii. Drugie: legenda wchodziła pod pływający ➕ — pudełko
+nadal na niego nachodzi, ale `padding-right` trzyma TEKST z dala (pomiar po
+zakresie tekstu, nie po pudełku, bo pudełko myliło). Trzecie i najważniejsze:
+przy większym wydatku strona rosła o kolejne 57 px — winowajcą okazała się
+karta alertów, w której zapalił się widmowy „Przekroczono budżet o 10 545,67 zł".
+`getBudgetAlerts` liczyło z budżetów kategorii DEMO w `data/config.json`
+(Mieszkanie 3000, Jedzenie 2000...), których Kamil nigdy nie ustawiał i na
+które nie ma UI. Kod spał latami, bo wydatków nie było — moja zmiana go
+obudziła. Alerty liczą teraz wyłącznie budżety kategorii własnych.
+
+**Rezultat:** 123 testy zielone (+7), dashboard 915/915 bez scrolla w trzech
+scenariuszach (pusty, z wydatkami, duże kwoty), tekst legendy nigdy pod ➕,
+karta przychodów bajt w bajt identyczna przed i po dodaniu wydatków.
+
+**Files:** `js/data-manager.js`, `js/app.js`, `index.html`, `css/main.css`,
+`tests/expenses.test.js`
+
+---
+
 ### 2026-07-28: Wydatki wracają — i lekcja o zero-config syncu w kopii deweloperskiej
 
 **Sytuacja:** Kamil prosi o możliwość zapisywania wydatków. Funkcja była
