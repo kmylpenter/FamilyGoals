@@ -1,6 +1,8 @@
 logs/archive/
 node_modules/
 apk/
+# Cache pythona - publish-web.sh importuje scripts/stamp-web-refs.py
+__pycache__/
 backend-gas/.local-config.json
 android-apk/build/
 DANE-LOGOWANIA.md
