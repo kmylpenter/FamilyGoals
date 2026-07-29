@@ -13,6 +13,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 16c (2026-07-29) - Aktualizacja OTA wstawała w stanie mieszanym (nowy HTML + stary JS)
+
+#### Fixed
+- **Telefon po aktualizacji miał nowy `index.html` i STARY `js/*`** → `Uncaught TypeError: app.openAddExpense is not a function` przy „Dodaj wydatek", a boot log pokazywał wersję sprzed dwóch dni mimo świeżej paczki na dysku. Przyczyna: WebView w APK trzyma podzasoby w swoim cache pod URL-em pliku, a `FGUpdater.restart()` przeładowuje TEN SAM adres `file://…/www-live/index.html` — główna ramka przychodzi z dysku, `<script src="js/app.js">` z cache. Files: `scripts/stamp-web-refs.py`, `android-apk/publish-web.sh`, `android-apk/build-apk.sh`, `android-apk/src/com/kmylpenter/familygoals/MainActivity.java`
+  - Paczka stempluje odwołania js/css wersją (`js/app.js?v=2026-07-29T03-51-45Z`) — przy każdym wydaniu URL się zmienia, więc cache nie ma czego podstawić. Sprawdzone, że `file://` z `?query` wykonuje skrypt (Chromium 148) i że ostemplowana paczka wstaje z `file://` z poprawnym `FG_WEB_VERSION` i `app.openAddExpense`.
+  - `publish-web.sh` przerywa wydanie, gdy po stemplowaniu zostanie odwołanie bez wersji albo wskazujące na plik spoza paczki.
+  - `WebView.clearCache(true)` przed przeładowaniem w `restart()` — druga linia obrony, wchodzi z następnym APK.
+- 6 testów stemplowania (red-first), w tym self-test skryptu i kontrola na REALNYM `index.html`. Suita 123→129. Files: `tests/web-refs-stamp.test.js`
+
 ### Sesja 16b (2026-07-28) - Wydatki: linia na wykresie, wspólne, karta podsumowania
 
 #### Added

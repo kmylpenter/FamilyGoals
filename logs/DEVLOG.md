@@ -32,6 +32,54 @@
 
 ## Daily Log
 
+### 2026-07-29: Aktualizacja OTA wstawała w stanie mieszanym — cache WebView
+
+**Sytuacja:** Kamil przysłał dwie linijki z telefonu: boot `web 2026-07-26T08:54:09Z
+APK 1.3.0` i `Uncaught TypeError: app.openAddExpense is not a function
+@ .../www-live/index.html:604`.
+
+**Wyzwanie:** Te dwie linijki są sprzeczne. Linia 604 to DOKŁADNIE nowy przycisk
+„Dodaj wydatek" (28.07), a `FG_WEB_VERSION` czytany jest z `js/app-version.js`
+DZIAŁAJĄCYCH plików i pokazuje 26.07. Czyli aplikacja jechała na nowym HTML-u
+i starym JS-ie naraz.
+
+**Diagnoza:** `applyBundle` jest atomowe (zapis do `www-live-tmp`, potem
+podmiana katalogu), więc katalog na dysku nie może być mieszanką — sprawdziłem
+kod. Mieszankę robi WARSTWA WYŻEJ: `restart()` woła `loadUrl` na TYM SAMYM
+adresie `file://…/www-live/index.html`, a WebView nie ma ustawionego żadnego
+trybu cache. Główna ramka jest wczytywana na nowo z dysku, ale `<script
+src="js/app.js">` to niezmieniony URL — WebView podaje go ze swojego cache.
+Stąd nowy HTML wołający funkcję, której stary JS nie zna.
+
+**Decyzja:** Naprawa po stronie PACZKI, nie tylko APK — bo poprawka w Javie
+wymaga zbudowania i zainstalowania nowego APK, a telefon trzeba odratować
+teraz. Odwołania js/css w `index.html` dostają `?v=wersja` przy budowaniu
+paczki; każde wydanie zmienia URL, więc cache nie ma czego podstawić.
+Ryzykowne założenie („czy `file://` z `?query` w ogóle wykona skrypt")
+sprawdziłem osobnym testem w Chromium ZANIM to wydałem — gdyby nie działało,
+telefon zostałby bez JS, a `onReceivedError` łapie tylko błąd głównej ramki,
+więc nie byłoby automatycznego odzysku. Druga linia obrony: `clearCache(true)`
+przed przeładowaniem, wchodzi z następnym APK.
+
+**Rezultat:** 129 testów zielonych (+6, red-first: self-test skryptu, ochrona
+adresów zewnętrznych, idempotencja, kontrola na realnym `index.html`).
+`publish-web.sh` przerywa wydanie, jeśli po stemplowaniu zostanie odwołanie bez
+wersji albo wskazujące poza paczkę. Paczka na sucho uruchomiona z `file://`
+(tak jak robi to APK): `FG_WEB_VERSION` poprawna, `app.openAddExpense` istnieje.
+Wydanie 2026-07-29T03:51:45Z — nowsze niż to na telefonie, więc baner
+aktualizacji się pokaże i odratuje urządzenie.
+
+**Lekcja:** stan mieszany po deployu to nie „zła paczka" tylko warstwa
+transportu/cache. Dwie sprzeczne linijki logu (wersja vs symbol) wystarczyły,
+żeby to zawęzić bez zgadywania — i były szybsze niż jakakolwiek hipoteza
+o zepsutym `applyBundle`.
+
+**Files:** `scripts/stamp-web-refs.py`, `android-apk/publish-web.sh`,
+`android-apk/build-apk.sh`, `android-apk/src/.../MainActivity.java`,
+`tests/web-refs-stamp.test.js`
+
+---
+
 ### 2026-07-28 (cz. 2): Wydatki na wykresie i własna karta — pomiar wyłapał trzy rzeczy, których oko nie widziało
 
 **Sytuacja:** Po wydaniu wydatków Kamil zamówił trzy rzeczy: trzecią linię na

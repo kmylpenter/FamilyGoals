@@ -23,6 +23,8 @@ rm -rf "$O/assets/www/js/archive"
 # "dostępna aktualizacja")
 STAMP="${FG_STAMP:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 sed -i "s/FG_WEB_VERSION = '[^']*'/FG_WEB_VERSION = '$STAMP'/" "$O/assets/www/js/app-version.js"
+# Odwołania js/css z wersją — ten sam powód co w publish-web.sh (cache WebView)
+python3 "$ROOT/scripts/stamp-web-refs.py" "$O/assets/www/index.html" "$STAMP"
 echo "    $(find "$O/assets/www" -type f | wc -l) plików, wersja web: $STAMP"
 
 echo "[2/8] aapt2 compile (res)"

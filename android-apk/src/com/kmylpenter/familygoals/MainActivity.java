@@ -94,6 +94,12 @@ public class MainActivity extends Activity {
 
     @Override
     public void run() {
+      // Cache WebView trzyma js/css pod URL-em pliku. Bez tego restart po
+      // aktualizacji dawał NOWY index.html i STARE skrypty z cache — apka
+      // wstawała w stanie mieszanym (incydent 2026-07-29: crash na
+      // app.openAddExpense). Paczka stempluje URL-e ?v=wersja, to jest druga
+      // linia obrony (działa też dla plików wbudowanych w APK).
+      activity.web.clearCache(true);
       activity.web.loadUrl(activity.startUrl());
     }
   }
