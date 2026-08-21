@@ -416,6 +416,9 @@ class DataManager {
       date: newPayment.date
     });
 
+    // Jak updatePayment/deletePayment — bez emitu sync nie wiedział
+    // o nowej wpłacie aż do zegara (zgubione 4000, 2026-08-21)
+    if (typeof EventBus !== 'undefined') EventBus.emit('income:updated');
     return newPayment;
   }
 

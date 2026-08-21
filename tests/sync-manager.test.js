@@ -154,3 +154,54 @@ test('sync: kursor przesuwa się po pullu (delta nie mieli w kółko tego samego
   const lastDelta = emu.calls[emu.calls.length - 1];
   assert.equal(lastDelta.args[0], '2026-07-24T10:00:00.000Z', 'delta pyta od kursora');
 });
+
+// ===== Wysyłka od razu po zapisie (zgłoszenie Kamila 2026-08-21: wpłata =====
+// 4000 została w telefonie — zegar 10 s nie zdążył przed schowaniem apki)
+
+test('sync: wpłata leci do backendu zaraz po dodaniu (bez czekania na zegar)', async () => {
+  const emu = createBackendEmulator();
+  const { run } = freshSync(emu);
+  try {
+    run('syncManager.start()');
+    await new Promise(r => setTimeout(r, 80)); // initial syncNow ze start()
+    const baseline = emu.calls.length;
+    run(`window.__s = dataManager.addIncomeSource({ name: 'Gotówka', expectedAmount: 10000, owner: 'husband', incomeType: 'recurring', isActive: true })`);
+    run(`dataManager.recordPayment(window.__s.id, { amount: 4000, date: '2026-07-15' })`);
+    await new Promise(r => setTimeout(r, 900)); // debounce + zapas; DALEKO od zegara 10 s
+    const pushed = emu.calls.slice(baseline)
+      .filter(c => c && c.method === 'pushChanges')
+      .some(c => c.args[0].some(ch => ch.entity === 'incomeSources' &&
+        (ch.record.payments || []).some(p => p.amount === 4000)));
+    assert.ok(pushed, 'źródło z wpłatą 4000 wypchnięte bez zegara 10 s');
+  } finally {
+    run('syncManager.stop()');
+  }
+});
+
+test('sync: schowanie apki (visibilitychange→hidden) domyka wysyłkę od ręki', async () => {
+  const emu = createBackendEmulator();
+  const env = createBrowserEnv();
+  env.fetch = emu.fetchImpl;
+  const listeners = {};
+  env.document.hidden = false;
+  env.document.addEventListener = (ev, fn) => { (listeners[ev] = listeners[ev] || []).push(fn); };
+  const { run } = loadApp({ scripts: ['js/utils.js', 'js/data-manager.js', 'js/event-bus.js', 'js/sync-manager.js'], env });
+  run(`localStorage.setItem('familygoals_sync_config', JSON.stringify({ url: 'https://backend.test/exec', token: 'TOK', enabled: true }))`);
+  try {
+    run('syncManager.start()');
+    await new Promise(r => setTimeout(r, 80));
+    const baseline = emu.calls.length;
+    run(`window.__s2 = dataManager.addIncomeSource({ name: 'Pensja', expectedAmount: 6000, owner: 'husband', incomeType: 'recurring', isActive: true })`);
+    run(`dataManager.recordPayment(window.__s2.id, { amount: 6000, date: '2026-07-10' })`);
+    env.document.hidden = true;
+    (listeners['visibilitychange'] || []).forEach(fn => fn());
+    await new Promise(r => setTimeout(r, 120)); // < debounce — flush musi iść z hidden
+    const pushed = emu.calls.slice(baseline)
+      .filter(c => c && c.method === 'pushChanges')
+      .some(c => c.args[0].some(ch => ch.entity === 'incomeSources' &&
+        (ch.record.payments || []).some(p => p.amount === 6000)));
+    assert.ok(pushed, 'schowanie apki wypycha kolejkę natychmiast');
+  } finally {
+    run('syncManager.stop()');
+  }
+});

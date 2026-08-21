@@ -34,7 +34,7 @@
     engagement: { key: 'familygoals_engagement', mode: 'perKey' }
   };
 
-  var timers = { pull: null, flush: null };
+  var timers = { pull: null, flush: null, debounce: null };
   var state = { lastSync: null, lastError: null, syncing: false };
 
   // ---------- helpers ----------
@@ -362,7 +362,11 @@
     }
     if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
       document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) syncNow();
+        // Chowanie apki DOMYKA wysyłkę (zgłoszenie Kamila 2026-08-21: wpłata
+        // 4000 została w telefonie — zegar nie zdążył przed zamknięciem);
+        // kolejka jest trwała, więc nawet ubity fetch dośle przy starcie
+        if (document.hidden) detectChanges().then(flushQueue);
+        else syncNow();
       });
     }
     syncNow();
@@ -372,7 +376,8 @@
   function stop() {
     if (timers.pull) clearInterval(timers.pull);
     if (timers.flush) clearInterval(timers.flush);
-    timers.pull = timers.flush = null;
+    if (timers.debounce) clearTimeout(timers.debounce);
+    timers.pull = timers.flush = timers.debounce = null;
   }
 
   /** Konfiguracja + claim tokena na backendzie + pierwszy pełny sync. */
@@ -395,6 +400,22 @@
       lastError: state.lastError,
       cursor: localStorage.getItem(CURSOR_KEY) || null
     };
+  }
+
+  // Wysyłka OD RAZU po każdej mutacji danych: EventBus dokleja meta-event
+  // 'data:changed' do każdego emitu, więc jeden nasłuch łapie wpłaty,
+  // wydatki i cele. Filtr source==='sync' ucina echo własnego pulla.
+  // Debounce 400 ms grupuje serie zapisów; bez configu detectChanges
+  // jest tanim no-opem.
+  if (typeof EventBus !== 'undefined' && EventBus && typeof EventBus.on === 'function') {
+    EventBus.on('data:changed', function (payload) {
+      if (payload && payload.source === 'sync') return;
+      if (timers.debounce) clearTimeout(timers.debounce);
+      timers.debounce = setTimeout(function () {
+        timers.debounce = null;
+        detectChanges().then(flushQueue);
+      }, 400);
+    });
   }
 
   window.syncManager = {
