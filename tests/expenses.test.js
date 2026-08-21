@@ -112,20 +112,20 @@ test('sync: nowy wydatek ląduje w kolejce do arkusza (żona widzi wpisy męża)
 
 test('wykres: trend niesie sumę wydatków per miesiąc (linia czerwona)', () => {
   const { run } = fresh('2026-07-28T12:00:00');
-  run(`dataManager.addExpense({ amount: 43, categoryId: 'entertainment', description: 'Netflix', isRecurring: true, activeFrom: '2026-06' })`);
-  run(`dataManager.addExpense({ amount: 250, categoryId: 'food', description: 'Biedronka', date: '2026-07-20' })`);
-  const t = run('dataManager.getTrendByOwner(3)');
+  run(`dataManager.addExpense({ amount: 43, categoryId: 'entertainment', description: 'Netflix', isRecurring: true, activeFrom: '2026-05' })`);
+  run(`dataManager.addExpense({ amount: 250, categoryId: 'food', description: 'Biedronka', date: '2026-06-20' })`);
+  const t = run('dataManager.getTrendByOwner(3)'); // okno kwi–cze (bez trwającego lipca)
   const byYm = {};
   t.forEach(p => { byYm[`${p.year}-${String(p.month + 1).padStart(2, '0')}`] = p.expenses; });
-  assert.equal(byYm['2026-05'], 0, 'maj: przed pierwszym wydatkiem');
-  assert.equal(byYm['2026-06'], 43, 'czerwiec: samo naliczenie stałego');
-  assert.equal(byYm['2026-07'], 293, 'lipiec: naliczenie 43 + jednorazowy 250');
+  assert.equal(byYm['2026-04'], 0, 'kwiecień: przed pierwszym wydatkiem');
+  assert.equal(byYm['2026-05'], 43, 'maj: samo naliczenie stałego');
+  assert.equal(byYm['2026-06'], 293, 'czerwiec: naliczenie 43 + jednorazowy 250');
 });
 
 test('wykres: wydatki NIE mieszają się do przychodów (osobna linia)', () => {
   const { run } = fresh('2026-07-28T12:00:00');
-  run(`dataManager.addExpense({ amount: 999, categoryId: 'food', description: 'Duży wydatek', date: '2026-07-10' })`);
-  const t = run('dataManager.getTrendByOwner(1)');
+  run(`dataManager.addExpense({ amount: 999, categoryId: 'food', description: 'Duży wydatek', date: '2026-06-10' })`);
+  const t = run('dataManager.getTrendByOwner(1)'); // okno = czerwiec
   assert.equal(t[0].expenses, 999);
   assert.equal(t[0].totalIncome, 0, 'przychód nietknięty');
   assert.equal(t[0].wifeIncome, 0);

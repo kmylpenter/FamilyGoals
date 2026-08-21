@@ -68,10 +68,10 @@ test("pula: getTrendByOwner('auto') zaczyna okno od najwcześniejszych danych", 
   const src = withSource(run); // activeFrom 2026-01
   run(`dataManager.recordPayment('${src.id}', { amount: 20000, date: '2026-02-10' })`);
   const trend = run(`dataManager.getTrendByOwner('auto')`);
-  assert.equal(trend.length, 7, 'sty..lip 2026 = 7 miesięcy');
+  assert.equal(trend.length, 6, 'sty..cze 2026 = 6 miesięcy (bez trwającego lipca)');
   assert.equal(trend[0].year, 2026);
   assert.equal(trend[0].month, 0, 'okno startuje w styczniu (activeFrom)');
-  assert.equal(trend[trend.length - 1].month, 6, 'kończy na bieżącym');
+  assert.equal(trend[trend.length - 1].month, 5, 'kończy na ostatnim zamkniętym (czerwiec)');
 });
 
 test("pula: 'auto' bez activeFrom bierze najwcześniejszą wpłatę", () => {

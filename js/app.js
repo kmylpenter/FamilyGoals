@@ -394,22 +394,8 @@
     // Update income status - show same data as Income screen
     const incomeCard = $('income-status-card');
     if (incomeCard) {
-      // Calculate wife and husband income separately
-      let wifeReceived = 0, husbandReceived = 0;
-      let wifeExpected = 0, husbandExpected = 0;
-
-      incomeSummary.sources.forEach(src => {
-        if (src.owner === 'wife') {
-          wifeReceived += src.totalReceived || 0;
-          wifeExpected += src.expected || 0;
-        } else {
-          husbandReceived += src.totalReceived || 0;
-          husbandExpected += src.expected || 0;
-        }
-      });
-
       const businessSavings = dataManager.calculateBusinessSavings(year, month);
-      // "realnie daje" = realna moc (decyzja Kamila 2026-07-26): założenia
+      // "realnie" = realna moc (decyzja Kamila 2026-07-26): założenia
       // cykliczne + śr. 12-mies. dodatkowych (nadwyżki/jednorazowe)
       const proj = dataManager.getIncomeProjection(year, month);
       const totalReceived = incomeSummary.totalReceived + businessSavings;
@@ -417,23 +403,24 @@
       const projectedTotal = proj.wife.projected + proj.husband.projected + proj.business.projected;
       const declaredTotal = proj.wife.recurringExpected + proj.husband.recurringExpected + proj.business.recurringMonthly;
 
-      // Dwie opisane linie na wiersz (decyzja Kamila 2026-08-21 — samo
-      // "16,5/16" było nieczytelne): "otrzymane" = TE SAME liczby co ekran
-      // Przychody (model puli), "realnie daje" = projekcja jak wyżej.
-      const row = (key, name, label1, received, expected, projected, declared) => `
-        <div class="income-status-row${key === 'total' ? ' total' : ''}"${key === 'total' ? '' : ` data-proj="${key}" role="button" tabindex="0"`}>
-          <span class="income-status-name">${name}</span>
-          <div class="income-status-lines">
-            <div class="income-line"><span>${label1}</span><span class="income-value ${expected > 0 && received >= expected ? 'positive' : ''}">${formatMoney(received)} z ${formatMoney(expected)}</span></div>
-            <div class="income-line"><span>realnie daje</span><span class="income-value ${projected > declared ? 'positive' : ''}">${formatMoney(projected)}</span></div>
-          </div>
+      // Wybór Kamila 2026-08-21 (po odrzuceniu dwóch opisanych linii jako
+      // przegadanych): wiersze = para jak dawniej, etykieta pary RAZ
+      // w nagłówku, bieżący miesiąc JEDNĄ linią z paskiem na dole karty.
+      const pair = (key, name, projected, declared) => `
+        <div class="income-status-row" data-proj="${key}" role="button" tabindex="0">
+          <span>${name}</span>
+          <span class="income-value ${projected > declared ? 'positive' : ''}">${formatMoney(projected)} / ${formatMoney(declared)}</span>
         </div>`;
+      const monthPct = totalExpectedMonth > 0
+        ? Math.min(100, Math.round((totalReceived / totalExpectedMonth) * 100)) : 0;
       incomeCard.innerHTML =
-        row('wife', '👩 Żona', 'otrzymane', wifeReceived, wifeExpected, proj.wife.projected, proj.wife.recurringExpected)
-        + row('husband', '👨 Mąż', 'otrzymane', husbandReceived, husbandExpected, proj.husband.projected, proj.husband.recurringExpected)
-        + row('business', '💼 Korzyści firmowe', 'naliczone', businessSavings, proj.business.recurringMonthly, proj.business.projected, proj.business.recurringMonthly)
-        + row('total', 'Razem', 'otrzymane', totalReceived, totalExpectedMonth, projectedTotal, declaredTotal)
-        + `<div class="muted" style="font-size:11px; text-align:right;">dotknij wiersz po wyliczenie</div>`;
+        `<div class="income-status-row header"><span>dotknij wiersz po wyliczenie</span><span>realnie / założenie</span></div>`
+        + pair('wife', '👩 Żona', proj.wife.projected, proj.wife.recurringExpected)
+        + pair('husband', '👨 Mąż', proj.husband.projected, proj.husband.recurringExpected)
+        + pair('business', '💼 Korzyści firmowe', proj.business.projected, proj.business.recurringMonthly)
+        + `<div class="income-status-row total"><span>Razem</span><span class="income-value ${projectedTotal > declaredTotal ? 'positive' : ''}">${formatMoney(projectedTotal)} / ${formatMoney(declaredTotal)}</span></div>`
+        + `<div class="income-month-line">${FGUtils.MONTHS[month]}: wpłynęło <b>${formatMoney(totalReceived)}</b> z ${formatMoney(totalExpectedMonth)}</div>`
+        + `<div class="income-month-bar"><div class="income-bar-fill" style="width:${monthPct}%"></div></div>`;
     }
 
     renderExpenseCard(year, month);

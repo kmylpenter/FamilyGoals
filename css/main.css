@@ -199,14 +199,12 @@ body {
 @media (hover: hover) {
   .income-status-card:hover { background: var(--bg-subtle); }
 }
-.income-status-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 2px 0; font-size: 0.85rem; border-bottom: 1px solid var(--bg-subtle); }
-/* Dwie opisane linie na wiersz (2026-08-21) */
-.income-status-name { flex-shrink: 0; }
-.income-status-lines { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.income-line { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; line-height: 1.25; }
-.income-line > span:first-child { color: var(--text-soft); font-size: 0.75rem; }
-.income-line .income-value { font-size: 0.85rem; white-space: nowrap; }
+.income-status-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.85rem; line-height: 1.35; border-bottom: 1px solid var(--bg-subtle); }
 .income-status-row:last-child { border-bottom: none; }
+/* Nagłówek pary + linia bieżącego miesiąca z paskiem (wybór Kamila 2026-08-21) */
+.income-status-row.header { padding: 0 0 2px; font-size: 0.7rem; color: var(--text-muted); }
+.income-month-line { font-size: 0.8rem; color: var(--text-soft); padding-top: 4px; line-height: 1.4; }
+.income-month-bar { height: 5px; background: rgba(126,205,176,0.2); border-radius: 3px; overflow: hidden; margin-top: 3px; }
 .income-status-row.total { font-weight: 600; padding-top: 6px; margin-top: 2px; border-top: 2px solid var(--bg-subtle); }
 .income-value { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; }
 .income-value.positive { color: var(--success); }

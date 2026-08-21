@@ -49,7 +49,7 @@ test('updatePayment domyka legacy lustro (bez paymentId, po dacie+kwocie)', () =
 });
 
 test('po edycji suma miesiąca i wykres widzą nową kwotę', () => {
-  const { run } = dm('2026-07-15T12:00:00');
+  const { run } = dm('2026-08-15T12:00:00'); // sierpień: lipiec (mies. wpłaty) jest już zamknięty i widoczny na wykresie
   const { srcId, payId } = setup(run);
   run(`dataManager.updatePayment('${srcId}', '${payId}', { amount: 7000 })`);
   const trend = run('dataManager.getTrendByOwner(1)');

@@ -19,11 +19,11 @@ test('B-M5: getTrendByOwner zwraca 0 dla miesięcy bez wpłat (bez fabrykacji ex
   const { run } = dm('2026-07-15T12:00:00');
   run('dataManager.addIncomeSource({ name: "Pensja", owner: "wife", expectedAmount: 5000, isActive: true })');
   const srcId = run('dataManager.getIncomeSources()[0].id');
-  run(`dataManager.recordPayment("${srcId}", { amount: 4800, date: "2026-07-10" })`);
-  const trend = run('dataManager.getTrendByOwner(2)');
+  run(`dataManager.recordPayment("${srcId}", { amount: 4800, date: "2026-06-10" })`);
+  const trend = run('dataManager.getTrendByOwner(2)'); // okno maj–cze
   assert.equal(trend.length, 2);
-  assert.equal(trend[0].wifeIncome, 0, `czerwiec sfabrykowany: ${trend[0].wifeIncome} (expectedAmount zamiast 0)`);
-  assert.equal(trend[1].wifeIncome, 4800, 'lipiec = realna wpłata');
+  assert.equal(trend[0].wifeIncome, 0, `maj sfabrykowany: ${trend[0].wifeIncome} (expectedAmount zamiast 0)`);
+  assert.equal(trend[1].wifeIncome, 4800, 'czerwiec = realna wpłata');
 });
 
 // --- B-M7: alerty celów bez Infinity/NaN i bez fałszywych alertów dla celów cyklicznych ---

@@ -13,7 +13,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-### Sesja 17 (2026-08-21) - Karta „Wasze przychody": dwie opisane linie zamiast „16,5/16"
+### Sesja 17b (2026-08-21) - Wykres bez trwającego miesiąca + karta wraca do pary z linią miesiąca
+
+#### Fixed
+- **Wykres (i legenda „Śr. 12M") kończy się na ostatnim ZAMKNIĘTYM miesiącu** — zgłoszenie Kamila: pieniądze za trwający miesiąc przychodzą dopiero w kolejnym, więc bieżący punkt (sierpień) wyglądał jak załamanie przychodów. Kotwica okien `getTrendByOwner` przesunięta na poprzedni miesiąc; projekcja karty przychodów celowo bez zmian. Test red-first (3 nowe), 8 testów przypinających stare okno świadomie przesunięte o miesiąc. Files: `js/data-manager.js`, `tests/trend-window.test.js`, `tests/{business-benefit-income,expenses,fala2-regressions,income-pool,payment-edit,yoy}.test.js`
+
+#### Changed
+- **Karta „Wasze przychody" po wyborze Kamila (AskUserQuestion)**: wiersze wracają do jednej pary „realnie / założenie" (dwie opisane linie z 17 były przegadane), etykieta pary RAZ w nagłówku karty (obok podpowiedzi o dotknięciu), bieżący miesiąc JEDNĄ linią „Sierpień: wpłynęło X z Y" z paskiem postępu na dole. Dashboard na realnych danych: 915/915 px. Files: `js/app.js`, `css/main.css`
 
 #### Changed
 - **Karta „Wasze przychody" pokazuje w każdym wierszu dwie opisane linie** — „otrzymane: X z Y" (bieżący miesiąc, TE SAME liczby co ekran Przychody, model puli) i „realnie daje: Z" (projekcja z 2026-07-26). Zgłoszenie Kamila: samo „16 650 / 16 000" wyglądało jak niezaktualizowana wpłata z zeszłego miesiąca i nikt poza nim nie wiedziałby, co znaczy. Files: `js/app.js`, `css/main.css`

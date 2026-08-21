@@ -806,10 +806,16 @@ class DataManager {
    */
   getTrendByOwner(months = 6) {
     const now = new Date();
+    // Okna kończą się na ostatnim ZAMKNIĘTYM miesiącu (zgłoszenie Kamila
+    // 2026-08-21): pieniądze za trwający miesiąc przychodzą dopiero
+    // w kolejnym, więc bieżący punkt wyglądał jak załamanie przychodów.
+    // Dotyczy wykresu i legendy Śr. 12M (getYearOverYear); projekcja karty
+    // przychodów celowo zostaje przy oknie z bieżącym miesiącem.
+    const end = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const sources = this.getIncomeSources();
 
     // 'auto': okno od najwcześniejszych danych (activeFrom / forMonth /
-    // pierwsza wpłata) do bieżącego miesiąca — historia w całości na wykresie
+    // pierwsza wpłata) do ostatniego zamkniętego miesiąca — cała historia
     if (months === 'auto') {
       let earliest = null;
       const note = (ym) => { if (ym && (!earliest || ym < earliest)) earliest = ym; };
@@ -831,7 +837,7 @@ class DataManager {
 
       if (earliest) {
         const [ey, em] = earliest.split('-').map(Number);
-        const span = (now.getFullYear() - ey) * 12 + (now.getMonth() - (em - 1)) + 1;
+        const span = (end.getFullYear() - ey) * 12 + (end.getMonth() - (em - 1)) + 1;
         months = Math.min(48, Math.max(6, span));
       } else {
         months = 6;
@@ -849,7 +855,7 @@ class DataManager {
     });
 
     for (let i = months - 1; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const d = new Date(end.getFullYear(), end.getMonth() - i, 1);
       const year = d.getFullYear();
       const month = d.getMonth();
 
