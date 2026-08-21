@@ -13,7 +13,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-### Sesja 16c (2026-07-29) - Aktualizacja OTA wstawała w stanie mieszanym (nowy HTML + stary JS)
+### Sesja 17 (2026-08-21) - Karta „Wasze przychody": dwie opisane linie zamiast „16,5/16"
+
+#### Changed
+- **Karta „Wasze przychody" pokazuje w każdym wierszu dwie opisane linie** — „otrzymane: X z Y" (bieżący miesiąc, TE SAME liczby co ekran Przychody, model puli) i „realnie daje: Z" (projekcja z 2026-07-26). Zgłoszenie Kamila: samo „16 650 / 16 000" wyglądało jak niezaktualizowana wpłata z zeszłego miesiąca i nikt poza nim nie wiedziałby, co znaczy. Files: `js/app.js`, `css/main.css`
+- Okienko „jak to policzone" (dotknięcie wiersza) zaczyna się od sekcji bieżącego miesiąca (Otrzymane/Oczekiwane, dla korzyści: Naliczone) z dopiskiem o rozliczaniu pulą, potem dotychczasowe rozbicie projekcji. Files: `js/app.js`
+- Zwarte wiersze karty (padding 2px, interlinia 1.25, krótsza stopka) — dashboard na realnych danych rodziny mierzy headless dokładnie 915/915 px (Pixel 7), bez scrolla; przed zmianą stara karta dawała ~887 px, pierwsza wersja dwóch linii 940 px. Files: `css/main.css`
 
 #### Fixed
 - **Telefon po aktualizacji miał nowy `index.html` i STARY `js/*`** → `Uncaught TypeError: app.openAddExpense is not a function` przy „Dodaj wydatek", a boot log pokazywał wersję sprzed dwóch dni mimo świeżej paczki na dysku. Przyczyna: WebView w APK trzyma podzasoby w swoim cache pod URL-em pliku, a `FGUpdater.restart()` przeładowuje TEN SAM adres `file://…/www-live/index.html` — główna ramka przychodzi z dysku, `<script src="js/app.js">` z cache. Files: `scripts/stamp-web-refs.py`, `android-apk/publish-web.sh`, `android-apk/build-apk.sh`, `android-apk/src/com/kmylpenter/familygoals/MainActivity.java`

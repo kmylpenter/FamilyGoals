@@ -409,34 +409,31 @@
       });
 
       const businessSavings = dataManager.calculateBusinessSavings(year, month);
-      // Kolumna "/" = realna moc (decyzja Kamila 2026-07-26): założenia
+      // "realnie daje" = realna moc (decyzja Kamila 2026-07-26): założenia
       // cykliczne + śr. 12-mies. dodatkowych (nadwyżki/jednorazowe)
       const proj = dataManager.getIncomeProjection(year, month);
       const totalReceived = incomeSummary.totalReceived + businessSavings;
+      const totalExpectedMonth = incomeSummary.totalExpected + proj.business.recurringMonthly;
       const projectedTotal = proj.wife.projected + proj.husband.projected + proj.business.projected;
-
-      // Format Kamila (2026-07-26): REALNIE (założenia + śr. dodatkowych
-      // z 12 mies.) / DEKLARACJA. Bieżący miesiąc jest na ekranie Przychody.
       const declaredTotal = proj.wife.recurringExpected + proj.husband.recurringExpected + proj.business.recurringMonthly;
-      incomeCard.innerHTML = `
-        <div class="income-status-row" data-proj="wife" role="button" tabindex="0">
-          <span>👩 Żona</span>
-          <span class="income-value ${proj.wife.projected > proj.wife.recurringExpected ? 'positive' : ''}">${formatMoney(proj.wife.projected)} / ${formatMoney(proj.wife.recurringExpected)}</span>
-        </div>
-        <div class="income-status-row" data-proj="husband" role="button" tabindex="0">
-          <span>👨 Mąż</span>
-          <span class="income-value ${proj.husband.projected > proj.husband.recurringExpected ? 'positive' : ''}">${formatMoney(proj.husband.projected)} / ${formatMoney(proj.husband.recurringExpected)}</span>
-        </div>
-        <div class="income-status-row" data-proj="business" role="button" tabindex="0">
-          <span>💼 Korzyści firmowe</span>
-          <span class="income-value ${proj.business.projected > proj.business.recurringMonthly ? 'positive' : ''}">${formatMoney(proj.business.projected)} / ${formatMoney(proj.business.recurringMonthly)}</span>
-        </div>
-        <div class="income-status-row total">
-          <span>Razem</span>
-          <span class="income-value ${projectedTotal > declaredTotal ? 'positive' : ''}">${formatMoney(projectedTotal)} / ${formatMoney(declaredTotal)}</span>
-        </div>
-        <div class="muted" style="font-size:11px; text-align:right;">realnie / zadeklarowane · dotknij wiersz po wyliczenie</div>
-      `;
+
+      // Dwie opisane linie na wiersz (decyzja Kamila 2026-08-21 — samo
+      // "16,5/16" było nieczytelne): "otrzymane" = TE SAME liczby co ekran
+      // Przychody (model puli), "realnie daje" = projekcja jak wyżej.
+      const row = (key, name, label1, received, expected, projected, declared) => `
+        <div class="income-status-row${key === 'total' ? ' total' : ''}"${key === 'total' ? '' : ` data-proj="${key}" role="button" tabindex="0"`}>
+          <span class="income-status-name">${name}</span>
+          <div class="income-status-lines">
+            <div class="income-line"><span>${label1}</span><span class="income-value ${expected > 0 && received >= expected ? 'positive' : ''}">${formatMoney(received)} z ${formatMoney(expected)}</span></div>
+            <div class="income-line"><span>realnie daje</span><span class="income-value ${projected > declared ? 'positive' : ''}">${formatMoney(projected)}</span></div>
+          </div>
+        </div>`;
+      incomeCard.innerHTML =
+        row('wife', '👩 Żona', 'otrzymane', wifeReceived, wifeExpected, proj.wife.projected, proj.wife.recurringExpected)
+        + row('husband', '👨 Mąż', 'otrzymane', husbandReceived, husbandExpected, proj.husband.projected, proj.husband.recurringExpected)
+        + row('business', '💼 Korzyści firmowe', 'naliczone', businessSavings, proj.business.recurringMonthly, proj.business.projected, proj.business.recurringMonthly)
+        + row('total', 'Razem', 'otrzymane', totalReceived, totalExpectedMonth, projectedTotal, declaredTotal)
+        + `<div class="muted" style="font-size:11px; text-align:right;">dotknij wiersz po wyliczenie</div>`;
     }
 
     renderExpenseCard(year, month);
@@ -3006,10 +3003,29 @@
     const sub = (icon, name, val) => `<div style="display:flex; justify-content:space-between; gap:12px; font-size:13px; color:var(--text-soft); padding-left:12px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${icon} ${escapeHtml(name)}</span><span>${formatMoney(val)}</span></div>`;
     const hr = `<hr style="border:none; border-top:1px solid var(--bg-subtle); margin:8px 0;">`;
     const eff = proj.business.effMonths || 12;
+    const soft = (t) => `<div style="font-size:12px; color:var(--text-muted); padding-left:12px;">${t}</div>`;
+    // Górna linia karty ("otrzymane z oczekiwanych") — te same liczby co
+    // ekran Przychody; przy modelu puli wpłata rozlicza najstarsze braki
+    let monthPart = '';
+    if (kind === 'business') {
+      monthPart = line('Naliczone w tym miesiącu', dataManager.calculateBusinessSavings(year, month)) + hr;
+    } else {
+      let received = 0, expected = 0;
+      dataManager.getMonthlyIncomeSummary(year, month).sources.forEach(s => {
+        if ((s.owner === 'wife') === (kind === 'wife')) {
+          received += s.totalReceived || 0;
+          expected += s.expected || 0;
+        }
+      });
+      monthPart = line('Otrzymane w tym miesiącu', received)
+        + line('Oczekiwane w tym miesiącu', expected)
+        + soft('wpłaty rozliczają się pulą — najpierw uzupełniają wcześniejsze miesiące')
+        + hr;
+    }
     if (kind === 'business') {
       const b = proj.business;
       title.textContent = '💼 Korzyści firmowe';
-      body.innerHTML = line('Cykliczne co miesiąc', b.recurringMonthly)
+      body.innerHTML = monthPart + line('Cykliczne co miesiąc', b.recurringMonthly)
         + b.recurringItems.map(it => sub(costCategoryIcon(it.category), it.name, it.monthly)).join('')
         + line('+ średnia jednorazowych (12 mies.)', b.oneoffAvg)
         + (b.oneoffItems.length
@@ -3021,8 +3037,8 @@
       const p = proj[kind];
       title.textContent = kind === 'wife' ? '👩 Żona' : '👨 Mąż';
       const mies = (ym) => { const [y, m] = ym.split('-').map(Number); return `${FGUtils.MONTHS[m - 1].toLowerCase()} ${y}`; };
-      const note = (t) => `<div style="font-size:12px; color:var(--text-muted); padding-left:12px;">${t}</div>`;
-      body.innerHTML = line('Zadeklarowane co miesiąc', p.recurringExpected)
+      const note = soft;
+      body.innerHTML = monthPart + line('Zadeklarowane co miesiąc', p.recurringExpected)
         + p.recurringSources.map(it => sub(it.icon, it.name, it.expected)).join('')
         + line('+ średnia dodatkowych (12 mies.)', p.extrasAvg)
         + (p.extrasMonths.length
