@@ -394,12 +394,14 @@
     // Update income status - show same data as Income screen
     const incomeCard = $('income-status-card');
     if (incomeCard) {
-      const businessSavings = dataManager.calculateBusinessSavings(year, month);
       // "realnie" = realna moc (decyzja Kamila 2026-07-26): założenia
       // cykliczne + śr. 12-mies. dodatkowych (nadwyżki/jednorazowe)
       const proj = dataManager.getIncomeProjection(year, month);
-      const totalReceived = incomeSummary.totalReceived + businessSavings;
-      const totalExpectedMonth = incomeSummary.totalExpected + proj.business.recurringMonthly;
+      // Linia miesiąca = TYLKO źródła osób, 1:1 z ekranem Przychody
+      // (korekta Kamila 2026-08-21: doliczanie korzyści do "wpłynęło z X"
+      // dawało niezrozumiały mianownik 19 010)
+      const totalReceived = incomeSummary.totalReceived;
+      const totalExpectedMonth = incomeSummary.totalExpected;
       const projectedTotal = proj.wife.projected + proj.husband.projected + proj.business.projected;
       const declaredTotal = proj.wife.recurringExpected + proj.husband.recurringExpected + proj.business.recurringMonthly;
 

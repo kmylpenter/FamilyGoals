@@ -13,6 +13,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 17c (2026-08-21) - Linia miesiąca liczona jak ekran Przychody + diagnoza zniknięcia wpłaty 5000
+
+#### Changed
+- **Linia miesiąca na karcie („X: wpłynęło A z B") liczy TYLKO źródła osób** — 1:1 z ekranem Przychody (Otrzymane/Oczekiwane). Korekta Kamila: doliczanie korzyści firmowych i bonusów do mianownika dawało niezrozumiałe „z 19 010 zł". Korzyści zostają w wierszach pary. Files: `js/app.js`
+
+#### Diagnoza (bez zmian kodu)
+- **Wpłata 5000 zł (Gotówka, za lipiec, data 2026-07-15, wpisana 21.08 12:46) została wymazana z rekordu źródła** przez masowy push innego urządzenia o 13:06:45 (jeden stempel `updatedAt` na 100 rekordach: 7 źródeł + 71 income + 14 kosztów + 5 wydatków + 3 kategorie) — last-write-wins na całym rekordzie źródła cofnął go do stanu sprzed wpłaty; osierocone lustro w `income[]` przetrwało. Wpis „Popsuty Rower": w danych od początku `date=2026-08-05`, `createdAt=2026-08-05` — bez śladu mutacji daty.
+
 ### Sesja 17b (2026-08-21) - Wykres bez trwającego miesiąca + karta wraca do pary z linią miesiąca
 
 #### Fixed
