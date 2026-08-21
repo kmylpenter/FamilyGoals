@@ -504,6 +504,9 @@ class DataManager {
     if (idx === -1) return false;
 
     const [removed] = source.payments.splice(idx, 1);
+    // Tombstone kasowania — bez niego unia płatności na backendzie
+    // (mergeSourcePayments_, incydent 2026-08-21) przywróciłaby wpłatę
+    source.deletedPaymentIds = (source.deletedPaymentIds || []).concat(String(paymentId));
     this._saveIncomeSources(sources);
     this._removePaymentMirror(sourceId, removed);
     if (typeof EventBus !== 'undefined') EventBus.emit('income:updated');

@@ -110,8 +110,43 @@ function getFamilyBootstrap() {
 }
 
 /**
+ * Ochrona wpłat przy LWW na całym rekordzie źródła (incydent 2026-08-21:
+ * urządzenie ze starym stanem wypchnęło masowo swój stan z nowszym stemplem
+ * i wymazało świeżą wpłatę 5000 zł). Wygrywający rekord incomeSources dostaje
+ * UNIĘ płatności: baza = przychodzące payments (edycje wygrywają), + płatności
+ * z dotychczasowego rekordu nieobecne w przychodzącym, o ile ich id nie ma
+ * w deletedPaymentIds (tombstony legalnych kasowań, scalane z obu wersji).
+ * Czysta funkcja — pokryta testami Node (tests/sync-payment-merge.test.js).
+ */
+function mergeSourcePayments_(existing, incoming) {
+  if (!existing) return incoming;
+  var tombstones = {};
+  (existing.deletedPaymentIds || []).concat(incoming.deletedPaymentIds || [])
+    .forEach(function (tid) { tombstones[String(tid)] = true; });
+  var have = {};
+  var merged = (incoming.payments || []).filter(function (p) {
+    return p && p.id !== undefined && !tombstones[String(p.id)];
+  });
+  merged.forEach(function (p) { have[String(p.id)] = true; });
+  (existing.payments || []).forEach(function (p) {
+    if (!p || p.id === undefined) return;
+    var pid = String(p.id);
+    if (have[pid] || tombstones[pid]) return;
+    merged.push(p);
+    have[pid] = true;
+  });
+  var out = {};
+  Object.keys(incoming).forEach(function (k) { out[k] = incoming[k]; });
+  out.payments = merged;
+  var allTombstones = Object.keys(tombstones).sort();
+  if (allTombstones.length) out.deletedPaymentIds = allTombstones;
+  return out;
+}
+
+/**
  * Batch upsert/soft-delete. changes = [{entity, record:{id, updatedAt, deleted?, ...}}].
  * Idempotentne + LWW: zmiana starsza lub równa stanowi w arkuszu -> skip.
+ * incomeSources: wygrywający rekord przechodzi przez mergeSourcePayments_.
  */
 function pushChanges(changes) {
   if (!Array.isArray(changes)) throw new Error('changes_not_array');
@@ -138,11 +173,14 @@ function pushChanges(changes) {
       var jsonColIdx = lastCol; // 1-indexed ostatnia kolumna
       var idToRow = {};   // id -> numer wiersza (1-indexed)
       var idToUpdated = {};
+      var idToRecord = {}; // pełny rekord z Json — do unii płatności
       if (lastRow >= 2) {
-        var ids = sheet.getRange(2, 1, lastRow - 1, 2).getValues(); // Id, Updated_At
-        for (var i = 0; i < ids.length; i++) {
-          idToRow[String(ids[i][0])] = i + 2;
-          idToUpdated[String(ids[i][0])] = String(ids[i][1] || '');
+        var needJson = entity === 'incomeSources';
+        var vals = sheet.getRange(2, 1, lastRow - 1, needJson ? lastCol : 2).getValues();
+        for (var i = 0; i < vals.length; i++) {
+          idToRow[String(vals[i][0])] = i + 2;
+          idToUpdated[String(vals[i][0])] = String(vals[i][1] || '');
+          if (needJson) idToRecord[String(vals[i][0])] = rowToRecord_(vals[i], lastCol - 1);
         }
       }
 
@@ -153,6 +191,9 @@ function pushChanges(changes) {
         var existing = idToUpdated[id];
         if (existing !== undefined && existing >= updatedAt) { skipped++; return; }
 
+        if (entity === 'incomeSources' && record.deleted !== true) {
+          record = mergeSourcePayments_(idToRecord[id], record);
+        }
         var rowValues = buildRow_(entity, record, jsonColIdx);
         if (idToRow[id]) {
           sheet.getRange(idToRow[id], 1, 1, rowValues.length).setValues([rowValues]);

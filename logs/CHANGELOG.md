@@ -18,6 +18,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 #### Changed
 - **Linia miesiąca na karcie („X: wpłynęło A z B") liczy TYLKO źródła osób** — 1:1 z ekranem Przychody (Otrzymane/Oczekiwane). Korekta Kamila: doliczanie korzyści firmowych i bonusów do mianownika dawało niezrozumiałe „z 19 010 zł". Korzyści zostają w wierszach pary. Files: `js/app.js`
 
+#### Added
+- **Ochrona wpłat przy sync (zgoda Kamila)**: backend przy `pushChanges` na `incomeSources` scala płatności per-sztuka (unia po `p.id`; edycje wygrywają wersją z nowszego rekordu), legalne kasowania jadą tombstonami `deletedPaymentIds` dopisywanymi przez `deletePayment`. Cofka z urządzenia ze starym stanem nie wymaże już cudzych wpłat. 5 testów (2 red-first, w tym odtworzony incydent), mock SpreadsheetApp w Node — bramka deployu wreszcie pokrywa `pushChanges`. Backend wdrożony (wersja @5, URL bez zmian). Files: `backend-gas/FamilyBackend.gs`, `js/data-manager.js`, `tests/sync-payment-merge.test.js`
+
 #### Diagnoza (bez zmian kodu)
 - **Wpłata 5000 zł (Gotówka, za lipiec, data 2026-07-15, wpisana 21.08 12:46) została wymazana z rekordu źródła** przez masowy push innego urządzenia o 13:06:45 (jeden stempel `updatedAt` na 100 rekordach: 7 źródeł + 71 income + 14 kosztów + 5 wydatków + 3 kategorie) — last-write-wins na całym rekordzie źródła cofnął go do stanu sprzed wpłaty; osierocone lustro w `income[]` przetrwało. Wpis „Popsuty Rower": w danych od początku `date=2026-08-05`, `createdAt=2026-08-05` — bez śladu mutacji daty.
 
