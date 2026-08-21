@@ -399,9 +399,11 @@
       const proj = dataManager.getIncomeProjection(year, month);
       // Linia miesiąca = TYLKO źródła osób, 1:1 z ekranem Przychody
       // (korekta Kamila 2026-08-21: doliczanie korzyści do "wpłynęło z X"
-      // dawało niezrozumiały mianownik 19 010)
-      const totalReceived = incomeSummary.totalReceived;
-      const totalExpectedMonth = incomeSummary.totalExpected;
+      // dawało niezrozumiały mianownik 19 010) — i za OSTATNI ZAMKNIĘTY
+      // miesiąc względem oglądanego, bo pieniądze za trwający przychodzą
+      // dopiero w kolejnym (jak wykres; druga korekta Kamila 2026-08-21)
+      const prevMonthDate = new Date(year, month - 1, 1);
+      const prevSummary = dataManager.getMonthlyIncomeSummary(prevMonthDate.getFullYear(), prevMonthDate.getMonth());
       const projectedTotal = proj.wife.projected + proj.husband.projected + proj.business.projected;
       const declaredTotal = proj.wife.recurringExpected + proj.husband.recurringExpected + proj.business.recurringMonthly;
 
@@ -413,15 +415,15 @@
           <span>${name}</span>
           <span class="income-value ${projected > declared ? 'positive' : ''}">${formatMoney(projected)} / ${formatMoney(declared)}</span>
         </div>`;
-      const monthPct = totalExpectedMonth > 0
-        ? Math.min(100, Math.round((totalReceived / totalExpectedMonth) * 100)) : 0;
+      const monthPct = prevSummary.totalExpected > 0
+        ? Math.min(100, Math.round((prevSummary.totalReceived / prevSummary.totalExpected) * 100)) : 0;
       incomeCard.innerHTML =
         `<div class="income-status-row header"><span>dotknij wiersz po wyliczenie</span><span>realnie / założenie</span></div>`
         + pair('wife', '👩 Żona', proj.wife.projected, proj.wife.recurringExpected)
         + pair('husband', '👨 Mąż', proj.husband.projected, proj.husband.recurringExpected)
         + pair('business', '💼 Korzyści firmowe', proj.business.projected, proj.business.recurringMonthly)
         + `<div class="income-status-row total"><span>Razem</span><span class="income-value ${projectedTotal > declaredTotal ? 'positive' : ''}">${formatMoney(projectedTotal)} / ${formatMoney(declaredTotal)}</span></div>`
-        + `<div class="income-month-line">${FGUtils.MONTHS[month]}: wpłynęło <b>${formatMoney(totalReceived)}</b> z ${formatMoney(totalExpectedMonth)}</div>`
+        + `<div class="income-month-line">Za ${FGUtils.MONTHS[prevMonthDate.getMonth()].toLowerCase()}: wpłynęło <b>${formatMoney(prevSummary.totalReceived)}</b> z ${formatMoney(prevSummary.totalExpected)}</div>`
         + `<div class="income-month-bar"><div class="income-bar-fill" style="width:${monthPct}%"></div></div>`;
     }
 
