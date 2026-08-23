@@ -13,6 +13,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 18 (2026-08-23) - „Dodaj wpłatę" rozlicza ten sam miesiąc co karta
+
+#### Fixed
+- **„Dodaj wpłatę" z plusika księguje ZA OSTATNI ZAMKNIĘTY miesiąc, nie za oglądany** (zgłoszenie Kamila: „mam za lipiec 7300, a przy dodawaniu wpłaty brakuje 10 000 i 6 000 — czy to nie wchodzi za sierpień?"). Karta pokazywała lipiec, a modal liczył sierpień i podstawiał dzisiejszą datę — dwa różne miesiące na jednym ekranie, nigdzie nienazwane. Nowy `getSettlementMonth()`: w trwającym miesiącu rozliczamy poprzedni (jak linia karty i wykres), na zamkniętym — oglądany; `openPaymentModal(sourceId, ym)` dostaje miesiąc jawnie, wiersz na ekranie Przychody nadal księguje swój miesiąc. Data domyślna zawsze wpada w rozliczany miesiąc (15. wg konwencji „data = miesiąc-ZA-który"). 3 testy red-first. Files: `js/app.js`, `tests/payment-default-month.test.js`
+- **Wpłata bez własnej nazwy dostaje etykietę „{źródło} za {miesiąc rok}"** — formularz podstawiał „Przelew"/„Gotówka" jako nazwę, więc auto-etykieta z `recordPayment` była martwa od strony UI (stąd wpis „Przelew" z 21.08 obok „Pensja za czerwiec 2026"). Typ wpłaty niesie już ikona 💵/💳. Files: `js/app.js`
+
+#### Changed
+- **Każdy ekran wpłaty nazywa swój miesiąc**: wybór źródła („💸 Wpłata za lipiec — do którego źródła?"), nagłówek modala („Za lipiec — oczekiwane: 10 000 zł | otrzymane: 600 zł"), pusta historia („Brak wpłat za lipiec"). Files: `js/app.js`
+
+#### Dane rodziny (korekta jednorazowa)
+- **Wpłata Pensji 6000 zł wpisana 21.08 przeniesiona z `2026-08-21` na `2026-07-15`, etykieta „Pensja za lipiec 2026"** (potwierdzenie Kamila: „była wpłacona 21 sierpnia, ale za lipiec — zawsze wpłaty za dany miesiąc przychodzą w kolejnym"). Kwoty bez zmian (pula i tak liczyła ją na lipiec); korekta prostuje wykres i historię. `recordedAt` zachowuje faktyczny moment wpisu. Zsynchronizowane przez `pushChanges` (applied 2, 35/35 wpłat Pensji zachowanych).
+
 ### Sesja 17c (2026-08-21) - Linia miesiąca liczona jak ekran Przychody + diagnoza zniknięcia wpłaty 5000
 
 #### Changed

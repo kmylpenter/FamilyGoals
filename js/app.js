@@ -1252,6 +1252,23 @@
 
   // Payment modal state
   let currentPaymentSourceId = null;
+  // Miesiąc, ZA KTÓRY księgowana jest wpłata w otwartym modalu
+  let currentPaymentMonth = null;
+
+  /**
+   * Miesiąc rozliczenia dla szybkiej wpłaty z plusika. Konwencja Kamila:
+   * data wpłaty = miesiąc, ZA KTÓRY jest, a pieniądze za miesiąc przychodzą
+   * dopiero po jego zakończeniu (wpłata z 21.08 to wpłata za lipiec). W trakcie
+   * bieżącego miesiąca domyślnie rozliczamy więc poprzedni — ten sam, co linia
+   * „Za lipiec: ..." na karcie. Na zamkniętym miesiącu: ten oglądany.
+   */
+  function getSettlementMonth() {
+    const { year, month } = getYearMonth();
+    const now = new Date();
+    if (year !== now.getFullYear() || month !== now.getMonth()) return { year, month };
+    const prev = new Date(year, month - 1, 1);
+    return { year: prev.getFullYear(), month: prev.getMonth() };
+  }
 
   function toggleIncomeReceived(sourceId) {
     openPaymentModal(sourceId);
@@ -1274,7 +1291,7 @@
 
   function openAddPaymentInner_() {
     closeAllModals();
-    const { year, month } = getYearMonth();
+    const { year, month } = getSettlementMonth();
     const own = dataManager.getIncomeSourcesStatus(year, month)
       .filter(s => !currentPerson || s.owner === currentPerson);
     if (own.length === 0) {
@@ -1283,10 +1300,11 @@
       return;
     }
     if (own.length === 1) {
-      openPaymentModal(own[0].id);
+      openPaymentModal(own[0].id, { year, month });
       return;
     }
-    const modal = createDynamicModal('modal-pick-source', '💸 Do którego źródła?', own.map(s => `
+    const modal = createDynamicModal('modal-pick-source',
+      `💸 Wpłata za ${FGUtils.MONTHS[month].toLowerCase()} — do którego źródła?`, own.map(s => `
       <button type="button" class="modal-menu-item" onclick="app.pickPaymentSource('${s.id}')">
         <span class="modal-menu-icon">${s.icon || '💵'}</span>
         <span>${escapeHtml(s.name)}${s.remaining > 0 ? ' • brakuje ' + formatMoney(s.remaining) : ' • ✓ komplet'}</span>
@@ -1296,11 +1314,14 @@
 
   function pickPaymentSource(sourceId) {
     closeAllModals();
-    openPaymentModal(sourceId);
+    openPaymentModal(sourceId, getSettlementMonth());
   }
 
-  function openPaymentModal(sourceId) {
-    const { year, month } = getYearMonth();
+  /** ym = miesiąc, ZA KTÓRY księgujemy (domyślnie oglądany, np. wiersz
+   *  na ekranie Przychody); plusik podaje miesiąc rozliczenia. */
+  function openPaymentModal(sourceId, ym) {
+    const { year, month } = ym || getYearMonth();
+    currentPaymentMonth = { year, month };
     const summary = dataManager.getMonthlyIncomeSummary(year, month);
     const source = summary.sources.find(s => s.id === sourceId);
 
@@ -1308,7 +1329,8 @@
 
     currentPaymentSourceId = sourceId;
 
-    // Domyślna data: dziś (bieżący miesiąc) albo 15. oglądanego miesiąca
+    // Domyślna data ZAWSZE wpada w rozliczany miesiąc: dziś (gdy rozliczamy
+    // trwający miesiąc) albo 15. (konwencja Kamila dla miesiąca-za-który)
     const dateEl = $('payment-date');
     if (dateEl) {
       const now = new Date();
@@ -1322,7 +1344,7 @@
     if (sourceInfo) {
       sourceInfo.querySelector('.payment-source-name').textContent = source.name;
       sourceInfo.querySelector('.payment-source-expected').textContent =
-        `Oczekiwane: ${formatMoney(source.expected)} | Otrzymane: ${formatMoney(source.totalReceived || 0)}`;
+        `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
     }
 
     // Render payment history
@@ -1352,7 +1374,9 @@
     const payments = dataManager.getPaymentsByMonth(sourceId, year, month);
 
     if (payments.length === 0) {
-      container.innerHTML = '<div class="payment-history-empty">Brak wpłat w tym miesiącu</div>';
+      // Nazwij miesiąc — „w tym miesiącu" to ta sama dwuznaczność, przez którą
+      // powstało zgłoszenie (modal rozlicza inny miesiąc niż oglądany)
+      container.innerHTML = `<div class="payment-history-empty">Brak wpłat za ${FGUtils.MONTHS[month].toLowerCase()}</div>`;
       return;
     }
 
@@ -1383,7 +1407,7 @@
     if (!currentPaymentSourceId) return;
 
     if (dataManager.deletePayment(currentPaymentSourceId, paymentId)) {
-      const { year, month } = getYearMonth();
+      const { year, month } = currentPaymentMonth || getYearMonth();
       renderPaymentHistory(currentPaymentSourceId, year, month);
       renderAll();
 
@@ -1394,7 +1418,7 @@
         const sourceInfo = $('payment-source-info');
         if (sourceInfo) {
           sourceInfo.querySelector('.payment-source-expected').textContent =
-            `Oczekiwane: ${formatMoney(source.expected)} | Otrzymane: ${formatMoney(source.totalReceived || 0)}`;
+            `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
         }
       }
 
@@ -1422,23 +1446,24 @@
       const typeChip = $('payment-type-chips')?.querySelector('.chip.active');
       const type = typeChip?.dataset.type || 'transfer';
 
-      // Data z kalendarza (decyzja Kamila 2026-07-25); fallback: 1. dzień
-      // oglądanego miesiąca. Nazwa od usera; fallback: typ wpłaty.
-      const { year: payYear, month: payMonth } = getYearMonth();
+      // Data z kalendarza (decyzja Kamila 2026-07-25); fallback: 15. miesiąca
+      // rozliczanego w modalu. Bez własnej nazwy recordPayment nada etykietę
+      // „{źródło} za {miesiąc rok}" — typ wpłaty niesie już ikona 💵/💳.
+      const { year: payYear, month: payMonth } = currentPaymentMonth || getYearMonth();
       const dateInput = $('payment-date')?.value;
-      const payDate = dateInput || new Date(payYear, payMonth, 1).toISOString();
+      const payDate = dateInput || new Date(payYear, payMonth, 15).toISOString();
       const noteInput = $('payment-note')?.value?.trim();
 
       dataManager.recordPayment(currentPaymentSourceId, {
         amount,
         type,
         date: payDate,
-        note: noteInput || (type === 'cash' ? 'Gotówka' : 'Przelew')
+        note: noteInput || ''
       });
       const noteEl = $('payment-note');
       if (noteEl) noteEl.value = '';
 
-      const { year, month } = getYearMonth();
+      const { year, month } = currentPaymentMonth || getYearMonth();
       renderPaymentHistory(currentPaymentSourceId, year, month);
       renderAll();
 
@@ -1449,7 +1474,7 @@
         const sourceInfo = $('payment-source-info');
         if (sourceInfo) {
           sourceInfo.querySelector('.payment-source-expected').textContent =
-            `Oczekiwane: ${formatMoney(source.expected)} | Otrzymane: ${formatMoney(source.totalReceived || 0)}`;
+            `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
         }
       }
 
