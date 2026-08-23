@@ -416,7 +416,10 @@ body {
 @media (hover: hover) {
   .modal-menu-item:hover { background: var(--mint-light); }
 }
-.modal-menu-icon { font-size: 2rem; }
+.modal-menu-icon { font-size: 2rem; flex: none; }
+/* Zawijany opis (np. „Gotówka • zaległość 9400 zł") ma trzymać lewą krawędź,
+   inaczej druga linia ląduje wyśrodkowana pod pierwszą */
+.modal-menu-item > span:not(.modal-menu-icon) { flex: 1; text-align: left; }
 
 /* Categories Modal */
 .categories-list { max-height: 50vh; overflow-y: auto; margin-bottom: var(--s3); }
@@ -1030,6 +1033,19 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   text-align: center;
   padding: var(--s3);
   color: var(--text-soft);
+}
+/* Rozpiska „na co pójdzie ta wpłata" (rachunek przechodzący) */
+.payment-allocation {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--text-soft);
+  background: var(--bg-subtle);
+  border-radius: var(--r1);
+  padding: var(--s2);
+  margin-bottom: var(--s2);
+}
+.payment-allocation:empty {
+  display: none;
 }
 
 /* ========== Tabs ========== */

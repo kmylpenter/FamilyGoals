@@ -1,11 +1,15 @@
 /**
- * Domyślny miesiąc wpłaty (zgłoszenie Kamila 2026-08-23: „za lipiec wpłynęło
- * 7300, a w Dodaj wpłatę brakuje 10 000 i 6 000 — czy to nie wchodzi za
- * sierpień?").
- * Konwencja Kamila: DATA WPŁATY = MIESIĄC, ZA KTÓRY jest — wpłata za lipiec
- * fizycznie przychodzi w sierpniu. Modal wpłaty musi więc domyślnie rozliczać
- * OSTATNI ZAMKNIĘTY miesiąc (jak linia na karcie i jak wykres), a nie miesiąc
- * oglądany, i nie może podstawiać „Przelew" zamiast etykiety „za {miesiąc}".
+ * Okno wpłaty a miesiąc rozliczenia.
+ *
+ * HISTORIA: zgłoszenie Kamila 2026-08-23 („za lipiec 7300, a przy dodawaniu
+ * brakuje 10 000 i 6 000") ujawniło, że modal liczył miesiąc OGLĄDANY, a karta
+ * ostatni zamknięty. Pierwsza wersja tego pliku pinowała datę domyślną na
+ * 15. ostatniego zamkniętego miesiąca (konwencja „data = miesiąc-ZA-który").
+ *
+ * SUPERSEDED tego samego dnia decyzją Kamila o RACHUNKU PRZECHODZĄCYM:
+ * wpłata zasila saldo źródła, przypisanie do miesięcy liczy się samo, a data
+ * znaczy już tylko KIEDY WPŁYNĘŁO. Plik pinuje teraz nowy kontrakt; źródła
+ * poza pulą (jednorazowe) nadal rozliczają się miesiącem — to nie zmiana.
  */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -42,7 +46,6 @@ function envWithDomRegistry(now) {
   // Helpery modali żyją w inline <script> index.html (harness ładuje tylko js/)
   env.closeAllModals = () => {};
   env.openModal = () => {};
-  env.createDynamicModal = () => env.document.createElement();
   return env;
 }
 
@@ -64,34 +67,62 @@ const SOURCES = [
     expectedAmount: 10000, activeFrom: '2026-01', isActive: true, payments: [] },
 ];
 
-test('modal wpłaty w trakcie sierpnia proponuje datę za LIPIEC (ostatni zamknięty)', async () => {
+test('źródło w puli: data domyślna to DZIŚ (kiedy wpłynęło), bez zgadywania miesiąca', async () => {
   const { run, doc } = await bootApp({ now: '2026-08-23T12:00:00', sources: SOURCES });
   run(`app.pickPaymentSource('src-gotowka')`);
-  assert.equal(doc.getElementById('payment-date').value, '2026-07-15',
-    'wpłata dodawana w sierpniu jest wpłatą ZA LIPIEC (konwencja Kamila: 15-ty miesiąca-za-który)');
+  assert.equal(doc.getElementById('payment-date').value, '2026-08-23',
+    'rachunek przechodzący: data mówi tylko kiedy pieniądze weszły');
 });
 
-test('nagłówek modala rozlicza lipiec, nie oglądany sierpień', async () => {
+test('nagłówek modala pokazuje SALDO rachunku, nie rozliczenie jednego miesiąca', async () => {
   const sources = structuredClone(SOURCES);
-  // activeFrom = lipiec, żeby pula liczyła te 600 zł właśnie na lipiec
-  // (przy wcześniejszym activeFrom pula zasypałaby najpierw starsze miesiące)
-  sources[1].activeFrom = '2026-07';
-  sources[1].payments = [{ id: 'p1', amount: 600, date: '2026-07-15', note: 'Gotówka za lipiec 2026' }];
+  // 5 z 7 miesięcy (sty–lip) opłaconych → zaległość 2 × 10 000
+  sources[1].payments = [{ id: 'p1', amount: 50000, date: '2026-03-02', note: '' }];
   const { run, doc } = await bootApp({ now: '2026-08-23T12:00:00', sources });
   run(`app.pickPaymentSource('src-gotowka')`);
   const txt = doc.getElementById('payment-source-info').querySelector('.payment-source-expected').textContent;
-  assert.match(txt, /lipiec/i, `nagłówek ma nazwać rozliczany miesiąc, jest: "${txt}"`);
-  assert.match(txt, /otrzymane: 600/, `nagłówek ma pokazać otrzymane ZA LIPIEC (600 zł), jest: "${txt}"`);
+  assert.match(txt, /zaległość 20\s000/i, `nagłówek ma nazwać saldo, jest: "${txt}"`);
+  assert.match(txt, /50\s000.*70\s000/, `nagłówek ma pokazać wpłacone z należnych, jest: "${txt}"`);
 });
 
-test('wpłata bez własnej nazwy dostaje etykietę „{źródło} za {miesiąc}", nie „Przelew"', async () => {
+test('kwota domyślna wyrównuje rachunek (zaległość), nie ślepe „oczekiwane"', async () => {
+  const sources = structuredClone(SOURCES);
+  sources[1].payments = [{ id: 'p1', amount: 50000, date: '2026-03-02', note: '' }];
+  const { run, doc } = await bootApp({ now: '2026-08-23T12:00:00', sources });
+  run(`app.pickPaymentSource('src-gotowka')`);
+  assert.equal(doc.getElementById('payment-amount').value, 20000);
+});
+
+test('rozpiska „Pokryje" nazywa miesiące, które zamknie ta kwota', async () => {
+  const sources = structuredClone(SOURCES);
+  sources[1].payments = [{ id: 'p1', amount: 50000, date: '2026-03-02', note: '' }];
+  const { run, doc } = await bootApp({ now: '2026-08-23T12:00:00', sources });
+  run(`app.pickPaymentSource('src-gotowka')`);
+  const txt = doc.getElementById('payment-allocation').innerHTML;
+  assert.match(txt, /czerwiec/i, `rozpiska ma wymienić czerwiec, jest: "${txt}"`);
+  assert.match(txt, /lipiec/i, `rozpiska ma wymienić lipiec, jest: "${txt}"`);
+});
+
+test('wpłata bez własnej nazwy dostaje etykietę z ALOKACJI, nie „Przelew"', async () => {
   const { run, doc } = await bootApp({ now: '2026-08-23T12:00:00', sources: SOURCES });
   run(`app.pickPaymentSource('src-gotowka')`);
   doc.getElementById('payment-amount').value = '10000';
   doc.getElementById('payment-note').value = '';
-  const form = doc.getElementById('payment-form');
-  form.onsubmit({ preventDefault() {} });
+  doc.getElementById('payment-form').onsubmit({ preventDefault() {} });
   const p = run(`dataManager.getIncomeSources().find(s => s.id === 'src-gotowka').payments[0]`);
-  assert.equal(p.note, 'Gotówka za lipiec 2026');
-  assert.equal(String(p.date).slice(0, 7), '2026-07', 'wpłata księguje się za lipiec');
+  assert.equal(p.note, 'Gotówka za styczeń 2026', 'pusty rachunek → pierwsza wpłata domyka styczeń');
+  assert.equal(String(p.date).slice(0, 10), '2026-08-23', 'data = kiedy wpłynęło');
+});
+
+test('źródło POZA pulą (jednorazowe) nadal rozlicza się miesiącem', async () => {
+  const sources = structuredClone(SOURCES).concat([{
+    id: 'src-bonus', name: 'Bonus', owner: 'husband', incomeType: 'oneoff',
+    forMonth: '2026-07', expectedAmount: 700, isActive: true, payments: []
+  }]);
+  const { run, doc } = await bootApp({ now: '2026-08-23T12:00:00', sources });
+  run(`app.pickPaymentSource('src-bonus')`);
+  assert.equal(doc.getElementById('payment-date').value, '2026-07-15',
+    'jednorazowe wiszą przy swoim miesiącu — tam data nadal go wyznacza');
+  const txt = doc.getElementById('payment-source-info').querySelector('.payment-source-expected').textContent;
+  assert.match(txt, /Za lipiec/i, `nagłówek jednorazowego ma nazwać miesiąc, jest: "${txt}"`);
 });

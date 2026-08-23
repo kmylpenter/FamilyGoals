@@ -394,11 +394,25 @@ class DataManager {
       note: payment.note || '',
       type: payment.type || 'transfer' // 'transfer' lub 'cash'
     };
-    // Bez własnej nazwy: etykieta "{źródło} za {miesiąc rok}" z daty wpłaty
-    // (decyzja Kamila 2026-07-26 — jednolicie dla wszystkich wpłat)
+    // Bez własnej nazwy: etykieta "{źródło} za {miesiąc rok}". W modelu puli
+    // miesiąc bierze się z ALOKACJI, nie z daty wpisu (decyzja Kamila
+    // 2026-08-23: rachunek przechodzący — data mówi tylko KIEDY wpłynęło).
+    // Poza pulą (jednorazowe) po staremu z daty.
     if (!newPayment.note && typeof FGUtils !== 'undefined' && FGUtils.MONTHS) {
-      const d = new Date(newPayment.date);
-      newPayment.note = `${source.name} za ${FGUtils.MONTHS[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+      const M = FGUtils.MONTHS;
+      const alloc = this.previewPaymentAllocation(source, newPayment.amount);
+      if (alloc && alloc.length) {
+        const first = alloc[0], last = alloc[alloc.length - 1];
+        const zakres = first === last || (first.year === last.year && first.month === last.month)
+          ? `${M[first.month].toLowerCase()} ${first.year}`
+          : first.year === last.year
+            ? `${M[first.month].toLowerCase()}–${M[last.month].toLowerCase()} ${last.year}`
+            : `${M[first.month].toLowerCase()} ${first.year}–${M[last.month].toLowerCase()} ${last.year}`;
+        newPayment.note = `${source.name} za ${zakres}`;
+      } else {
+        const d = new Date(newPayment.date);
+        newPayment.note = `${source.name} za ${M[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+      }
     }
 
     source.payments = source.payments || [];
@@ -600,6 +614,71 @@ class DataManager {
     if (idx < 0) return 0;
     const totalPaid = (source.payments || []).reduce((s, p) => s + (p.amount || 0), 0);
     return Math.max(0, Math.min(expected, totalPaid - expected * idx));
+  }
+
+  /**
+   * RACHUNEK PRZECHODZĄCY źródła (decyzja Kamila 2026-08-23): wpłaty zasilają
+   * saldo, a przypisanie do miesięcy liczy się samo. Ile powinno wpłynąć do
+   * końca miesiąca (year, month) włącznie vs ile realnie wpłacono.
+   * Zwraca null dla źródeł POZA modelem puli (jednorazowe / bez activeFrom) —
+   * tam obowiązuje klasyczne rozliczenie po dacie.
+   */
+  getSourceBalance(source, year, month) {
+    if (typeof source === 'string') {
+      source = this.getIncomeSources().find(s => s.id === source);
+    }
+    if (!source || source.incomeType === 'oneoff') return null;
+    const expected = source.expectedAmount || 0;
+    if (!source.activeFrom || expected <= 0) return null;
+
+    const [ay, am] = source.activeFrom.split('-').map(Number);
+    let idx = (year - ay) * 12 + (month - (am - 1));
+    if (source.activeTo) {
+      const [ty, tm] = source.activeTo.split('-').map(Number);
+      idx = Math.min(idx, (ty - ay) * 12 + (tm - am));
+    }
+    const months = Math.max(0, idx + 1);
+    const owed = expected * months;
+    const paid = (source.payments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+    return { months, owed, paid, balance: paid - owed, expected };
+  }
+
+  /**
+   * Na które miesiące rozejdzie się NOWA wpłata `amount` (model puli).
+   * Rozpiska od najstarszego niedomkniętego miesiąca — to jest odpowiedź na
+   * „30 000 zł to wpłata za czerwiec, lipiec i sierpień". Data wpłaty nie ma
+   * na to wpływu. null = źródło poza pulą.
+   */
+  previewPaymentAllocation(source, amount) {
+    if (typeof source === 'string') {
+      source = this.getIncomeSources().find(s => s.id === source);
+    }
+    if (!source || source.incomeType === 'oneoff') return null;
+    const expected = source.expectedAmount || 0;
+    if (!source.activeFrom || expected <= 0 || !(amount > 0)) return null;
+
+    const [ay, am] = source.activeFrom.split('-').map(Number);
+    const paid = (source.payments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+    let lastIdx = Infinity;
+    if (source.activeTo) {
+      const [ty, tm] = source.activeTo.split('-').map(Number);
+      lastIdx = (ty - ay) * 12 + (tm - am);
+    }
+
+    const out = [];
+    let idx = Math.floor(paid / expected);   // pierwszy niedomknięty miesiąc
+    let filled = paid - expected * idx;      // ile już w nim siedzi
+    let left = amount;
+    let guard = 0;
+    while (left > 0 && idx <= lastIdx && guard++ < 600) {
+      const take = Math.min(expected - filled, left);
+      const d = new Date(ay, (am - 1) + idx, 1);
+      out.push({ year: d.getFullYear(), month: d.getMonth(), amount: take });
+      left -= take;
+      idx++;
+      filled = 0;
+    }
+    return out;
   }
 
   /**

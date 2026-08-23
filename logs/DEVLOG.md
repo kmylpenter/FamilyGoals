@@ -32,6 +32,45 @@
 
 ## Daily Log
 
+### 2026-08-23: Rachunek przechodzący — koniec z pytaniem „za który to miesiąc"
+
+**Sytuacja:** Kamil: „mam za lipiec 7300 zł, a jak dodaję wpłatę, to pokazuje, że
+brakuje 10 000 i 6 000, tak jakby nic nie było za lipiec. Nie wiem czy to nie
+wchodzi za sierpień." Diagnoza na realnych danych: karta pokazywała ostatni
+zamknięty miesiąc (lipiec), a modal liczył oglądany (sierpień) i podstawiał
+dzisiejszą datę — dwa różne miesiące na jednym ekranie, żaden nienazwany.
+
+**Wyzwanie:** Pierwsza poprawka poszła w konwencję „data = miesiąc-ZA-który"
+(domyślnie 15. lipca). Po niej Kamil zapytał, skąd w ogóle bierze się 7300, i
+sam nazwał model, który chce: wpłata ma zasilać rachunek przechodzący, a to,
+za jaki miesiąc jest, ma się liczyć samo. Czyli konwencja odwrotna do tej, którą
+właśnie wdrożyłem — i do tego, co jest w całej dotychczasowej historii wpłat.
+
+**Decyzja:** Rachunek przechodzący. Data = kiedy wpłynęło. Alokację (już
+istniejącą pulę `_allocatedForMonth`) wyciągnięto na wierzch dwiema czystymi
+funkcjami: `getSourceBalance()` i `previewPaymentAllocation()`. UI mówi teraz
+saldem („zaległość 9400 zł", „✓ na bieżąco") i pokazuje rozpiskę na żywo:
+30 000 zł → lipiec 9400 • sierpień 10 000 • wrzesień 10 000 • październik 600.
+Kamil świadomie zostawił wykres przy prawdzie kasowej (30 000 w lipcu to słupek
+w lipcu) i wyłączył wydatki z zakresu.
+
+**Dlaczego to ważne:** Model puli istniał od 25.07, ale żył w jednym ekranie i
+był niewidoczny — stąd „skąd te 7300?". Nie chodziło o nowy mechanizm, tylko o
+pokazanie istniejącego i przestanie pytać użytkownika o coś, co system umie
+policzyć sam. Rozjazd puli (alokacja) i wykresu (kasa) zostaje świadomie —
+odpowiadają na dwa różne pytania.
+
+**Wynik:** 156/156 testów (16 nowych, w tym 8 red-first). Headless na realnych
+danych rodziny: karta 7300/16 700, wybór źródła „Gotówka • zaległość 9400 zł",
+nagłówek „Zaległość 9400 zł — wpłacone 110 600 zł z 120 000 zł (stan na
+lipiec)", rozpiska dla 30 000 rozbita na 4 miesiące. Przy okazji: wpłata Pensji
+z 21.08 przeniesiona w danych rodziny na lipiec (potwierdzenie Kamila), a
+`formatMoney` dostał spację nierozdzielającą przed „zł".
+
+**Pliki:** `js/data-manager.js`, `js/app.js`, `js/utils.js`, `index.html`,
+`css/main.css`, `tests/rachunek-przechodzacy.test.js`,
+`tests/payment-default-month.test.js`
+
 ### 2026-07-29: Aktualizacja OTA wstawała w stanie mieszanym — cache WebView
 
 **Sytuacja:** Kamil przysłał dwie linijki z telefonu: boot `web 2026-07-26T08:54:09Z

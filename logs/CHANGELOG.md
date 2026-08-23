@@ -13,9 +13,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-### Sesja 18 (2026-08-23) - „Dodaj wpłatę" rozlicza ten sam miesiąc co karta
+### Sesja 18 (2026-08-23) - Rachunek przechodzący: wpłata zasila saldo, miesiące liczą się same
+
+#### Changed
+- **Model wpłat = RACHUNEK PRZECHODZĄCY** (decyzja Kamila): wpłata zasila saldo źródła, a przypisanie do miesięcy liczy się samo z puli. Data wpłaty znaczy już tylko KIEDY WPŁYNĘŁO (pole przemianowane na „Kiedy wpłynęło", domyślnie dziś) i nie ma wpływu na alokację. Nowe czyste funkcje: `getSourceBalance()` (należne do końca ostatniego zamkniętego miesiąca vs wpłacone → zaległość/nadpłata/na bieżąco) i `previewPaymentAllocation()` (na które miesiące rozejdzie się nowa kwota). Files: `js/data-manager.js`, `js/app.js`, `index.html`, `css/main.css`, `tests/rachunek-przechodzacy.test.js`
+- **Wybór źródła i nagłówek modala pokazują SALDO, nie „brakuje w miesiącu"**: „Gotówka • zaległość 9400 zł", „Pensja • ✓ na bieżąco", „Zaległość 9400 zł — wpłacone 110 600 zł z 120 000 zł (stan na lipiec)". Saldo liczy się zawsze do ostatniego ZAMKNIĘTEGO miesiąca względem dziś — inaczej w trakcie sierpnia każde źródło wyglądałoby na zalegające o miesiąc. Files: `js/app.js`
+- **Rozpiska „Pokryje:" na żywo pod kwotą** — 30 000 zł od razu pokazuje „lipiec 9400 zł • sierpień 10 000 zł • wrzesień 10 000 zł • październik 600 zł" (żądanie Kamila; zasada „każda liczba rozkładalna"). Files: `index.html`, `css/main.css`, `js/app.js`
+- **Etykieta wpłaty z ALOKACJI, nie z daty**: „Gotówka za lipiec–sierpień 2026". Poza pulą (jednorazowe) po staremu z daty. Files: `js/data-manager.js`
+- **Historia w oknie wpłaty = ostatnie 6 wpłat rachunku** (dla źródeł w puli). Filtr po miesiącu ukrywałby wpłatę, która ten miesiąc właśnie pokryła. Jednorazowe: bez zmian, po miesiącu. Files: `js/app.js`
+- **Kwota domyślna wyrównuje rachunek** (zaległość zamiast ślepego „oczekiwane/mies."). Files: `js/app.js`
+- **Wykres i statystyki BEZ ZMIAN — zostają prawdą kasową** (decyzja Kamila): 30 000 wpłacone w lipcu to słupek 30 000 w lipcu. Test „trend pokazuje FAKTYCZNE wpłaty wg dat" nietknięty. Wydatki poza zakresem tej zmiany.
+- **`formatMoney` używa spacji nierozdzielającej przed „zł"** — na wąskim ekranie „9400 zł" łamało się na dwie linie. Files: `js/utils.js`
 
 #### Fixed
+- **„Dodaj wpłatę" z plusika rozliczało miesiąc OGLĄDANY, karta ostatni ZAMKNIĘTY** (zgłoszenie Kamila: „mam za lipiec 7300, a przy dodawaniu wpłaty brakuje 10 000 i 6 000 — czy to nie wchodzi za sierpień?"). Kwoty były poprawne (pula i tak zasypuje najstarszy niedomknięty miesiąc), rozjeżdżała się data i etykieta. Files: `js/app.js`
+- **Wpłata bez własnej nazwy dostawała „Przelew"/„Gotówka"** — formularz podstawiał typ jako nazwę, więc auto-etykieta z `recordPayment` była martwa od strony UI. Typ niesie już ikona 💵/💳. Files: `js/app.js`
+- **Zawijany opis w oknie wyboru źródła był wyśrodkowany** zamiast trzymać lewą krawędź. Files: `css/main.css`
+
+#### Superseded (ta sama sesja)
+- Pierwsza wersja poprawki pinowała datę domyślną na 15. ostatniego zamkniętego miesiąca (konwencja „data = miesiąc-ZA-który"). Decyzja o rachunku przechodzącym zastąpiła ją tego samego dnia — `tests/payment-default-month.test.js` przepisany na nowy kontrakt, z notatką o supersedowaniu w nagłówku pliku.
+
+#### Zastąpione (szczegóły wcześniejszej wersji poprawki)
 - **„Dodaj wpłatę" z plusika księguje ZA OSTATNI ZAMKNIĘTY miesiąc, nie za oglądany** (zgłoszenie Kamila: „mam za lipiec 7300, a przy dodawaniu wpłaty brakuje 10 000 i 6 000 — czy to nie wchodzi za sierpień?"). Karta pokazywała lipiec, a modal liczył sierpień i podstawiał dzisiejszą datę — dwa różne miesiące na jednym ekranie, nigdzie nienazwane. Nowy `getSettlementMonth()`: w trwającym miesiącu rozliczamy poprzedni (jak linia karty i wykres), na zamkniętym — oglądany; `openPaymentModal(sourceId, ym)` dostaje miesiąc jawnie, wiersz na ekranie Przychody nadal księguje swój miesiąc. Data domyślna zawsze wpada w rozliczany miesiąc (15. wg konwencji „data = miesiąc-ZA-który"). 3 testy red-first. Files: `js/app.js`, `tests/payment-default-month.test.js`
 - **Wpłata bez własnej nazwy dostaje etykietę „{źródło} za {miesiąc rok}"** — formularz podstawiał „Przelew"/„Gotówka" jako nazwę, więc auto-etykieta z `recordPayment` była martwa od strony UI (stąd wpis „Przelew" z 21.08 obok „Pensja za czerwiec 2026"). Typ wpłaty niesie już ikona 💵/💳. Files: `js/app.js`
 

@@ -54,7 +54,9 @@ const ACHIEVEMENT_CATEGORY_NAMES = {
  * @returns {string} Formatted string like "1 234 zł"
  */
 function formatMoney(n) {
-  return (n || 0).toLocaleString('pl-PL') + ' zł';
+  // Spacja NIEROZDZIELAJĄCA przed „zł" — inaczej na wąskim ekranie kwota łamie
+  // się na „9400" + „zł" w nowej linii (widoczne w oknie wyboru źródła)
+  return (n || 0).toLocaleString('pl-PL') + '\u00A0zł';
 }
 
 /**

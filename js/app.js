@@ -1303,13 +1303,48 @@
       openPaymentModal(own[0].id, { year, month });
       return;
     }
-    const modal = createDynamicModal('modal-pick-source',
-      `💸 Wpłata za ${FGUtils.MONTHS[month].toLowerCase()} — do którego źródła?`, own.map(s => `
+    const modal = createDynamicModal('modal-pick-source', '💸 Do którego źródła?', own.map(s => `
       <button type="button" class="modal-menu-item" onclick="app.pickPaymentSource('${s.id}')">
         <span class="modal-menu-icon">${s.icon || '💵'}</span>
-        <span>${escapeHtml(s.name)}${s.remaining > 0 ? ' • brakuje ' + formatMoney(s.remaining) : ' • ✓ komplet'}</span>
+        <span>${escapeHtml(s.name)} • ${sourceStandingLabel(s)}</span>
       </button>`).join(''));
     modal.classList.add('active');
+  }
+
+  /**
+   * Ostatni ZAMKNIĘTY miesiąc względem DZIŚ. Rachunek przechodzący jest faktem
+   * o źródle, nie funkcją oglądanego miesiąca — inaczej w trakcie sierpnia
+   * każde źródło wyglądałoby na zalegające o jeden miesiąc.
+   */
+  function lastClosedMonth() {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  }
+
+  /** Saldo źródła w modelu puli (null = źródło poza pulą). */
+  function sourceBalance(source) {
+    const { year, month } = lastClosedMonth();
+    return dataManager.getSourceBalance(source, year, month);
+  }
+
+  /**
+   * Stan źródła jednym zwrotem. W modelu puli to SALDO rachunku
+   * przechodzącego (zaległość/nadpłata/na bieżąco) — miesiąc wpłaty nie ma
+   * znaczenia. Poza pulą (jednorazowe): klasycznie „brakuje w tym miesiącu".
+   */
+  function sourceStandingLabel(source) {
+    const bal = sourceBalance(source);
+    if (!bal) return source.remaining > 0 ? 'brakuje ' + formatMoney(source.remaining) : '✓ komplet';
+    if (bal.balance < 0) return 'zaległość ' + formatMoney(-bal.balance);
+    if (bal.balance > 0) return 'nadpłata ' + formatMoney(bal.balance);
+    return '✓ na bieżąco';
+  }
+
+  /** Ten sam opis na początku zdania (nagłówek modala). */
+  function sourceStandingSentence(source) {
+    const t = sourceStandingLabel(source);
+    return t.charAt(0).toUpperCase() + t.slice(1);
   }
 
   function pickPaymentSource(sourceId) {
@@ -1317,8 +1352,8 @@
     openPaymentModal(sourceId, getSettlementMonth());
   }
 
-  /** ym = miesiąc, ZA KTÓRY księgujemy (domyślnie oglądany, np. wiersz
-   *  na ekranie Przychody); plusik podaje miesiąc rozliczenia. */
+  /** ym = miesiąc rozliczenia dla źródeł POZA pulą (jednorazowych); źródła
+   *  w modelu puli są niezależne od miesiąca — liczy się saldo rachunku. */
   function openPaymentModal(sourceId, ym) {
     const { year, month } = ym || getYearMonth();
     currentPaymentMonth = { year, month };
@@ -1328,14 +1363,17 @@
     if (!source) return;
 
     currentPaymentSourceId = sourceId;
+    const bal = sourceBalance(source);
 
-    // Domyślna data ZAWSZE wpada w rozliczany miesiąc: dziś (gdy rozliczamy
-    // trwający miesiąc) albo 15. (konwencja Kamila dla miesiąca-za-który)
+    // Data = KIEDY WPŁYNĘŁO (decyzja Kamila 2026-08-23: rachunek przechodzący,
+    // alokacja liczy się sama). Poza pulą data nadal wyznacza miesiąc, więc
+    // przy oglądaniu zamkniętego miesiąca podpowiadamy jego 15-ty.
     const dateEl = $('payment-date');
     if (dateEl) {
       const now = new Date();
-      dateEl.value = (year === now.getFullYear() && month === now.getMonth())
-        ? `${year}-${String(month + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+      const dzis = year === now.getFullYear() && month === now.getMonth();
+      dateEl.value = (bal || dzis)
+        ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
         : `${year}-${String(month + 1).padStart(2, '0')}-15`;
     }
 
@@ -1343,16 +1381,18 @@
     const sourceInfo = $('payment-source-info');
     if (sourceInfo) {
       sourceInfo.querySelector('.payment-source-name').textContent = source.name;
-      sourceInfo.querySelector('.payment-source-expected').textContent =
-        `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
+      sourceInfo.querySelector('.payment-source-expected').textContent = bal
+        ? `${sourceStandingSentence(source)} — wpłacone ${formatMoney(bal.paid)} z ${formatMoney(bal.owed)} (stan na ${FGUtils.MONTHS[lastClosedMonth().month].toLowerCase()})`
+        : `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
     }
 
     // Render payment history
     renderPaymentHistory(sourceId, year, month);
 
-    // Reset form
+    // Kwota domyślna: tyle, żeby wyrównać rachunek (a poza pulą — miesięczna)
     const amountInput = $('payment-amount');
-    if (amountInput) amountInput.value = source.expected;
+    if (amountInput) amountInput.value = bal && bal.balance < 0 ? -bal.balance : source.expected;
+    renderPaymentAllocation();
 
     // Reset type chips
     const typeChips = $('payment-type-chips');
@@ -1371,12 +1411,17 @@
     const container = $('payment-history');
     if (!container) return;
 
-    const payments = dataManager.getPaymentsByMonth(sourceId, year, month);
+    // W modelu puli data wpłaty = KIEDY wpłynęło, więc filtr „po miesiącu"
+    // ukrywałby wpłaty, które ten miesiąc właśnie pokryły. Pokazujemy ostatnie
+    // wpłaty rachunku. Poza pulą (jednorazowe) data nadal = miesiąc.
+    const src = dataManager.getIncomeSources().find(s => s.id === sourceId);
+    const pooled = !!sourceBalance(src);
+    const payments = pooled
+      ? (src.payments || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 6)
+      : dataManager.getPaymentsByMonth(sourceId, year, month);
 
     if (payments.length === 0) {
-      // Nazwij miesiąc — „w tym miesiącu" to ta sama dwuznaczność, przez którą
-      // powstało zgłoszenie (modal rozlicza inny miesiąc niż oglądany)
-      container.innerHTML = `<div class="payment-history-empty">Brak wpłat za ${FGUtils.MONTHS[month].toLowerCase()}</div>`;
+      container.innerHTML = `<div class="payment-history-empty">${pooled ? 'Brak wpłat' : 'Brak wpłat za ' + FGUtils.MONTHS[month].toLowerCase()}</div>`;
       return;
     }
 
@@ -1403,6 +1448,35 @@
     });
   }
 
+  /**
+   * „Na co pójdzie ta wpłata" — rozpiska z puli, liczona na żywo z wpisanej
+   * kwoty (żądanie Kamila 2026-08-23: 30 000 ma od razu pokazać, że to
+   * czerwiec + lipiec + sierpień). Poza pulą: pusto.
+   */
+  /** Nagłówek modala po zmianie stanu (zapis/kasowanie wpłaty). */
+  function refreshPaymentModalHeader() {
+    const { year, month } = currentPaymentMonth || getYearMonth();
+    const source = dataManager.getMonthlyIncomeSummary(year, month)
+      .sources.find(s => s.id === currentPaymentSourceId);
+    const sourceInfo = $('payment-source-info');
+    if (!source || !sourceInfo) return;
+    const bal = sourceBalance(source);
+    sourceInfo.querySelector('.payment-source-expected').textContent = bal
+      ? `${sourceStandingSentence(source)} — wpłacone ${formatMoney(bal.paid)} z ${formatMoney(bal.owed)} (stan na ${FGUtils.MONTHS[lastClosedMonth().month].toLowerCase()})`
+      : `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
+  }
+
+  function renderPaymentAllocation() {
+    const el = $('payment-allocation');
+    if (!el) return;
+    const src = dataManager.getIncomeSources().find(s => s.id === currentPaymentSourceId);
+    const amount = parseFloat($('payment-amount')?.value) || 0;
+    const alloc = src ? dataManager.previewPaymentAllocation(src, amount) : null;
+    if (!alloc || !alloc.length) { el.textContent = ''; return; }
+    const czesci = alloc.map(a => `${FGUtils.MONTHS[a.month].toLowerCase()} ${a.year} — ${formatMoney(a.amount)}`);
+    el.innerHTML = `Pokryje: ${czesci.join(' • ')}`;
+  }
+
   function deletePayment(paymentId) {
     if (!currentPaymentSourceId) return;
 
@@ -1411,16 +1485,8 @@
       renderPaymentHistory(currentPaymentSourceId, year, month);
       renderAll();
 
-      // Update modal header
-      const summary = dataManager.getMonthlyIncomeSummary(year, month);
-      const source = summary.sources.find(s => s.id === currentPaymentSourceId);
-      if (source) {
-        const sourceInfo = $('payment-source-info');
-        if (sourceInfo) {
-          sourceInfo.querySelector('.payment-source-expected').textContent =
-            `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
-        }
-      }
+      refreshPaymentModalHeader();
+      renderPaymentAllocation();
 
       if (typeof Toast !== 'undefined') {
         Toast.info('Usunięto', 'Wpłata została usunięta');
@@ -1431,6 +1497,9 @@
   function setupPaymentForm() {
     const form = $('payment-form');
     if (!form) return;
+
+    // Rozpiska „na co pójdzie" liczona na żywo z wpisywanej kwoty
+    $('payment-amount')?.addEventListener('input', renderPaymentAllocation);
 
     form.onsubmit = e => {
       e.preventDefault();
@@ -1467,19 +1536,11 @@
       renderPaymentHistory(currentPaymentSourceId, year, month);
       renderAll();
 
-      // Update modal header
-      const summary = dataManager.getMonthlyIncomeSummary(year, month);
-      const source = summary.sources.find(s => s.id === currentPaymentSourceId);
-      if (source) {
-        const sourceInfo = $('payment-source-info');
-        if (sourceInfo) {
-          sourceInfo.querySelector('.payment-source-expected').textContent =
-            `Za ${FGUtils.MONTHS[month].toLowerCase()} — oczekiwane: ${formatMoney(source.expected)} | otrzymane: ${formatMoney(source.totalReceived || 0)}`;
-        }
-      }
+      refreshPaymentModalHeader();
 
       // Reset amount
       $('payment-amount').value = '';
+      renderPaymentAllocation();
 
       if (typeof Toast !== 'undefined') {
         Toast.success('Dodano!', `Wpłata: ${formatMoney(amount)}`);
