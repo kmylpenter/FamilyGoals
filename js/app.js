@@ -3068,6 +3068,37 @@
     `;
     box.addEventListener('click', hideChartTooltip);
     card.appendChild(box);
+    // Rozpiska bywa wyższa niż widoczny kawałek ekranu — dociągnij ją w pole
+    // widzenia, inaczej ostatnie pozycje zostają pod krawędzią (Kamil 24.08)
+    dopasujDymekDoEkranu(box, card);
+  }
+
+  /**
+   * Rozpiska miesiąca bywa dłuższa niż miejsce pod wykresem, a niżej czekają
+   * jeszcze FAB i dolna nawigacja — zgłoszenie Kamila 2026-08-24: „przycisk +
+   * zasłaniał końcówkę tabelki". Dymek jest pozycjonowany wewnątrz karty, ale
+   * ograniczenie jest OKNO (karta sama potrafi wystawać poza ekran), więc
+   * liczymy docelowy `top` w układzie okna i przeliczamy na offset karty.
+   */
+  function dopasujDymekDoEkranu(box, card) {
+    if (!box.getBoundingClientRect || !card.getBoundingClientRect || !window.innerHeight) return;
+    const r = box.getBoundingClientRect();
+    const karta = card.getBoundingClientRect();
+    if (!r || typeof r.bottom !== 'number' || typeof karta.top !== 'number') return;
+
+    const nav = document.getElementById('bottom-nav');
+    const navWidoczna = nav && nav.classList && nav.classList.contains('visible');
+    const navH = navWidoczna && nav.getBoundingClientRect ? (nav.getBoundingClientRect().height || 0) : 0;
+    const gora = 8;
+    const dol = window.innerHeight - navH - 8;
+    const wolne = dol - gora;
+    if (wolne < 120) return;
+
+    const wysokosc = Math.min(r.height, wolne);
+    const docelowyTop = Math.min(Math.max(r.top, gora), dol - wysokosc);
+    box.style.bottom = 'auto';
+    box.style.top = Math.round(docelowyTop - karta.top) + 'px';
+    if (r.height > wysokosc) box.style.maxHeight = Math.round(wysokosc) + 'px';
   }
 
   // ============ OKIENKO "JAK TO POLICZONE" (karta przychodów) ============

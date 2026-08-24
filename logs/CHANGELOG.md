@@ -13,6 +13,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 20 (2026-08-24) - Dymek wykresu chował się pod „+" i nawigacją
+
+#### Fixed
+- **Rozpiska miesiąca na wykresie była zasłonięta przez FAB i ucięta dolną krawędzią ekranu** (zgłoszenie Kamila: „tabelka ma błąd wyświetlania, zobacz np lipiec"). Lipiec 2026 ma 9 pozycji — przycisk „+" (`z-index: 50`) zakrywał trzy ostatnie, bo dymek miał `z-index: 5`, a jego dół wychodził poza ekran i pod dolną nawigację. Teraz: `z-index: 60`, `max-height` + własny scroll, a pozycja liczona jest względem OKNA (karta wykresu sama wystaje poza ekran, więc kotwiczenie do niej nie wystarczało) — dymek dociągany jest w widoczny obszar nad nawigacją. Files: `css/main.css`, `js/app.js`
+- Weryfikacja headless na realnych danych, 390×844: przed — FAB zakrywał 3 wiersze + dymek poza dolną krawędzią; po — 9/9 wierszy widocznych, wysokość 247 px w oknie 528–775, zero nakładek. Krótkie dymki (Żona 0 pozycji, Wydatki 2) bez zmiany pozycji.
+
+#### Uwaga do danych (bez zmian kodu)
+- Kamil dopisał zgubioną wpłatę Gotówki: **4500 zł, 24.08, „Za lipiec"**. Gotówka: 115 100 zł z 120 000 należnych do końca lipca → **brakuje jeszcze 4900 zł**. Karta pokazuje „Za lipiec: wpłynęło 11 800 zł z 16 700 zł".
+
 ### Sesja 19 (2026-08-24) - Historia przestawiona na „kiedy wpłynęło" + cofnięcie korekty
 
 #### Changed
