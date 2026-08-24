@@ -32,6 +32,41 @@
 
 ## Daily Log
 
+### 2026-08-24: Dwie sprzeczne konwencje w jeden dzień — i sprzątanie po tym
+
+**Sytuacja:** Kamil: „jestem zmieszany tym, jak teraz aplikacja wygląda (…)
+wpłaty za lipiec są w lipcu, a to jest błąd, przecież płacę zawsze za miesiąc
+do tyłu (…) nie wiem czy sumarycznie mam wpłacone za mało czy za dużo (…) czy
+coś pozmienialiśmy w arkuszu i teraz są jakieś fikcyjne kwoty?".
+
+**Wyzwanie:** 23.08 wypuściłem dwie zmiany idące w przeciwne strony. Rano —
+domyślna data wpłaty na 15. ostatniego zamkniętego miesiąca (konwencja „data =
+miesiąc-ZA-który") plus przesunięcie jednej realnej wpłaty Kamila z 21.08 do
+lipca. Po południu, na jego decyzję — rachunek przechodzący i „data = KIEDY
+WPŁYNĘŁO". Historii nie przestawiłem. Aplikacja mówiła więc „Kiedy wpłynęło"
+nad 64 rekordami, które znaczyły „za który miesiąc", a lista wpłat pokazywała
+samą kwotę i datę, bez nazwy — data była jedyną wskazówką i wyglądała na złą.
+
+**Decyzja:** Najpierw fakty, nie projektowanie. Pełny zrzut arkusza pokazał:
+żadnych fikcyjnych kwot, jeden rekord zmieniony przeze mnie (tylko data), a
+wpłata Gotówki z 21.08 nie istnieje w ogóle — zniknęła w incydencie z 21.08
+i nikt jej nie odtworzył. Kamil wybrał: zostajemy przy „kiedy wpłynęło",
+korektę cofnąć. Czyli historię trzeba przestawić — 64 wpłaty źródeł w puli
+o miesiąc w przód, z backupem i znacznikiem `migratedTo`.
+
+**Dlaczego to ważne:** Zmiana konwencji zapisu bez migracji danych daje stan
+gorszy niż każda z konwencji osobno — interfejs opisuje dane, które znaczą co
+innego. Druga lekcja: pytanie „czy tu nie ma błędu" wymaga najpierw zrzutu
+danych i odpowiedzi liczbami, a dopiero potem rozmowy o modelu.
+
+**Wynik:** 158/158 testów. Migracja: 70/70 wpłat, suma 344 000 zł bez zmian,
+0 wpłat ze zmienioną kwotą, salda identyczne (Pensja równo, Gotówka −9400).
+Jednorazowe nietknięte — tam data wyznacza miesiąc rozliczenia. Historia czyta
+się teraz „12 900 zł • Gotówka za czerwiec 2026 • wpłynęło 15.07.2026".
+Backup przed migracją leży poza repo.
+
+**Pliki:** `js/app.js`, `css/main.css`, `tests/historia-wplat-opis.test.js`
+
 ### 2026-08-23: Rachunek przechodzący — koniec z pytaniem „za który to miesiąc"
 
 **Sytuacja:** Kamil: „mam za lipiec 7300 zł, a jak dodaję wpłatę, to pokazuje, że

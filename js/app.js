@@ -1434,7 +1434,8 @@
             <span class="payment-type">${typeIcon}</span>
             <div>
               <div class="payment-amount">${formatMoney(p.amount)}</div>
-              <div class="payment-date">${date.toLocaleDateString('pl-PL')}</div>
+              ${p.note ? `<div class="payment-note">${escapeHtml(p.note)}</div>` : ''}
+              <div class="payment-date">wpłynęło ${date.toLocaleDateString('pl-PL')}</div>
             </div>
           </div>
           <button class="payment-delete" data-payment-id="${p.id}" title="Usuń wpłatę">✕</button>

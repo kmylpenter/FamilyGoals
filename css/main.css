@@ -1029,6 +1029,12 @@ img, .goal-bar-fill, .income-bar-fill, .timeline-bar-fill { will-change: auto; }
   padding: 4px;
   color: var(--text-soft);
 }
+/* Nazwa wpłaty na liście — bez niej data była jedyną wskazówką i czytało się
+   ją jako miesiąc rozliczenia (zgłoszenie Kamila 2026-08-24) */
+.payment-note {
+  font-size: 0.9rem;
+  color: var(--text);
+}
 .payment-history-empty {
   text-align: center;
   padding: var(--s3);

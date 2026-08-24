@@ -13,6 +13,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 19 (2026-08-24) - Historia przestawiona na „kiedy wpłynęło" + cofnięcie korekty
+
+#### Changed
+- **MIGRACJA DANYCH: 64 wpłaty przesunięte o miesiąc w przód** (decyzja Kamila po zgłoszeniu „wpłaty za lipiec są w lipcu, a to błąd — płacę zawsze za miesiąc do tyłu"). Import z 25–26.07 datował każdą wpłatę na 15. miesiąca, ZA KTÓRY jest; konwencja z 23.08 mówi „data = KIEDY WPŁYNĘŁO". Notatki („Gotówka za czerwiec 2026") zostały bez zmian i po przesunięciu wreszcie zgadzają się z datą. Ruszone WYŁĄCZNIE źródła w modelu puli (alokacja ignoruje daty → **salda identyczne co do złotówki**); jednorazowe (Bonus, Zwrot pożyczki) nietknięte, bo tam data wyznacza miesiąc rozliczenia. Przesunięte wpłaty mają znacznik `migratedTo: 'arrival-2026-08-24'` (data odtworzona, nie z banku). Kontrola: 70/70 wpłat, suma 344 000 zł bez zmian, 0 wpłat ze zmienioną kwotą, 76/76 wpisów `income[]`.
+- **Cofnięta korekta z 23.08**: wpłata Pensji 6000 zł wróciła na `2026-08-21` / „Przelew" — jej pierwotny stan. Pod nową konwencją to jedyny rekord, który od początku miał datę przyjścia.
+- **Lista wpłat pokazuje nazwę i podpisuje datę**: „12 900 zł • Gotówka za czerwiec 2026 • wpłynęło 15.07.2026". Wcześniej były tam sama kwota i data — data była jedyną wskazówką i czytało się ją jako miesiąc rozliczenia. Files: `js/app.js`, `css/main.css`, `tests/historia-wplat-opis.test.js`
+
+#### Diagnoza (bez zmian kodu)
+- **Wpłata Gotówki z 21.08 (5000 albo 4000 zł) NIE ISTNIEJE w danych** — brak jej we wpłatach źródła, w lustrze `income[]` i wśród tombstonów. Ostatnia wpłata Gotówki to czerwiec 2026. Została wymazana 21.08 masowym pushem z drugiego urządzenia (incydent opisany w sesji 17c, sync naprawiony) i nigdy nie odtworzona. Do wpisania ręcznie — kwoty nie da się odczytać z danych.
+- **Stan rachunku na koniec lipca 2026**: Pensja 192 000 / 192 000 (równo), Gotówka 110 600 / 120 000 (**brakuje 9400 zł**). Źródła zamknięte: „Gotówka do 03.2025" −1500, „Gotówka 04–07.2025" +4200.
+
 ### Sesja 18 (2026-08-23) - Rachunek przechodzący: wpłata zasila saldo, miesiące liczą się same
 
 #### Changed
