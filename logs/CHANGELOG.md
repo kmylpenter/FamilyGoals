@@ -13,6 +13,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 21 (2026-08-25) - Dymek wykresu dzieli wpłaty od korzyści firmowych
+
+#### Added
+- **Rozpiska miesiąca rozbita na sekcje z własnymi sumami** (żądanie Kamila): „Wpłaty 22 500 zł" i „Korzyści firmowe (naliczenia) 4100 zł". Lipiec pokazywał jedno „26 600 zł", więc czytało się to jak pieniądze na koncie — a 4100 to miesięczne naliczenia korzyści, żadna złotówka nie wpłynęła. Nagłówki pojawiają się TYLKO gdy w miesiącu są oba rodzaje (przy jednym byłyby szumem); wydatki i miesiące bez korzyści bez zmian. Nowa czysta funkcja `FGUtils.groupBreakdownByKind()` + 5 testów red-first. Files: `js/utils.js`, `js/app.js`, `css/main.css`, `tests/dymek-podzial.test.js`
+- Sortowanie malejące przeniesione z całej listy do wnętrza sekcji.
+
 ### Sesja 20 (2026-08-24) - Dymek wykresu chował się pod „+" i nawigacją
 
 #### Fixed

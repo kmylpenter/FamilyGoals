@@ -2980,7 +2980,7 @@
         const d = new Date(p.date);
         if (d.getFullYear() === y && d.getMonth() === m) {
           const label = p.note && !/^(Przelew|Gotówka|import z arkusza)$/.test(p.note) ? p.note : s.name;
-          items.push({ label: `${s.icon || '💵'} ${label}`, amount: p.amount || 0 });
+          items.push({ label: `${s.icon || '💵'} ${label}`, amount: p.amount || 0, kind: 'wplata' });
         }
       });
     });
@@ -2991,16 +2991,16 @@
           const startYM = c.activeFrom || String(c.createdAt || '').slice(0, 7);
           if (startYM && ym < startYM) return;
           if (c.activeTo && ym > c.activeTo) return;
-          items.push({ label: `${costCategoryIcon(c.category)} ${c.name}`, amount: Math.round(c.amount / c.recurringMonths) });
+          items.push({ label: `${costCategoryIcon(c.category)} ${c.name}`, amount: Math.round(c.amount / c.recurringMonths), kind: 'korzysc' });
         } else if (c.lastPurchaseDate) {
           const d = new Date(c.lastPurchaseDate);
           if (d.getFullYear() === y && d.getMonth() === m) {
-            items.push({ label: `${costCategoryIcon(c.category)} ${c.name}`, amount: c.amount || 0 });
+            items.push({ label: `${costCategoryIcon(c.category)} ${c.name}`, amount: c.amount || 0, kind: 'korzysc' });
           }
         }
       });
     }
-    items.sort((a, b) => b.amount - a.amount);
+    // Kolejność ustala groupBreakdownByKind — malejąco W OBRĘBIE sekcji
     return items;
   }
 
@@ -3060,11 +3060,16 @@
     const box = document.createElement('div');
     box.className = 'chart-tooltip';
     const mies = `${FGUtils.MONTHS[t.month]} ${t.year}`;
+    const znak = owner === 'expenses' ? '−' : '';
+    const grupy = FGUtils.groupBreakdownByKind(shownItems);
+    const wiersz = it =>
+      `<div class="chart-tooltip-row"><span>${escapeHtml(it.label)}</span><span>${znak}${formatMoney(it.amount)}</span></div>`;
+    const sekcja = g =>
+      (g.label ? `<div class="chart-tooltip-section"><span>${escapeHtml(g.label)}</span><span>${znak}${formatMoney(g.total)}</span></div>` : '')
+      + g.items.map(wiersz).join('');
     box.innerHTML = `
-      <div class="chart-tooltip-head"><span>${owner === 'wife' ? '👩' : owner === 'expenses' ? '🛒' : '👨'} ${mies}</span><b>${owner === 'expenses' ? '−' : ''}${formatMoney(total)}</b></div>
-      ${shownItems.length === 0 ? `<div class="muted">${owner === 'expenses' ? 'Brak wydatków w tym miesiącu' : 'Brak wpłat w tym miesiącu'}</div>` : shownItems.map(it =>
-        `<div class="chart-tooltip-row"><span>${escapeHtml(it.label)}</span><span>${formatMoney(it.amount)}</span></div>`).join('')}
-
+      <div class="chart-tooltip-head"><span>${owner === 'wife' ? '👩' : owner === 'expenses' ? '🛒' : '👨'} ${mies}</span><b>${znak}${formatMoney(total)}</b></div>
+      ${grupy.length === 0 ? `<div class="muted">${owner === 'expenses' ? 'Brak wydatków w tym miesiącu' : 'Brak wpłat w tym miesiącu'}</div>` : grupy.map(sekcja).join('')}
     `;
     box.addEventListener('click', hideChartTooltip);
     card.appendChild(box);

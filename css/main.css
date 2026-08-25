@@ -224,6 +224,14 @@ body {
 }
 .chart-tooltip-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; font-size: 13px; }
 .chart-tooltip-row { display: flex; justify-content: space-between; gap: 12px; padding: 1px 0; color: var(--text-soft); }
+/* Nagłówek sekcji dymka (Wpłaty / Korzyści firmowe) z sumą sekcji */
+.chart-tooltip-section {
+  display: flex; justify-content: space-between; gap: 12px;
+  margin: 6px 0 2px; padding-top: 5px;
+  border-top: 1px solid var(--bg-subtle);
+  font-weight: 700; color: var(--text);
+}
+.chart-tooltip-section:first-of-type { margin-top: 2px; }
 .chart-tooltip-row span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Area Chart */

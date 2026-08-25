@@ -74,6 +74,33 @@ function formatCurrency(amount) {
 }
 
 /**
+ * Rozpiska miesiąca (dymek wykresu) pogrupowana po rodzaju: realne WPŁATY
+ * osobno od KORZYŚCI FIRMOWYCH, które są tylko naliczeniem miesięcznym —
+ * żądanie Kamila 2026-08-25: „26 600 zł" czytało się jak wpłaty, choć na konto
+ * weszło 22 500. Nagłówki sekcji pojawiają się TYLKO gdy rodzaje są dwa;
+ * przy jednym byłyby szumem. Wewnątrz sekcji malejąco po kwocie.
+ * @param {Array<{label:string, amount:number, kind?:string}>} items
+ * @returns {Array<{kind:string|null, label:string|null, total:number, items:Array}>}
+ */
+function groupBreakdownByKind(items) {
+  const lista = items || [];
+  const malejaco = (a, b) => b.amount - a.amount;
+  const RODZAJE = [
+    { kind: 'wplata', label: 'Wpłaty' },
+    { kind: 'korzysc', label: 'Korzyści firmowe (naliczenia)' }
+  ];
+  const grupy = RODZAJE
+    .map(r => ({ kind: r.kind, label: r.label, items: lista.filter(i => i.kind === r.kind).sort(malejaco) }))
+    .filter(g => g.items.length);
+  // Pozycje bez rodzaju (np. wydatki) — jedna grupa, zawsze bez nagłówka
+  const reszta = lista.filter(i => i.kind !== 'wplata' && i.kind !== 'korzysc').sort(malejaco);
+  if (reszta.length) grupy.push({ kind: null, label: null, items: reszta });
+
+  const zSumami = grupy.map(g => ({ ...g, total: g.items.reduce((s, i) => s + (i.amount || 0), 0) }));
+  return zSumami.length > 1 ? zSumami : zSumami.map(g => ({ ...g, label: null }));
+}
+
+/**
  * Format date as month name + year
  * @param {Date} date - Date to format
  * @returns {string} Formatted string like "Styczeń 2026"
@@ -312,6 +339,7 @@ function parseDate(dateStr) {
 window.FGUtils = {
   // Constants
   MONTHS,
+  groupBreakdownByKind,
   MONTHS_SHORT,
   CATEGORY_CONFIG,
   ACHIEVEMENT_CATEGORY_NAMES,
