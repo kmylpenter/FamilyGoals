@@ -1931,7 +1931,8 @@ class DataManager {
   formatCurrency(amount) {
     return new Intl.NumberFormat(this.config?.locale || 'pl-PL', {
       style: 'currency',
-      currency: this.config?.currency || 'PLN'
+      currency: this.config?.currency || 'PLN',
+      useGrouping: 'always'
     }).format(amount);
   }
 

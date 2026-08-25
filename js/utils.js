@@ -55,8 +55,10 @@ const ACHIEVEMENT_CATEGORY_NAMES = {
  */
 function formatMoney(n) {
   // Spacja NIEROZDZIELAJĄCA przed „zł" — inaczej na wąskim ekranie kwota łamie
-  // się na „9400" + „zł" w nowej linii (widoczne w oknie wyboru źródła)
-  return (n || 0).toLocaleString('pl-PL') + '\u00A0zł';
+  // się na „9400" + „zł" w nowej linii (widoczne w oknie wyboru źródła).
+  // useGrouping 'always', bo CLDR pl grupuje dopiero od 5 cyfr i w jednej
+  // rozpisce stało „9400 zł" obok „110 600 zł" (żądanie Kamila 2026-08-25).
+  return (n || 0).toLocaleString('pl-PL', { useGrouping: 'always' }) + '\u00A0zł';
 }
 
 /**
@@ -69,7 +71,8 @@ function formatCurrency(amount) {
     style: 'currency',
     currency: 'PLN',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
+    useGrouping: 'always'
   }).format(amount).replace('PLN', 'zł');
 }
 

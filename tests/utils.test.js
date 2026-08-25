@@ -17,15 +17,36 @@ function fresh(now) {
 
 test('formatMoney: liczby, null, ujemne, ułamki', () => {
   const { run } = fresh();
-  // CLDR pl: minimumGroupingDigits=2 — separator tysięcy dopiero od 5 cyfr
-  assert.equal(norm(run('formatMoney(1234)')), '1234 zł');
+  // Żądanie Kamila 2026-08-25: grupuj tysiące ZAWSZE, także w 4 cyfrach.
+  // Domyślne CLDR pl (minimumGroupingDigits=2) dawało „9400 zł" obok
+  // „110 600 zł" w tej samej rozpisce — wyglądało na błąd wyświetlania.
+  assert.equal(norm(run('formatMoney(1234)')), '1 234 zł');
+  assert.equal(norm(run('formatMoney(9400)')), '9 400 zł');
   assert.equal(norm(run('formatMoney(12345)')), '12 345 zł');
+  assert.equal(norm(run('formatMoney(999)')), '999 zł', 'trzy cyfry bez separatora');
   assert.equal(norm(run('formatMoney(0)')), '0 zł');
   assert.equal(norm(run('formatMoney(null)')), '0 zł');
   assert.equal(norm(run('formatMoney(undefined)')), '0 zł');
   assert.equal(norm(run('formatMoney(-50)')), '-50 zł');
   assert.equal(norm(run('formatMoney(12.5)')), '12,5 zł');
   assert.equal(norm(run('formatMoney(1234567)')), '1 234 567 zł');
+});
+
+test('grupowanie tysięcy jest spójne we WSZYSTKICH formatterach kwot', () => {
+  const { run } = loadApp({ scripts: ['js/utils.js', 'js/data-manager.js', 'js/event-bus.js', 'js/ui-features.js'] });
+  const sprawdz = (wyr, opis) => assert.equal(norm(String(run(wyr))).replace(/\u00A0/g, ' '), '9 400 zł', `${opis} → ${wyr}`);
+  sprawdz('FGUtils.formatMoney(9400)', 'FGUtils.formatMoney');
+  sprawdz('FGUtils.formatCurrency(9400)', 'FGUtils.formatCurrency');
+  // dataManager.formatCurrency celowo trzyma grosze (używa go doradca AI) —
+  // zmieniamy WYŁĄCZNIE grupowanie, nie liczbę miejsc po przecinku
+  assert.equal(norm(String(run('dataManager.formatCurrency(9400)'))).replace(/\u00A0/g, ' '),
+    '9 400,00 zł', 'dataManager.formatCurrency');
+  sprawdz('Widget.formatMoney(9400)', 'Widget.formatMoney (ui-features)');
+  // ReactiveUI: waluta i liczba surowa — obie muszą grupować tak samo
+  assert.equal(norm(String(run("ReactiveUI._formatNumber(9400, 'currency')"))).replace(/\u00A0/g, ' '),
+    '9 400,00 zł', 'ReactiveUI._formatNumber(currency)');
+  assert.equal(norm(String(run("ReactiveUI._formatNumber(9400, 'liczba')"))).replace(/\u00A0/g, ' '),
+    '9 400', 'ReactiveUI._formatNumber(domyślny)');
 });
 
 test('formatMonth / formatMonthShort: polskie nazwy miesięcy', () => {

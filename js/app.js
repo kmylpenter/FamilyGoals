@@ -625,7 +625,7 @@
           <!-- Oś kwot -->
           ${[maxIncome, maxIncome / 2, 0].map(v => `
             <text x="${padding.left - 5}" y="${getY(v) + 3}" text-anchor="end" class="chart-label">${
-              v >= 1000 ? Math.round(v / 1000).toLocaleString('pl-PL') + ' tys.' : Math.round(v)
+              v >= 1000 ? Math.round(v / 1000).toLocaleString('pl-PL', { useGrouping: 'always' }) + ' tys.' : Math.round(v)
             }</text>
           `).join('')}
 

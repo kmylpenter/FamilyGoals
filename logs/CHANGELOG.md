@@ -15,6 +15,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Sesja 21 (2026-08-25) - Dymek wykresu dzieli wpłaty od korzyści firmowych
 
+#### Changed
+- **Grupowanie tysięcy ZAWSZE, także przy 4 cyfrach** (żądanie Kamila: „9400 → 9 400"). CLDR dla polskiego ma `minimumGroupingDigits=2`, więc `toLocaleString('pl-PL')` zostawiał „9400" obok „110 600" w tej samej rozpisce i wyglądało to na błąd wyświetlania. `useGrouping: 'always'` dodane do WSZYSTKICH sześciu formatterów kwot: `FGUtils.formatMoney`, `FGUtils.formatCurrency`, `dataManager.formatCurrency`, `ReactiveUI._formatNumber` (waluta i liczba surowa), `Widget.formatMoney`, `Toast/Notifications` (przez FGUtils) oraz podpisy osi wykresu („tys."). Separatorem pozostaje NBSP, więc kwota nie łamie się na końcu linii. `dataManager.formatCurrency` celowo zachowuje grosze — zmieniono w nim WYŁĄCZNIE grupowanie. Weryfikacja w Chrome 148 (headless) przed zmianą kodu: `useGrouping:'always'` obsługiwane. 2 testy (1 red-first: pin `formatMoney(1234)='1234 zł'` przepisany na `'1 234 zł'`). Files: `js/utils.js`, `js/data-manager.js`, `js/event-bus.js`, `js/ui-features.js`, `js/app.js`, `tests/utils.test.js`
+
 #### Added
 - **Rozpiska miesiąca rozbita na sekcje z własnymi sumami** (żądanie Kamila): „Wpłaty 22 500 zł" i „Korzyści firmowe (naliczenia) 4100 zł". Lipiec pokazywał jedno „26 600 zł", więc czytało się to jak pieniądze na koncie — a 4100 to miesięczne naliczenia korzyści, żadna złotówka nie wpłynęła. Nagłówki pojawiają się TYLKO gdy w miesiącu są oba rodzaje (przy jednym byłyby szumem); wydatki i miesiące bez korzyści bez zmian. Nowa czysta funkcja `FGUtils.groupBreakdownByKind()` + 5 testów red-first. Files: `js/utils.js`, `js/app.js`, `css/main.css`, `tests/dymek-podzial.test.js`
 - Sortowanie malejące przeniesione z całej listy do wnętrza sekcji.

@@ -240,12 +240,13 @@ class ReactiveUI {
       case 'currency':
         return new Intl.NumberFormat('pl-PL', {
           style: 'currency',
-          currency: 'PLN'
+          currency: 'PLN',
+          useGrouping: 'always'
         }).format(value);
       case 'percent':
         return `${Math.round(value)}%`;
       default:
-        return Math.round(value).toLocaleString('pl-PL');
+        return Math.round(value).toLocaleString('pl-PL', { useGrouping: 'always' });
     }
   }
 }

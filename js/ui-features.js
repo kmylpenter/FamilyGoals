@@ -340,7 +340,8 @@ const ExpenseChart = {
                 style: 'currency',
                 currency: 'PLN',
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 0
+                maximumFractionDigits: 0,
+                useGrouping: 'always'
             }).format(amount).replace('PLN', 'zł');
     }
 };
@@ -582,7 +583,8 @@ const Widget = {
         return new Intl.NumberFormat('pl-PL', {
             style: 'decimal',
             minimumFractionDigits: 0,
-            maximumFractionDigits: 0
+            maximumFractionDigits: 0,
+            useGrouping: 'always'
         }).format(amount) + ' zł';
     }
 };
