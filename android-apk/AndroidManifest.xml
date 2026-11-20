@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kmylpenter.familygoals"
-    android:versionCode="4"
-    android:versionName="1.3.0">
+    android:versionCode="5"
+    android:versionName="1.4.0">
 
   <!-- Sieć: synchronizacja z backendem GAS (arkusz rodzinny) + OTA -->
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <!-- Aktualizacja APK z wnętrza aplikacji (systemowy instalator) -->
   <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+  <!-- Moduł ciąży: cotygodniowe powiadomienie o nowym rozmiarze maluszka -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
   <application
       android:label="@string/app_name"
@@ -26,6 +29,16 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
+
+    <!-- Budzik powiadomień ciąży + odtworzenie planu po restarcie / aktualizacji -->
+    <receiver
+        android:name=".NotifyReceiver"
+        android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED"/>
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+      </intent-filter>
+    </receiver>
 
     <!-- Serwuje pobrany update.apk instalatorowi systemowemu -->
     <provider

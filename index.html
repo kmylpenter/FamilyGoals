@@ -269,6 +269,9 @@
       <span class="month-badge" id="month-badge">Grudzień 2025</span>
     </header>
 
+    <!-- Moduł ciąży (2026-11-20): kafelek z tygodniem i rozmiarem w śrubkach -->
+    <div id="pregnancy-tile"></div>
+
     <!-- Karuzela celów-kopert (decyzja Kamila 2026-07-26): strzałki przełączają
          cel, dotknięcie kafla = wpłata do koperty. Ukryta bez celów. -->
     <div class="income-hero" id="goal-hero" style="display:none" role="button" tabindex="0" aria-label="Dodaj wpłatę do celu">
@@ -447,6 +450,15 @@
     </div>
 
     <button type="button" class="fab" onclick="openModal('modal-goal')" aria-label="Dodaj cel">+</button>
+  </div>
+
+  <!-- ========== Pregnancy Screen ========== -->
+  <div id="screen-pregnancy" class="screen list-screen">
+    <header class="header" aria-label="Nagłówek modułu ciąży">
+      <button type="button" class="back-btn" onclick="showScreen('screen-dashboard')" aria-label="Wróć">←</button>
+      <h1 class="header-title">👶 Maluch w śrubkach</h1>
+    </header>
+    <div id="pregnancy-content"></div>
   </div>
 
   <!-- ========== Achievements Screen ========== -->
@@ -712,6 +724,28 @@
   </div>
 
   <!-- Goal Modal -->
+  <div id="modal-pregnancy" class="modal" role="dialog" aria-label="Termin porodu" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>👶 Termin porodu</h2>
+        <button type="button" class="modal-close" onclick="closeAllModals()" aria-label="Zamknij">✕</button>
+      </div>
+      <form class="form" onsubmit="event.preventDefault(); Pregnancy.saveSetup();">
+        <div class="form-group">
+          <label for="preg-due">Termin porodu (z karty ciąży)</label>
+          <input type="date" id="preg-due" required>
+        </div>
+        <div class="form-group">
+          <label for="preg-lmp">…albo pierwszy dzień ostatniej miesiączki</label>
+          <input type="date" id="preg-lmp" oninput="Pregnancy.onLmpInput()" onchange="Pregnancy.onLmpInput()">
+        </div>
+        <p class="muted" style="font-size:12px;margin:0">Termin zobaczycie na obu telefonach. Co tydzień przyjdzie powiadomienie o nowym rozmiarze maluszka.</p>
+        <button type="submit" class="btn-primary">Zapisz</button>
+        <button type="button" class="preg-link preg-clear" id="preg-clear" onclick="Pregnancy.clearSetup()">Usuń termin</button>
+      </form>
+    </div>
+  </div>
+
   <div id="modal-goal" class="modal" role="dialog" aria-label="Formularz celu" onclick="closeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -1154,6 +1188,8 @@
   <script src="js/sync-manager.js"></script>
   <script src="js/update-manager.js"></script>
   <script src="js/ui-features.js"></script>
+  <script src="js/pregnancy-data.js"></script>
+  <script src="js/pregnancy.js"></script>
   <script src="js/app.js"></script>
   <script>
     // PIN - using PinManager

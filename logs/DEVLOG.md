@@ -32,6 +32,21 @@
 
 ## Daily Log
 
+### 2026-11-20: Moduł ciąży — maluch mierzony w śrubkach
+
+**Sytuacja:** Żona Kamila jest w ciąży. Prośba: moduł dla obojga rodziców jak w popularnych apkach ciążowych, ale rozmiar dziecka porównywany do wkrętów i śrub (z zastosowaniem i miejscem, gdzie je spotkać), do tego porady i powiadomienia o zmianie rozmiaru.
+
+**Wyzwanie:** Powiadomienia „jak w apkach" muszą przychodzić przy zamkniętej aplikacji, a FamilyGoals to WebView bez żadnej natywnej obsługi powiadomień. Termin porodu musi być wspólny dla dwóch telefonów.
+
+**Decyzja (Kamil wybrał z opcji):** systemowe powiadomienia Androida (nowy APK 1.4.0 zamiast samych komunikatów w apce) i kafelek + osobny ekran zamiast 7. przycisku w pasku. Plan powiadomień liczy JS (jedno źródło prawdy o tygodniach i tekstach), natywna strona tylko go przechowuje i budzi się AlarmManagerem (niedokładny budzik — bez uprawnienia do dokładnych alarmów). Termin w `settings`, które już się synchronizują — zero zmian w backendzie.
+
+**Dlaczego to ważne:** Tydzień ciąży liczony jako ukończone tygodnie + dni (zapis lekarski „14+1"), odporny na zmianę czasu; od 20. tygodnia tabele mierzą od główki do pięt, więc skok rozmiaru jest opisany w treści.
+
+**Wynik:** 171/171 testów, render headless (bez ruchu do backendu): tydz. 14+1, 26 zaplanowanych powiadomień, zero błędów JS, brak wystawania poza ekran.
+
+**Files:** `js/pregnancy*.js`, `index.html`, `css/main.css`, `android-apk/**`, `tests/pregnancy.test.js`
+
+
 ### 2026-08-24: Dwie sprzeczne konwencje w jeden dzień — i sprzątanie po tym
 
 **Sytuacja:** Kamil: „jestem zmieszany tym, jak teraz aplikacja wygląda (…)

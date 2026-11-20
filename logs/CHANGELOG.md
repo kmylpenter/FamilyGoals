@@ -13,6 +13,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 22 (2026-11-20) - Moduł ciąży „Maluch w śrubkach" (APK 1.4.0)
+
+#### Added
+- **Moduł ciąży** (żądanie Kamila): kafelek na stronie głównej (tydzień „14 tyg. + 1 dzień", rozmiar, dni do terminu) + ekran „Maluch w śrubkach" — rozmiar dziecka porównany do wkrętów i śrub zamiast owoców (tyg. 4–40, każdy tydzień inna śruba: do czego służy i gdzie ją spotkacie), śruba rysowana w skali na linijce 0–50 cm, przeglądanie tygodni strzałkami, porady osobno dla mamy i taty, kalendarz badań (podświetla bieżący etap), lista „jedźcie do szpitala od razu". Termin porodu w `settings.pregnancyDueDate` (synchronizuje się przez arkusz — bez deployu backendu); można go wyliczyć z daty ostatniej miesiączki (+280 dni). 7 testów. Files: `js/pregnancy-data.js`, `js/pregnancy.js`, `index.html`, `css/main.css`, `tests/pregnancy.test.js`, `tests/harness/load-app.js`
+- **Systemowe powiadomienia Androida o nowym tygodniu** (APK 1.4.0, versionCode 5): JS liczy plan (start każdego tygodnia o 9:00), mostek `window.FGNotify` zapisuje go natywnie, `AlarmManager` budzi apkę także gdy jest zamknięta; plan wraca po restarcie telefonu i aktualizacji APK; zgoda POST_NOTIFICATIONS (Android 13+); dotknięcie powiadomienia otwiera ekran ciąży. Bez mostka (stary APK/przeglądarka) — komunikat w apce przy otwarciu. Files: `android-apk/src/.../NotifyBridge.java`, `NotifyReceiver.java`, `PregnancyNotifier.java`, `MainActivity.java`, `android-apk/AndroidManifest.xml`, `android-apk/res/drawable/ic_notify.xml`
+
+
 ### Sesja 21 (2026-08-25) - Dymek wykresu dzieli wpłaty od korzyści firmowych
 
 #### Changed

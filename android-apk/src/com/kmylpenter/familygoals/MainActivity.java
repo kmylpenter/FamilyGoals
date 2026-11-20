@@ -32,6 +32,8 @@ import java.util.Scanner;
  */
 public class MainActivity extends Activity {
   private WebView web;
+  /** Cel otwarcia z powiadomienia (np. "pregnancy"), odbierany przez JS jednorazowo. */
+  static volatile String launchTarget;
 
   static File liveDir(Activity a) { return new File(a.getFilesDir(), "www-live"); }
 
@@ -44,6 +46,8 @@ public class MainActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    Intent launch = getIntent();
+    launchTarget = launch == null ? null : launch.getStringExtra(PregnancyNotifier.EXTRA_TARGET);
     web = new WebView(this);
     WebSettings s = web.getSettings();
     s.setJavaScriptEnabled(true);
@@ -56,6 +60,7 @@ public class MainActivity extends Activity {
     web.setWebChromeClient(new WebChromeClient());
     web.setWebViewClient(new AppWebViewClient(this));
     web.addJavascriptInterface(new Updater(this), "FGUpdater");
+    web.addJavascriptInterface(new NotifyBridge(this), "FGNotify");
 
     if (savedInstanceState != null) {
       web.restoreState(savedInstanceState);

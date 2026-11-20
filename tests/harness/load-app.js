@@ -24,6 +24,8 @@ const ALL_SCRIPTS = [
   'js/sync-manager.js',
   'js/update-manager.js',
   'js/ui-features.js',
+  'js/pregnancy-data.js',
+  'js/pregnancy.js',
   'js/app.js',
 ];
 // family-unity/family-balance: zarchiwizowane w js/archive/ (2026-07-24)
