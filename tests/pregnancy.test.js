@@ -92,3 +92,62 @@ test('buildSchedule: tylko przyszłe tygodnie, start tygodnia o 9:00', () => {
   assert.equal(u[0].week, 16);
   assert.equal(run("Pregnancy.buildSchedule('', new Date()).length"), 0);
 });
+
+test('strzałki: nie da się przewinąć w przyszłość, tylko wstecz', () => {
+  const { run } = fresh();
+  // bieżący 14: krok w przód zostaje na bieżącym (null = bieżący)
+  assert.equal(run('Pregnancy.nextViewWeek(14, null, 1)'), null);
+  assert.equal(run('Pregnancy.nextViewWeek(14, 13, 1)'), null, 'z 13 do 14 = powrót do bieżącego');
+  assert.equal(run('Pregnancy.nextViewWeek(14, 13, 5)'), null);
+  assert.equal(run('Pregnancy.nextViewWeek(14, null, -1)'), 13);
+  assert.equal(run('Pregnancy.nextViewWeek(14, 10, 1)'), 11);
+  assert.equal(run('Pregnancy.nextViewWeek(14, 4, -1)'), 4, 'nie mniej niż 4');
+  assert.equal(run('Pregnancy.nextViewWeek(14, 9, 0)'), null, '0 = wróć do bieżącego');
+  // podgląd „w przyszłości" (np. po zmianie terminu) liczy się od bieżącego — nigdy dalej
+  assert.equal(run('Pregnancy.nextViewWeek(14, 20, -1)'), 13);
+  assert.equal(run('Pregnancy.nextViewWeek(14, 20, 1)'), null);
+});
+
+test('osiągnięcia: treść kompletna, rosnące tygodnie, tygodnie pomiarowe zgodne z rozmiarami', () => {
+  const { run } = fresh();
+  const ach = JSON.parse(run('JSON.stringify(PREGNANCY_ACHIEVEMENTS)'));
+  const weeks = JSON.parse(run('JSON.stringify(PREGNANCY_WEEKS)'));
+  assert.ok(ach.length >= 15);
+  for (let i = 0; i < ach.length; i++) {
+    const a = ach[i];
+    if (i > 0) assert.ok(a.w > ach[i - 1].w, `${a.id}: tygodnie rosną`);
+    assert.ok(a.w >= 4 && a.w <= 41, `${a.id}: tydzień w zakresie`);
+    for (const k of ['id', 'icon', 'title', 'text']) assert.ok(a[k], `${a.id}: ${k}`);
+  }
+  assert.equal(new Set(ach.map((a) => a.id)).size, ach.length);
+  const firstWeek = (pred) => weeks.find(pred).w;
+  const byId = Object.fromEntries(ach.map((a) => [a.id, a.w]));
+  assert.equal(byId.kilogram, firstWeek((w) => w.g >= 1000));
+  assert.equal(byId.linijka, firstWeek((w) => w.cm > 30));
+  assert.equal(byId['pol-metra'], firstWeek((w) => w.cm >= 50));
+  assert.equal(byId.polmetek, 20);
+  // trymestry zgodne z progress(): II od 13., III od 27. tygodnia
+  assert.equal(run("Pregnancy.progress('2027-05-20', new Date(2026, 10, 12)).trimester"), 2); // 13+0
+  assert.equal(byId.trymestr2, 13);
+  assert.equal(byId.trymestr3, 27);
+  assert.equal(byId.donoszony, 37);
+});
+
+test('osiągnięcia: zdobyte tylko do bieżącego tygodnia, następne ukryte', () => {
+  const { run } = fresh();
+  const s = JSON.parse(run('JSON.stringify(Pregnancy.achievementState(14))'));
+  assert.deepEqual(s.unlocked.map((a) => a.id), ['start', 'serce', 'zegarmistrz', 'pralka', 'trymestr2']);
+  assert.equal(s.next.w, 16);
+  assert.equal(s.next.title, undefined, 'następne bez tytułu — bez spoilera');
+  assert.equal(s.locked + s.unlocked.length, run('PREGNANCY_ACHIEVEMENTS.length'));
+  assert.equal(run('Pregnancy.achievementState(3).unlocked.length'), 0);
+  const end = JSON.parse(run('JSON.stringify(Pregnancy.achievementState(41))'));
+  assert.equal(end.locked, 0);
+  assert.equal(end.next, null);
+});
+
+test('powiadomienie tygodnia z osiągnięciem dopisuje je do treści', () => {
+  const { run } = fresh();
+  assert.match(run('Pregnancy.notificationFor(28).text'), /🏆 Osiągnięcie: Pierwszy kilogram/);
+  assert.doesNotMatch(run('Pregnancy.notificationFor(29).text'), /Osiągnięcie/);
+});

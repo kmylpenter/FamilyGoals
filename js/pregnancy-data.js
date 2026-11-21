@@ -334,3 +334,54 @@ var PREGNANCY_RED_FLAGS = [
   'Gorączka powyżej 38°C',
   'Regularne skurcze przed 37. tygodniem'
 ];
+
+/**
+ * Zabawne osiągnięcia — odblokowują się na początku tygodnia `w` (bieżący
+ * tydzień ≥ w). Zablokowane są ukryte (bez tytułu), żeby nie podglądać przyszłości.
+ * Tygodnie „pomiarowe" (kilogram, linijka, pół metra) pilnuje test względem
+ * PREGNANCY_WEEKS.
+ */
+var PREGNANCY_ACHIEVEMENTS = [
+  { id: 'start', w: 4, icon: '🔩', title: 'Projekt zatwierdzony',
+    text: 'Pierwsza śrubka w zestawie. Instrukcja montażu: 40 tygodni, bez kluczyka imbusowego w komplecie.' },
+  { id: 'serce', w: 6, icon: '💓', title: 'Silnik odpalony',
+    text: 'Serduszko już pracuje — szybciej niż Wasze, i to bez przerwy na kawę.' },
+  { id: 'zegarmistrz', w: 8, icon: '🔍', title: 'Za duży na zegarmistrza',
+    text: 'Śrubokręt zegarmistrzowski już nie wystarczy. Pora na zestaw bitów.' },
+  { id: 'pralka', w: 11, icon: '🧺', title: 'Kuzyn pralki',
+    text: 'Maluch ma rozmiar nóżki od pralki. Od dziś każde pranie to rodzinne spotkanie.' },
+  { id: 'trymestr2', w: 13, icon: '📋', title: 'Odbiór techniczny: etap I',
+    text: 'Pierwszy trymestr podpisany. Mdłości mogą składać wypowiedzenie.' },
+  { id: 'mielone', w: 16, icon: '🥩', title: 'Mielone w niedzielę',
+    text: 'Maluch dorównał ślimakowi maszynki do mielenia. Babcia już wie, co będzie na obiad.' },
+  { id: 'kolej', w: 18, icon: '🚂', title: 'Pociąg odjeżdża planowo',
+    text: 'Rozmiar wkrętu kolejowego. Tu-tu! Pociąg do rodzicielstwa jedzie zgodnie z rozkładem.' },
+  { id: 'polmetek', w: 20, icon: '🏁', title: 'Półmetek',
+    text: 'Połowa drogi! Od teraz maluch mierzony jest od główki do pięt — jak porządny fachowiec, w całości.' },
+  { id: 'kopniaki', w: 22, icon: '🦶', title: 'Wiertarka udarowa',
+    text: 'Czujecie kopniaki? Tato, przyłóż dłoń — to jedyna wiertarka, której nie da się wyłączyć.' },
+  { id: 'sluch', w: 24, icon: '👂', title: 'Słyszy wszystko',
+    text: 'Maluch słyszy głosy z zewnątrz. Tato, czas na suchary — i tak nie ma jak uciec.' },
+  { id: 'linijka', w: 25, icon: '📏', title: 'Dłuższy niż linijka',
+    text: 'Ponad 30 cm — szkolna linijka oficjalnie za krótka.' },
+  { id: 'sto-dni', w: 26, icon: '⏳', title: 'Licznik dwucyfrowy',
+    text: 'Do terminu mniej niż 100 dni. Dobry moment, żeby skręcić łóżeczko — zostaną 3 śrubki, to normalne.' },
+  { id: 'trymestr3', w: 27, icon: '🏗️', title: 'Ostatnia prosta',
+    text: 'Trzeci trymestr. Ekipa wchodzi na wykończeniówkę: gładzie, fugi, pyzate policzki.' },
+  { id: 'kilogram', w: 28, icon: '⚖️', title: 'Pierwszy kilogram',
+    text: 'Maluch przebił kilogram. Kilogramowa paczka wkrętów z marketu — ta sama kategoria wagowa.' },
+  { id: 'druk', w: 30, icon: '🖨️', title: 'Drukowanie: 75%',
+    text: 'Pasek postępu na trzech czwartych. Nie otwierać drzwiczek drukarki!' },
+  { id: 'meble', w: 32, icon: '🛠️', title: 'Monter mebli dziecięcych',
+    text: 'Tata, komoda i przewijak same się nie skręcą. Instrukcja jest po szwedzku, obrazki po ludzku.' },
+  { id: 'gotowosc', w: 35, icon: '🚗', title: 'Tryb gotowości',
+    text: 'Tata zna drogę do szpitala na pamięć. I objazd też. Bak pełny?' },
+  { id: 'donoszony', w: 37, icon: '✅', title: 'Kontrola jakości: OK',
+    text: 'Ciąża donoszona — produkt spełnia normy. Dostawa możliwa w każdej chwili, kurier nie dzwoni wcześniej.' },
+  { id: 'pol-metra', w: 39, icon: '📐', title: 'Pół metra szczęścia',
+    text: 'Ponad 50 cm — dłuższy niż poziomica z Twojej skrzynki.' },
+  { id: 'termin', w: 40, icon: '🎉', title: 'Termin dostawy',
+    text: 'Planowany dzień dostawy. Tylko co ok. 20. maluch przychodzi dokładnie w terminie — reszta ma własny harmonogram.' },
+  { id: 'spoznienie', w: 41, icon: '🐌', title: 'Kurier się spóźnia',
+    text: 'Paczka po terminie. Spokojnie, to częste — lekarz pilnuje, kiedy odebrać ją osobiście.' }
+];

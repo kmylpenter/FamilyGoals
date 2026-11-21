@@ -93,10 +93,44 @@ var Pregnancy = (function () {
 
   function notificationFor(week) {
     var d = weekData(week);
+    var text = 'Tyle co ' + d.screw.name.toLowerCase() + ' (' + d.screw.size + '). Zajrzyj, co nowego dla mamy i taty.';
+    var ach = achievementsOfWeek(week);
+    if (ach.length) text += ' 🏆 Osiągnięcie: ' + ach.map(function (a) { return a.title; }).join(', ') + '!';
     return {
       title: '👶 ' + week + '. tydzień — maluch ma ok. ' + formatLength(d.cm),
-      text: 'Tyle co ' + d.screw.name.toLowerCase() + ' (' + d.screw.size + '). Zajrzyj, co nowego dla mamy i taty.'
+      text: text
     };
+  }
+
+  function achievementsOfWeek(week) {
+    var list = typeof PREGNANCY_ACHIEVEMENTS !== 'undefined' ? PREGNANCY_ACHIEVEMENTS : [];
+    return list.filter(function (a) { return a.w === week; });
+  }
+
+  /**
+   * Osiągnięcia na bieżący tydzień: zdobyte (w ≤ week), liczba zablokowanych
+   * i najbliższe — tylko jego tydzień, bez tytułu i treści (bez spoilera).
+   */
+  function achievementState(week) {
+    var list = typeof PREGNANCY_ACHIEVEMENTS !== 'undefined' ? PREGNANCY_ACHIEVEMENTS : [];
+    var unlocked = [], locked = 0, next = null;
+    list.forEach(function (a) {
+      if (a.w <= week) { unlocked.push(a); return; }
+      locked++;
+      if (!next) next = { w: a.w };
+    });
+    return { unlocked: unlocked, locked: locked, next: next };
+  }
+
+  /**
+   * Strzałki tygodni: wolno oglądać tylko przeszłość. Zwraca nowy oglądany
+   * tydzień albo null (= bieżący). delta 0 = powrót do bieżącego.
+   */
+  function nextViewWeek(cur, view, delta) {
+    if (!delta) return null;
+    var from = view == null || view > cur ? cur : view;
+    var w = Math.max(4, Math.min(cur, from + delta));
+    return w >= cur ? null : w;
   }
 
   /**
@@ -176,6 +210,8 @@ var Pregnancy = (function () {
   // ---------- UI ----------
 
   var viewWeek = null; // tydzień oglądany na ekranie (strzałki), null = bieżący
+  var achSeenBefore = null; // tydzień osiągnięć widziany przed tym otwarciem ekranu (znaczek „nowe")
+  var ACH_SEEN_KEY = 'fg_pregnancy_ach_seen'; // per urządzenie
 
   function esc(s) {
     return typeof escapeHtml === 'function' ? escapeHtml(String(s)) : String(s);
@@ -252,7 +288,7 @@ var Pregnancy = (function () {
       return;
     }
     var cur = Math.max(4, Math.min(40, p.week));
-    var w = viewWeek == null ? cur : viewWeek;
+    var w = viewWeek == null || viewWeek > cur ? cur : viewWeek; // przyszłości nie pokazujemy
     var d = weekData(w);
     var isCur = w === cur;
     var weight = formatWeight(d.g);
@@ -263,7 +299,7 @@ var Pregnancy = (function () {
       '<div class="preg-hero-nav">' +
         '<button type="button" class="preg-arrow" onclick="Pregnancy.shiftWeek(-1)" aria-label="Poprzedni tydzień"' + (w <= 4 ? ' disabled' : '') + '>‹</button>' +
         '<div class="preg-hero-size">' + esc(formatLength(d.cm)) + (weight ? '<span> · ' + esc(weight) + '</span>' : '') + '</div>' +
-        '<button type="button" class="preg-arrow" onclick="Pregnancy.shiftWeek(1)" aria-label="Następny tydzień"' + (w >= 40 ? ' disabled' : '') + '>›</button>' +
+        '<button type="button" class="preg-arrow" onclick="Pregnancy.shiftWeek(1)" aria-label="Następny tydzień"' + (isCur ? ' disabled title="Przyszłe tygodnie odblokują się same"' : '') + '>›</button>' +
       '</div>' +
       screwSvg(d.cm) +
       '<div class="preg-screw-name">🔩 ' + esc(d.screw.name) + ' <span>' + esc(d.screw.size) + '</span></div>' +
@@ -277,6 +313,8 @@ var Pregnancy = (function () {
           (p.overdue ? (-p.daysLeft) + ' dni po terminie' : 'do terminu: ' + p.daysLeft + ' dni') + '</span></div>' +
         '</div>';
     }
+
+    if (isCur) html += achievementsHtml(p.week);
 
     html += section('🔧 Do czego służy', esc(d.screw.use) + '<div class="preg-where">📍 ' + esc(d.screw.where) + '</div>');
     html += section('👶 Co u maluszka', esc(d.baby));
@@ -301,6 +339,30 @@ var Pregnancy = (function () {
       '</div>';
 
     el.innerHTML = html;
+  }
+
+  function achievementsHtml(week) {
+    var s = achievementState(week);
+    var seen = achSeenBefore;
+    var newest = s.unlocked.slice().reverse();
+    var li = function (a) {
+      var isNew = seen != null && a.w > seen;
+      return '<li class="preg-ach' + (isNew ? ' preg-ach-new' : '') + '">' +
+        '<span class="preg-ach-icon" aria-hidden="true">' + a.icon + '</span>' +
+        '<div><div class="preg-ach-title">' + esc(a.title) + (isNew ? ' <span class="preg-ach-badge">nowe!</span>' : '') +
+          ' <span class="preg-ach-week">' + a.w + '. tydz.</span></div>' +
+        '<div class="preg-ach-text">' + esc(a.text) + '</div></div></li>';
+    };
+    // Widać 3 najnowsze (albo wszystkie „nowe"), resztę po rozwinięciu
+    var shown = Math.max(3, newest.filter(function (a) { return seen != null && a.w > seen; }).length);
+    var rest = newest.slice(shown);
+    var body = (newest.length ? '<ul class="preg-ach-list">' + newest.slice(0, shown).map(li).join('') + '</ul>' +
+        (rest.length ? '<details class="preg-ach-more"><summary>Pokaż wcześniejsze (' + rest.length + ')</summary>' +
+          '<ul class="preg-ach-list">' + rest.map(li).join('') + '</ul></details>' : '')
+      : '<p class="muted">Pierwsze osiągnięcie w 4. tygodniu.</p>') +
+      (s.next ? '<div class="preg-ach-next">🔒 Następne odblokuje się w ' + s.next.w + '. tygodniu · do zdobycia jeszcze ' + s.locked + '</div>'
+        : '<div class="preg-ach-next">Komplet! Wszystkie śrubki dokręcone 🔩</div>');
+    return section('🏆 Osiągnięcia · ' + s.unlocked.length + '/' + (s.unlocked.length + s.locked), body, 'preg-ach-card');
   }
 
   function section(title, body, cls) {
@@ -331,14 +393,16 @@ var Pregnancy = (function () {
   function shiftWeek(delta) {
     var p = progress(getDue());
     if (!p) return;
-    var cur = Math.max(4, Math.min(40, p.week));
-    viewWeek = delta === 0 ? null : Math.max(4, Math.min(40, (viewWeek == null ? cur : viewWeek) + delta));
-    if (viewWeek === cur) viewWeek = null;
+    viewWeek = nextViewWeek(Math.max(4, Math.min(40, p.week)), viewWeek, delta);
     renderScreen();
   }
 
   function open() {
     viewWeek = null;
+    var p = progress(getDue());
+    var seen = parseInt(lsGet(ACH_SEEN_KEY), 10);
+    achSeenBefore = isNaN(seen) ? null : seen; // pierwsze otwarcie: bez znaczków „nowe"
+    if (p) lsSet(ACH_SEEN_KEY, String(p.week));
     renderScreen();
     if (typeof showScreen === 'function') showScreen('screen-pregnancy');
   }
@@ -421,7 +485,7 @@ var Pregnancy = (function () {
     // czyste (testy)
     parseYmd: parseYmd, dueFromLmp: dueFromLmp, progress: progress, weekData: weekData,
     formatLength: formatLength, formatWeight: formatWeight, buildSchedule: buildSchedule,
-    notificationFor: notificationFor,
+    notificationFor: notificationFor, achievementState: achievementState, nextViewWeek: nextViewWeek,
     // UI
     open: open, openSetup: openSetup, saveSetup: saveSetup, clearSetup: clearSetup,
     onLmpInput: onLmpInput, shiftWeek: shiftWeek, askPermission: askPermission,

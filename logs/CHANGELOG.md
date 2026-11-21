@@ -13,6 +13,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+### Sesja 23 (2026-11-21) - Ciąża: zabawne osiągnięcia + bez podglądania przyszłości
+
+#### Added
+- **Osiągnięcia ciąży** (żądanie Kamila): 21 zabawnych osiągnięć „w śrubkach” (np. 28. tydz. „Pierwszy kilogram”, 20. „Półmetek”, 37. „Kontrola jakości: OK”) odblokowywanych z tygodniem; zablokowane ukryte (widać tylko tydzień następnego), znaczek „nowe!” od ostatniego otwarcia, 3 najnowsze + „Pokaż wcześniejsze”; tydzień z osiągnięciem dopisuje je do powiadomienia (bez nowego APK). Test pilnuje, że tygodnie „kilogram/linijka/pół metra” zgadzają się z tabelą rozmiarów. Files: `js/pregnancy-data.js`, `js/pregnancy.js`, `css/main.css`, `tests/pregnancy.test.js`
+
+#### Changed
+- **Strzałki tygodni tylko wstecz**: nie da się przewinąć poza bieżący tydzień (strzałka „›” wyszarzona na bieżącym), przeszłe rozmiary dalej do obejrzenia. Files: `js/pregnancy.js`, `tests/pregnancy.test.js`
+
 ### Sesja 22 (2026-11-20) - Moduł ciąży „Maluch w śrubkach" (APK 1.4.0)
 
 #### Added
